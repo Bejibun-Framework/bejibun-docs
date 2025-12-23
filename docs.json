@@ -1,5 +1,5 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "$schema": "https://bejibun.com/docs.json",
   "theme": "mint",
   "name": "Bejibun",
   "colors": {
@@ -77,7 +77,7 @@
         },
         {
           "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
+          "href": "https://bejibun.com/blog",
           "icon": "newspaper"
         }
       ]
