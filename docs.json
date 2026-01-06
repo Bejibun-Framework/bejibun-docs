@@ -91,7 +91,7 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:havea.crenata@gmail.com"
+        "href": "mailto:havea@bejibun.com"
       }
     ],
     "primary": {
@@ -115,7 +115,7 @@
   "footer": {
     "socials": {
       "x": "https://x.com/bjbnframework",
-      "github": "https://github.com/crenata/bejibun",
+      "github": "https://github.com/Bejibun-Framework/bejibun",
       "telegram": "https://t.me/BejibunPortal"
     }
   }
