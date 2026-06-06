@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Bejibun",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FF6C02",
+    "light": "#FF6C02",
+    "dark": "#FF6C02"
   },
   "favicon": "/logo/bejibun.png",
   "navigation": {
@@ -14,35 +14,50 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Introduction",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction/what-is-bejibun",
+              "introduction/why-bejibun",
+              "introduction/framework-philosophy",
+              "introduction/feature-overview",
+              "introduction/release-cycle"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Getting Started",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "getting-started/installation",
+              "getting-started/creating-your-first-application",
+              "getting-started/project-structure",
+              "getting-started/configuration",
+              "getting-started/environment-variables",
+              "getting-started/deployment-overview"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "core-concepts/request-lifecycle",
+              "core-concepts/service-container",
+              "core-concepts/dependency-injection",
+              "core-concepts/configuration-system",
+              "core-concepts/logging",
+              "core-concepts/error-handling"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "HTTP Layer",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "http-layer/routing",
+              "http-layer/route-parameters",
+              "http-layer/route-groups",
+              "http-layer/route-model-binding",
+              "http-layer/controllers",
+              "http-layer/middleware",
+              "http-layer/request-object",
+              "http-layer/response-object",
+              "http-layer/cookies",
+              "http-layer/file-uploads"
             ]
           }
         ]
@@ -102,15 +117,15 @@
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {

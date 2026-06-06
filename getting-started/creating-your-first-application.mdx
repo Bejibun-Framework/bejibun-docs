@@ -1,0 +1,513 @@
+---
+title: Creating Your First Application
+description: Build your first Bejibun application and learn the fundamental concepts of routing, controllers, validation, and database interaction.
+---
+
+# Creating Your First Application
+
+Now that Bejibun is installed, it's time to build your first application.
+
+In this guide, you'll create a simple User Management API while learning the framework's core concepts:
+
+- Routing
+- Controllers
+- Request Handling
+- Validation
+- Models
+- Database Operations
+
+By the end of this guide, you'll understand how a typical Bejibun application is structured and how its components work together.
+
+---
+
+# What We Are Building
+
+We'll create a small API that allows users to:
+
+```text
+GET    /users
+GET    /users/:id
+POST   /users
+PUT    /users/:id
+DELETE /users/:id
+```
+
+Example response:
+
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+Although simple, this application demonstrates the most common patterns you'll use in real-world projects.
+
+---
+
+# Step 1: Create a New Project
+
+If you haven't already created a project:
+
+```bash
+bunx @bejibun/cli create my-app
+```
+
+Navigate into the project:
+
+```bash
+cd my-app
+```
+
+Start the development server:
+
+```bash
+bun dev
+```
+
+---
+
+# Step 2: Generate a User Model
+
+Models represent database tables.
+
+Generate a model:
+
+```bash
+bun ace make:model User
+```
+
+Generated file:
+
+```text
+app/Models/User.ts
+```
+
+Example:
+
+```ts
+import BaseModel from "@bejibun/core/database/BaseModel";
+
+export default class User extends BaseModel {
+  static tableName = "users";
+}
+```
+
+The model provides an object-oriented interface for interacting with database records.
+
+---
+
+# Step 3: Create a Migration
+
+Database tables are managed through migrations.
+
+Generate a migration:
+
+```bash
+bun ace make:migration create_users_table
+```
+
+Example migration:
+
+```ts
+import { Schema } from "@bejibun/core/database";
+
+export default class extends Schema {
+  async up() {
+    this.createTable("users", table => {
+      table.id();
+
+      table.string("name");
+
+      table.string("email").unique();
+
+      table.timestamps();
+    });
+  }
+
+  async down() {
+    this.dropTable("users");
+  }
+}
+```
+
+Run the migration:
+
+```bash
+bun ace migrate:latest
+```
+
+This creates the `users` table in your database.
+
+---
+
+# Step 4: Generate a Controller
+
+Controllers contain your application's request handling logic.
+
+Generate a controller:
+
+```bash
+bun ace make:controller UserController
+```
+
+Generated file:
+
+```text
+app/Controllers/UserController.ts
+```
+
+Example:
+
+```ts
+export default class UserController {}
+```
+
+We'll implement functionality shortly.
+
+---
+
+# Step 5: Register Routes
+
+Open your routes file:
+
+```text
+routes/index.ts
+```
+
+Register user routes:
+
+```ts
+Router.get("/users", "UserController@index");
+
+Router.get("/users/:id", "UserController@show");
+
+Router.post("/users", "UserController@store");
+
+Router.put("/users/:id", "UserController@update");
+
+Router.delete("/users/:id", "UserController@destroy");
+```
+
+Each route maps an HTTP request to a controller action.
+
+---
+
+# Step 6: Implement the Controller
+
+Let's add the controller methods.
+
+```ts
+import User from "#models/User";
+
+export default class UserController {
+  async index() {
+    return User.all();
+  }
+
+  async show({ params }) {
+    return User.findOrFail(params.id);
+  }
+
+  async store({ request }) {
+    return User.create(
+      request.all()
+    );
+  }
+
+  async update({
+    params,
+    request
+  }) {
+    const user =
+      await User.findOrFail(params.id);
+
+    await user.update(
+      request.all()
+    );
+
+    return user;
+  }
+
+  async destroy({ params }) {
+    const user =
+      await User.findOrFail(params.id);
+
+    await user.delete();
+
+    return {
+      success: true
+    };
+  }
+}
+```
+
+This controller provides complete CRUD functionality.
+
+---
+
+# Step 7: Add Validation
+
+Accepting user input without validation is dangerous.
+
+Generate a validator:
+
+```bash
+bun ace make:validator CreateUserValidator
+```
+
+Example:
+
+```ts
+import vine from "@vinejs/vine";
+
+export const CreateUserValidator =
+  vine.compile(
+    vine.object({
+      name: vine.string(),
+
+      email: vine.string().email()
+    })
+  );
+```
+
+Use the validator:
+
+```ts
+import {
+  CreateUserValidator
+} from "#validators/CreateUserValidator";
+
+async store({ request }) {
+  const payload =
+    await request.validate(
+      CreateUserValidator
+    );
+
+  return User.create(payload);
+}
+```
+
+Now incoming data is validated before reaching your business logic.
+
+---
+
+# Step 8: Test the API
+
+Create a user:
+
+```http
+POST /users
+```
+
+Request body:
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+Retrieve users:
+
+```http
+GET /users
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+]
+```
+
+Retrieve a specific user:
+
+```http
+GET /users/1
+```
+
+---
+
+# Understanding the Request Flow
+
+When a request reaches your application, it passes through several layers.
+
+```text
+Client Request
+       │
+       ▼
+     Route
+       │
+       ▼
+  Middleware
+       │
+       ▼
+   Validation
+       │
+       ▼
+  Controller
+       │
+       ▼
+    Model
+       │
+       ▼
+  Database
+       │
+       ▼
+   Response
+```
+
+Understanding this flow is critical for building maintainable applications.
+
+---
+
+# Organizing Business Logic
+
+As applications grow, controllers should remain thin.
+
+Avoid:
+
+```ts
+async store({ request }) {
+  // hundreds of lines of logic
+}
+```
+
+Instead:
+
+```ts
+async store({ request }) {
+  return UserService.create(
+    request.all()
+  );
+}
+```
+
+Example service:
+
+```ts
+export default class UserService {
+  static async create(data) {
+    return User.create(data);
+  }
+}
+```
+
+This improves maintainability and testability.
+
+---
+
+# Error Handling
+
+Database lookups may fail.
+
+Example:
+
+```ts
+await User.findOrFail(999);
+```
+
+If the user does not exist, Bejibun automatically returns an appropriate error response.
+
+Example:
+
+```json
+{
+  "message": "User not found"
+}
+```
+
+Framework-provided error handling helps maintain consistency across applications.
+
+---
+
+# Using Resource Controllers
+
+For standard CRUD endpoints, Bejibun may provide resource routing.
+
+Instead of:
+
+```ts
+Router.get("/users", "UserController@index");
+
+Router.post("/users", "UserController@store");
+
+Router.put("/users/:id", "UserController@update");
+
+Router.delete("/users/:id", "UserController@destroy");
+```
+
+You can use:
+
+```ts
+Router.resource(
+  "users",
+  UserController
+);
+```
+
+This generates a complete set of conventional CRUD routes automatically.
+
+---
+
+# What You Have Learned
+
+In this guide, you:
+
+- Created a Bejibun project
+- Generated a model
+- Created a migration
+- Built a controller
+- Registered routes
+- Added validation
+- Performed database operations
+- Tested an API endpoint
+
+These concepts form the foundation of most Bejibun applications.
+
+---
+
+# Common Next Steps
+
+After completing this tutorial, developers typically move on to:
+
+- Authentication
+- Authorization
+- Relationships
+- File Uploads
+- Caching
+- Background Jobs
+- API Documentation
+
+Each of these topics builds upon the concepts introduced here.
+
+---
+
+# Next Steps
+
+Continue to:
+
+- Project Structure
+- Configuration
+- Environment Variables
+- Request Lifecycle
+
+In the next chapter, you'll explore how a Bejibun application is organized and learn the purpose of each directory within a project.

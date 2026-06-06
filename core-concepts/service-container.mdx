@@ -1,0 +1,694 @@
+---
+title: Project Structure
+description: Understand the directory structure of a Bejibun application and learn where different parts of your code belong.
+---
+
+# Project Structure
+
+A well-organized project structure makes applications easier to develop, maintain, and scale.
+
+Bejibun follows a convention-driven architecture that provides a predictable layout for application code. Whether you're working on a personal project or collaborating with a large team, understanding the project structure will help you navigate the framework more efficiently.
+
+This guide explains the purpose of each directory and how the different parts of a Bejibun application work together.
+
+---
+
+# Overview
+
+A freshly created Bejibun application may look similar to the following:
+
+```text
+my-app/
+├── app/
+├── bootstrap/
+├── config/
+├── database/
+├── public/
+├── routes/
+├── storage/
+├── tests/
+├── .env
+├── .env.example
+├── bunfig.toml
+├── package.json
+└── tsconfig.json
+```
+
+The exact structure may evolve as the framework grows, but the core principles remain the same.
+
+---
+
+# The `app` Directory
+
+The `app` directory contains the primary application code.
+
+```text
+app/
+├── Controllers/
+├── Middleware/
+├── Models/
+├── Services/
+├── Validators/
+├── Jobs/
+├── Events/
+├── Listeners/
+└── Policies/
+```
+
+Most of your daily development work will take place here.
+
+---
+
+## Controllers
+
+Controllers handle incoming HTTP requests.
+
+```text
+app/
+└── Controllers/
+    └── UserController.ts
+```
+
+Example:
+
+```ts
+export default class UserController {
+  async index() {
+    return User.all();
+  }
+}
+```
+
+Controllers should focus on request handling rather than complex business logic.
+
+Responsibilities:
+
+- Processing requests
+- Returning responses
+- Calling services
+- Coordinating application flow
+
+Avoid placing database-heavy or business-critical logic directly inside controllers.
+
+---
+
+## Models
+
+Models represent database entities.
+
+```text
+app/
+└── Models/
+    └── User.ts
+```
+
+Example:
+
+```ts
+export default class User extends BaseModel {
+  static tableName = "users";
+}
+```
+
+Models typically handle:
+
+- Database interaction
+- Relationships
+- Query scopes
+- Data serialization
+
+---
+
+## Middleware
+
+Middleware executes before or after a request reaches a controller.
+
+```text
+app/
+└── Middleware/
+    └── AuthMiddleware.ts
+```
+
+Example:
+
+```ts
+export default class AuthMiddleware {
+  async handle(ctx, next) {
+    await next();
+  }
+}
+```
+
+Common use cases:
+
+- Authentication
+- Authorization
+- Logging
+- Rate limiting
+- Request transformation
+
+---
+
+## Validators
+
+Validators define rules for incoming data.
+
+```text
+app/
+└── Validators/
+    └── CreateUserValidator.ts
+```
+
+Example:
+
+```ts
+export const CreateUserValidator =
+  vine.compile(
+    vine.object({
+      name: vine.string(),
+      email: vine.string().email()
+    })
+  );
+```
+
+Keeping validation separate from controllers improves maintainability and reusability.
+
+---
+
+## Services
+
+Services contain business logic.
+
+```text
+app/
+└── Services/
+    └── UserService.ts
+```
+
+Example:
+
+```ts
+export default class UserService {
+  static async create(data) {
+    return User.create(data);
+  }
+}
+```
+
+Services help keep controllers focused and prevent business rules from being scattered throughout the application.
+
+---
+
+## Jobs
+
+Jobs represent background tasks.
+
+```text
+app/
+└── Jobs/
+    └── SendWelcomeEmailJob.ts
+```
+
+Example:
+
+```ts
+export default class SendWelcomeEmailJob {
+  async handle(user) {
+    //
+  }
+}
+```
+
+Jobs are useful for:
+
+- Email delivery
+- Notifications
+- Data processing
+- Report generation
+
+---
+
+## Events
+
+Events describe actions that occur within the application.
+
+```text
+app/
+└── Events/
+    └── UserRegistered.ts
+```
+
+Example:
+
+```ts
+export default class UserRegistered {
+  constructor(
+    public user: User
+  ) {}
+}
+```
+
+Events help decouple application components.
+
+---
+
+## Listeners
+
+Listeners respond to events.
+
+```text
+app/
+└── Listeners/
+    └── SendWelcomeEmail.ts
+```
+
+Example:
+
+```ts
+export default class SendWelcomeEmail {
+  async handle(event) {
+    //
+  }
+}
+```
+
+A single event may have multiple listeners.
+
+---
+
+## Policies
+
+Policies define authorization rules.
+
+```text
+app/
+└── Policies/
+    └── PostPolicy.ts
+```
+
+Example:
+
+```ts
+export default class PostPolicy {
+  update(user, post) {
+    return user.id === post.userId;
+  }
+}
+```
+
+Policies centralize access control logic.
+
+---
+
+# The `routes` Directory
+
+The `routes` directory defines application endpoints.
+
+```text
+routes/
+└── index.ts
+```
+
+Example:
+
+```ts
+Router.get("/", "HomeController@index");
+
+Router.resource(
+  "users",
+  UserController
+);
+```
+
+As applications grow, routes may be organized into multiple files.
+
+Example:
+
+```text
+routes/
+├── api.ts
+├── web.ts
+├── admin.ts
+└── index.ts
+```
+
+This separation improves maintainability.
+
+---
+
+# The `config` Directory
+
+The `config` directory stores framework and application configuration.
+
+```text
+config/
+├── app.ts
+├── database.ts
+├── auth.ts
+├── cache.ts
+└── storage.ts
+```
+
+Example:
+
+```ts
+export default {
+  name: "Bejibun App"
+};
+```
+
+Configuration files should contain application settings rather than business logic.
+
+---
+
+# The `database` Directory
+
+Database-related resources are stored here.
+
+```text
+database/
+├── migrations/
+├── seeders/
+└── factories/
+```
+
+---
+
+## Migrations
+
+Schema definitions live inside migrations.
+
+```text
+database/
+└── migrations/
+```
+
+Example:
+
+```ts
+export default class CreateUsersTable {}
+```
+
+Migrations allow schema changes to be tracked through version control.
+
+---
+
+## Seeders
+
+Seeders populate the database with data.
+
+```text
+database/
+└── seeders/
+```
+
+Example:
+
+```ts
+export default class UserSeeder {}
+```
+
+Seeders are commonly used during development and testing.
+
+---
+
+## Factories
+
+Factories generate realistic testing data.
+
+```text
+database/
+└── factories/
+```
+
+Example:
+
+```ts
+UserFactory.create();
+```
+
+Factories simplify automated testing and development workflows.
+
+---
+
+# The `bootstrap` Directory
+
+The bootstrap directory is responsible for starting the application.
+
+```text
+bootstrap/
+```
+
+Typical responsibilities:
+
+- Framework initialization
+- Service registration
+- Application startup
+- Dependency loading
+
+Most developers rarely modify bootstrap files.
+
+---
+
+# The `public` Directory
+
+Publicly accessible assets are stored here.
+
+```text
+public/
+├── favicon.ico
+├── images/
+└── robots.txt
+```
+
+Files in this directory may be served directly by the web server.
+
+Examples:
+
+- Images
+- Icons
+- Static assets
+- Generated documentation
+
+Avoid storing sensitive information here.
+
+---
+
+# The `storage` Directory
+
+The storage directory contains runtime-generated files.
+
+```text
+storage/
+├── logs/
+├── cache/
+├── uploads/
+└── temp/
+```
+
+Typical contents include:
+
+- Application logs
+- Cached data
+- Temporary files
+- Uploaded content
+
+This directory is often excluded from version control.
+
+---
+
+# The `tests` Directory
+
+Automated tests belong in the tests directory.
+
+```text
+tests/
+├── unit/
+├── integration/
+└── feature/
+```
+
+Example:
+
+```text
+tests/
+└── feature/
+    └── UserTest.ts
+```
+
+Testing helps ensure application reliability and prevents regressions.
+
+---
+
+# Root Configuration Files
+
+Several important files exist at the project root.
+
+---
+
+## `.env`
+
+Contains environment-specific variables.
+
+```env
+APP_NAME=Bejibun
+APP_ENV=development
+```
+
+Never commit sensitive values to version control.
+
+---
+
+## `.env.example`
+
+Provides a template for required environment variables.
+
+```env
+APP_NAME=
+APP_ENV=
+```
+
+New team members can copy this file and fill in their own values.
+
+---
+
+## `package.json`
+
+Defines project metadata and scripts.
+
+Example:
+
+```json
+{
+  "scripts": {
+    "dev": "bun run dev"
+  }
+}
+```
+
+---
+
+## `tsconfig.json`
+
+TypeScript compiler configuration.
+
+Example:
+
+```json
+{
+  "compilerOptions": {}
+}
+```
+
+This file controls TypeScript behavior throughout the project.
+
+---
+
+## `bunfig.toml`
+
+Bun-specific configuration.
+
+Example:
+
+```toml
+[test]
+preload = ["./tests/setup.ts"]
+```
+
+Used to configure runtime and development settings.
+
+---
+
+# Recommended Organization
+
+As your application grows, organize code by responsibility.
+
+Good:
+
+```text
+app/
+├── Controllers/
+├── Models/
+├── Services/
+├── Validators/
+└── Policies/
+```
+
+Avoid:
+
+```text
+app/
+├── misc/
+├── helpers/
+├── random/
+└── temp/
+```
+
+Clear organization improves discoverability and maintainability.
+
+---
+
+# A Typical Request Journey
+
+To understand how these directories work together, consider a request to create a user.
+
+```text
+Client Request
+       │
+       ▼
+routes/
+       │
+       ▼
+Middleware/
+       │
+       ▼
+Validators/
+       │
+       ▼
+Controllers/
+       │
+       ▼
+Services/
+       │
+       ▼
+Models/
+       │
+       ▼
+Database
+```
+
+Each layer has a distinct responsibility, making applications easier to reason about and maintain.
+
+---
+
+# What You Should Remember
+
+The most important directories are:
+
+| Directory | Purpose |
+|------------|----------|
+| app | Application code |
+| routes | Route definitions |
+| config | Configuration |
+| database | Migrations and seeders |
+| public | Public assets |
+| storage | Runtime files |
+| tests | Automated tests |
+
+If you're ever unsure where code belongs, ask yourself:
+
+> "What responsibility does this code have?"
+
+The answer usually determines its location.
+
+---
+
+# Next Steps
+
+Now that you understand the structure of a Bejibun application, continue to:
+
+- Configuration
+- Environment Variables
+- Request Lifecycle
+
+The next chapter explains how configuration works and how to customize your application's behavior across different environments.

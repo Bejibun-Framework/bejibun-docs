@@ -1,0 +1,624 @@
+---
+title: Feature Overview
+description: Explore the core features that make Bejibun a complete framework for building modern TypeScript applications on Bun.
+---
+
+# Feature Overview
+
+Bejibun provides a comprehensive set of tools for building backend applications, APIs, realtime systems, and modern services using TypeScript and Bun.
+
+Rather than assembling dozens of independent libraries, Bejibun delivers a cohesive ecosystem where every component is designed to work together.
+
+This guide introduces the framework's major features and provides a high-level overview of how they fit into your application architecture.
+
+---
+
+## The Complete Development Stack
+
+A typical Bejibun application consists of several layers:
+
+```text
+┌───────────────────────────┐
+│       HTTP Request        │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│          Routing          │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│        Middleware         │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│        Validation         │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│        Controllers        │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│ Services / Business Logic │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│     Models & Database     │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│       HTTP Response       │
+└───────────────────────────┘
+```
+
+Each layer has a clear responsibility, helping applications remain organized as they grow.
+
+---
+
+# HTTP Layer
+
+The HTTP layer is responsible for receiving, processing, and responding to client requests.
+
+## Routing
+
+Routes define how incoming requests are handled.
+
+```ts
+Router.get("/users", "UserController@index");
+
+Router.post("/users", "UserController@store");
+```
+
+Routes support:
+
+- HTTP methods
+- Route parameters
+- Route groups
+- Prefixes
+- Middleware
+- Named routes
+- Resource controllers
+
+Example:
+
+```ts
+Router.prefix("api").group([
+    Router.get("/users", "UserController@index")
+]);
+```
+
+---
+
+## Controllers
+
+Controllers organize request handling logic into dedicated classes.
+
+```ts
+export default class UserController {
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        const users = await User.all();
+
+        return super.response.setData(users).send();
+    }
+
+    public async detail(request: Bun.BunRequest): Promise<Response> {
+        const payload = await super.parse(request);
+        await super.validate(UserValidator.detail, payload);
+
+        const user = await TestModel.findOrFail(payload.id as number | string);
+
+        return super.response.setData(user).send();
+    }
+}
+```
+
+Controllers help keep routing files clean while promoting separation of concerns.
+
+---
+
+## Middleware
+
+Middleware executes before or after a request reaches a controller.
+
+Common use cases include:
+
+- Authentication
+- Authorization
+- Logging
+- Request transformation
+- Rate limiting
+- API versioning
+
+```ts
+Router.middleware(new AuthMiddleware()).group([
+    Router.get("/profile", "ProfileController@show")
+]);
+```
+
+---
+
+## Request & Response Objects
+
+Bejibun provides expressive APIs for working with incoming requests and outgoing responses.
+
+Request:
+
+```ts
+const payload = await super.parse(request);
+```
+
+Response:
+
+```ts
+return super.response.setData(users).send();
+```
+
+The framework automatically handles common response types such as:
+
+- JSON
+- Text
+- Streams
+- File downloads
+- Redirects
+
+---
+
+# Validation
+
+Input validation is a critical part of application security and reliability.
+
+Bejibun integrates validation directly into the request lifecycle.
+
+```ts
+const payload = await super.parse(request);
+await super.validate(UserValidator.create, payload);
+```
+
+Example validator:
+
+```ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
+import TestModel from "@/app/models/TestModel";
+
+export default class TestValidator extends BaseValidator {
+    public static get edit(): ValidatorType {
+        return super.validator.create({
+            id: super.validator.number().min(1).exists(TestModel, "id"),
+            name: super.validator.string()
+        });
+    }
+}
+```
+
+Validation features include:
+
+- Type-safe validation
+- Custom rules
+- Database existence checks
+- Unique constraints
+- Custom messages
+- Nested object validation
+
+---
+
+# Database Layer
+
+Most applications interact with one or more databases.
+
+Bejibun provides multiple tools for managing data efficiently.
+
+---
+
+## Query Builder
+
+The Query Builder offers a fluent interface for constructing SQL queries.
+
+```ts
+const users = await UserModel.query()
+    .where("active", true)
+    .orderBy("created_at", "desc");
+```
+
+Benefits include:
+
+- SQL abstraction
+- Dynamic query construction
+- Database portability
+- Parameter binding
+
+---
+
+## ORM
+
+Models represent database tables as TypeScript classes.
+
+```ts
+import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+
+export default class UserModel extends BaseModel {
+    public static tableName: string = "users";
+    public static idColumn: string = "id";
+
+    declare id: bigint;
+    declare name: string;
+    declare created_at: Timestamp;
+    declare updated_at: Timestamp;
+    declare deleted_at: NullableTimestamp;
+}
+```
+
+Example:
+
+```ts
+const user = await UserModel.findOrFail(1);
+
+await user.update({
+    name: "John Doe"
+});
+```
+
+ORM features include:
+
+- CRUD operations
+- Relationships
+- Query scopes
+- Soft deletes
+- Serialization
+- Model events
+
+---
+
+## Migrations
+
+Migrations allow database schemas to evolve through version-controlled code.
+
+```bash
+bun ace make:migration create_users
+```
+
+Example:
+
+```ts
+import type {Knex} from "knex";
+import UserModel from "@/app/models/UserModel";
+
+export function up(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.createTable(UserModel.tableName, (table: Knex.TableBuilder) => {
+        table.bigIncrements("id");
+        table.string("name");
+        table.timestamps(true, true);
+        table.timestamp("deleted_at");
+    });
+}
+
+export function down(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.dropTable(UserModel.tableName);
+}
+```
+
+Benefits:
+
+- Version control friendly
+- Team collaboration
+- Repeatable deployments
+- Automated schema management
+
+---
+
+## Seeders
+
+Seeders populate databases with initial or testing data.
+
+```bash
+bun ace make:seeder UserSeeder
+```
+
+Example:
+
+```ts
+import type {Knex} from "knex";
+import UserModel from "@/app/models/UserModel";
+
+export async function seed(knex: Knex): Promise<void> {
+    for (const name of ["Name 1", "Name 2", "Name 3"]) {
+        await UserModel.query(knex).insert({
+            name: name
+        });
+    }
+}
+```
+
+---
+
+# Authentication & Authorization
+
+Modern applications require secure access control.
+
+Bejibun provides tools for verifying user identity and controlling permissions.
+
+---
+
+## Authentication
+
+Authentication determines who a user is.
+
+Examples:
+
+- Session Authentication
+- JWT Authentication
+- API Tokens
+- OAuth Integrations
+
+```ts
+const user = await Auth.attempt(
+  email,
+  password
+);
+```
+
+---
+
+## Authorization
+
+Authorization determines what a user can do.
+
+Example:
+
+```ts
+if (!user.can("update-post")) {
+  return response.forbidden();
+}
+```
+
+Authorization can be applied through:
+
+- Middleware
+- Policies
+- Gates
+- Role systems
+
+---
+
+# Caching
+
+Caching improves application performance by storing frequently accessed data.
+
+```ts
+await Cache.put(
+  "users",
+  users,
+  "10m"
+);
+```
+
+Retrieve:
+
+```ts
+const users = await Cache.get("users");
+```
+
+Supported cache systems may include:
+
+- Memory Cache
+- Redis
+- Custom Drivers
+
+---
+
+# File Storage
+
+Applications often need to manage files.
+
+Bejibun provides a unified storage interface.
+
+```ts
+await Storage.put(
+  "avatars/user.png",
+  file
+);
+```
+
+Possible storage backends include:
+
+- Local Storage
+- S3-Compatible Storage
+- Cloud Providers
+
+---
+
+# Background Jobs
+
+Not every task should execute during an HTTP request.
+
+Background jobs allow expensive operations to run asynchronously.
+
+```ts
+await Queue.dispatch(
+  SendWelcomeEmailJob,
+  user
+);
+```
+
+Common use cases:
+
+- Email delivery
+- Notifications
+- Data processing
+- Report generation
+- AI workloads
+
+---
+
+# Task Scheduling
+
+Recurring tasks can be managed through the scheduler.
+
+```ts
+Scheduler.command(
+  "cleanup:sessions"
+).daily();
+```
+
+Examples:
+
+- Daily reports
+- Cache cleanup
+- Data synchronization
+- Maintenance operations
+
+---
+
+# Realtime Communication
+
+Applications increasingly require realtime capabilities.
+
+Bejibun supports event-driven communication through WebSockets.
+
+```ts
+broadcast("chat.message", {
+  message: "Hello"
+});
+```
+
+Use cases:
+
+- Chat systems
+- Notifications
+- Live dashboards
+- Collaborative tools
+- Multiplayer applications
+
+---
+
+# API Development
+
+Bejibun is designed with API-first development in mind.
+
+---
+
+## REST APIs
+
+Create scalable and maintainable APIs using familiar patterns.
+
+```ts
+Router.resource(
+  "users",
+  UserController
+);
+```
+
+---
+
+## OpenAPI & Swagger
+
+Generate interactive API documentation automatically.
+
+```text
+/api/docs
+```
+
+Benefits:
+
+- Team collaboration
+- Client integration
+- API discovery
+- Developer onboarding
+
+---
+
+## API Versioning
+
+Support multiple API versions simultaneously.
+
+```text
+/api/v1/users
+/api/v2/users
+```
+
+This enables safe evolution of public APIs.
+
+---
+
+# CLI Tooling
+
+Bejibun includes a command-line interface for common development tasks.
+
+Generate resources:
+
+```bash
+bun ace make:controller UserController
+```
+
+```bash
+bun ace make:model User
+```
+
+```bash
+bun ace make:migration create_users
+```
+
+```bash
+bun ace make:validator CreateUserValidator
+```
+
+The CLI reduces repetitive work and encourages consistency across projects.
+
+---
+
+# TypeScript-First Development
+
+Every feature within Bejibun is designed with TypeScript in mind.
+
+Benefits include:
+
+- Autocomplete
+- Type inference
+- Safer refactoring
+- Better tooling support
+- Improved maintainability
+
+The framework should feel natural to TypeScript developers rather than requiring additional type definitions or complex configuration.
+
+---
+
+# Built for Production
+
+Bejibun is designed to support applications beyond the development environment.
+
+Production-focused features include:
+
+- Environment configuration
+- Structured logging
+- Error handling
+- Validation
+- Security tooling
+- Background processing
+- API documentation
+- Deployment support
+
+The goal is to provide a solid foundation for applications of any size.
+
+---
+
+# What's Next?
+
+Now that you have an overview of the framework's capabilities, it's time to build your first application.
+
+Continue to:
+
+- Installation
+- Creating Your First Application
+- Project Structure
+- Configuration
+- Request Lifecycle
+
+In the next chapter, you'll install Bejibun and create your first project.

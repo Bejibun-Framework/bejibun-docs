@@ -1,0 +1,381 @@
+---
+title: Framework Philosophy
+description: Understand the principles and design decisions that guide the development of Bejibun.
+---
+
+# Framework Philosophy
+
+Every framework is built upon a set of ideas.
+
+Some prioritize flexibility above all else. Others focus on performance, convention, or developer experience. These decisions influence everything from API design to project structure.
+
+Bejibun is guided by a collection of principles that shape how the framework is designed, how features are implemented, and how applications are built.
+
+Understanding these principles will help you make better architectural decisions and take full advantage of what the framework offers.
+
+---
+
+## Developer Experience Comes First
+
+Software development is ultimately a human activity.
+
+The quality of a framework is not measured solely by benchmarks or feature lists, but also by how effectively developers can build, maintain, and scale applications.
+
+Bejibun prioritizes:
+
+- Clear APIs
+- Consistent conventions
+- Meaningful error messages
+- Strong editor support
+- Minimal boilerplate
+- Fast development workflows
+
+Code should be easy to write, easy to read, and easy to maintain.
+
+A feature that saves a few milliseconds but significantly increases complexity may not always be the right tradeoff.
+
+---
+
+## TypeScript Is Not Optional
+
+TypeScript is at the core of Bejibun.
+
+Rather than treating TypeScript as a thin layer on top of JavaScript, the framework embraces static typing throughout the development experience.
+
+This means framework features should:
+
+- Expose accurate types
+- Improve editor intelligence
+- Enable safe refactoring
+- Reduce runtime surprises
+
+For example:
+
+```ts
+const user = await User.findOrFail(1);
+
+user.email;
+user.createdAt;
+user.updatedAt;
+```
+
+Your editor should understand what a model contains without requiring additional configuration.
+
+Strong typing allows developers to discover problems during development instead of in production.
+
+---
+
+## Convention Over Configuration
+
+Most applications share common patterns.
+
+Instead of requiring developers to configure every aspect of the framework, Bejibun provides sensible defaults that work out of the box.
+
+For example:
+
+```text
+app/
+├── controllers/
+├── exceptions/
+├── jobs/
+├── middlewares/
+├── models/
+├── validators/
+└── websockets/
+```
+
+The framework understands these conventions and can automatically integrate with them.
+
+This approach provides several benefits:
+
+- Faster onboarding
+- Less repetitive configuration
+- More predictable applications
+- Easier collaboration between teams
+
+Configuration remains available when necessary, but common use cases should require minimal setup.
+
+---
+
+## Batteries Included, Not Batteries Required
+
+Modern applications need more than routing.
+
+A production-ready backend often requires:
+
+- Validation
+- Database access
+- Authentication
+- Authorization
+- Caching
+- Background jobs
+- Realtime communication
+- API documentation
+
+Bejibun aims to provide a cohesive ecosystem where these components work together naturally.
+
+Rather than spending time researching and integrating multiple libraries, developers can focus on solving business problems.
+
+The goal is not to include every possible feature, but to include the features most applications need.
+
+---
+
+## Explicit Is Better Than Magic
+
+Automation can improve productivity, but excessive magic often makes applications harder to understand.
+
+Bejibun prefers explicit behavior whenever possible.
+
+Good:
+
+```ts
+Router.get("/users", "UserController@index");
+```
+
+Better than:
+
+```ts
+// Automatically discovered without clear definition
+```
+
+Developers should be able to trace application behavior without guessing how the framework works internally.
+
+Conventions should reduce boilerplate, not hide important behavior.
+
+---
+
+## Simplicity Over Cleverness
+
+Complex systems are harder to maintain.
+
+When designing APIs and framework features, Bejibun favors straightforward solutions over clever abstractions.
+
+For example:
+
+```ts
+await User.create({
+    name: "John Doe",
+    email: "john@example.com"
+});
+```
+
+Simple APIs are:
+
+- Easier to learn
+- Easier to document
+- Easier to maintain
+- Easier to debug
+
+Developers should spend time solving application problems rather than learning framework-specific tricks.
+
+---
+
+## Progressive Complexity
+
+Applications rarely begin as large systems.
+
+Most projects start small and grow over time.
+
+Bejibun is designed to support this progression.
+
+### Small Projects
+
+```text
+app/
+├── controllers/
+├── models/
+└── routes/
+```
+
+### Growing Projects
+
+```text
+app/
+├── controllers/
+├── middlewares/
+├── models/
+├── validators/
+└── routes/
+```
+
+### Large Applications
+
+```text
+app/
+├── controllers/
+├── exceptions/
+├── jobs/
+├── middlewares/
+├── models/
+├── validators/
+├── websockets/
+├── database/
+└── routes/
+```
+
+The framework should not force enterprise-level architecture on small projects, but it should provide a clear path for growth when needed.
+
+---
+
+## Performance Is a Feature
+
+Developer productivity and application performance are both important.
+
+Bejibun leverages Bun's capabilities to provide a fast runtime while maintaining a productive development experience.
+
+Performance considerations influence many framework decisions:
+
+- Efficient request handling
+- Optimized boot processes
+- Reduced dependency overhead
+- Smart resource utilization
+
+However, performance should not come at the cost of maintainability.
+
+The framework seeks a balance between speed and usability.
+
+---
+
+## Security by Default
+
+Secure applications should be the default outcome, not an optional enhancement.
+
+Framework features should encourage safe development practices.
+
+Examples include:
+
+- Request validation
+- Secure authentication mechanisms
+- Password hashing
+- Protection against common vulnerabilities
+- Safe configuration management
+
+Developers should still understand application security, but the framework should help prevent common mistakes.
+
+---
+
+## Consistency Matters
+
+A framework should feel predictable.
+
+If developers learn one part of the framework, that knowledge should transfer naturally to other areas.
+
+For example:
+
+### Controllers
+
+```ts
+export default class UserController {
+    public async index(request: Bun.BunRequest) {}
+}
+```
+
+### Middleware
+
+```ts
+import type {HandlerType} from "@bejibun/core/types";
+
+export default class LoggerMiddleware {
+    public handle(handler: HandlerType): HandlerType {
+        return async (request: Bun.BunRequest, server: Bun.Server<any>) => {
+            // your code goes here
+
+            return handler(request, server);
+        };
+    }
+}
+```
+
+### Jobs
+
+```ts
+import BaseJob from "@bejibun/core/bases/BaseJob";
+
+export default class TestJob extends BaseJob {
+    /**
+     * Execute the job.
+     *
+     * @var $arguments Array<any>
+     */
+    public async handle(args: Array<any>): Promise<void> {
+        // your code goes here
+    }
+}
+```
+
+Consistent patterns reduce cognitive overhead and make applications easier to navigate.
+
+---
+
+## Framework as a Foundation
+
+Bejibun is not intended to dictate every architectural decision.
+
+Instead, it provides a solid foundation upon which different types of applications can be built.
+
+Whether you are creating:
+
+- REST APIs
+- SaaS platforms
+- Internal tools
+- Microservices
+- AI services
+- Realtime systems
+- Blockchain applications
+
+The framework should adapt to your needs while maintaining consistency and reliability.
+
+---
+
+## Community-Driven Evolution
+
+No framework is perfect.
+
+As the ecosystem grows, Bejibun should evolve based on real-world usage and developer feedback.
+
+New features should:
+
+- Solve genuine problems
+- Align with existing conventions
+- Maintain backward compatibility when possible
+- Improve developer experience
+
+Features should not be added simply because other frameworks have them.
+
+Every addition should have a clear purpose.
+
+---
+
+## The Bejibun Way
+
+The philosophy of Bejibun can be summarized in a few core ideas:
+
+> Build for developers.
+>
+> Embrace TypeScript.
+>
+> Prefer conventions over configuration.
+>
+> Keep things explicit.
+>
+> Stay simple.
+>
+> Scale naturally.
+>
+> Deliver performance without sacrificing productivity.
+
+These principles guide every aspect of the framework and help ensure a consistent experience across the ecosystem.
+
+---
+
+## Next Steps
+
+Now that you understand the principles behind Bejibun, continue to:
+
+- Feature Overview
+- Installation
+- Creating Your First Application
+- Project Structure
+- Request Lifecycle
+
+The next guide explores the major features available within the Bejibun ecosystem and how they work together to power modern backend applications.

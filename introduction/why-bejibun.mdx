@@ -1,0 +1,379 @@
+---
+title: Why Bejibun?
+description: Discover the design decisions behind Bejibun and why it was built for modern TypeScript backend development.
+---
+
+# Why Bejibun?
+
+Choosing a backend framework is one of the most important decisions in a project's lifecycle. The framework you choose influences development speed, application architecture, maintainability, performance, and long-term scalability.
+
+Bejibun was created to address common challenges faced by TypeScript developers while embracing the capabilities of the Bun runtime.
+
+This guide explains the motivations behind Bejibun and the principles that shape its development.
+
+---
+
+## The Current State of TypeScript Backend Development
+
+The TypeScript ecosystem offers an incredible number of libraries and frameworks.
+
+While this flexibility gives developers freedom, it also creates challenges:
+
+- Multiple competing solutions for the same problem
+- Inconsistent project structures
+- Repeated setup across projects
+- Dependency fragmentation
+- Varying coding conventions between teams
+- Increased maintenance burden
+
+A typical backend application often requires developers to assemble numerous components before they can begin building business logic.
+
+```text
+Router
+├── Authentication
+├── Validation
+├── ORM
+├── Cache
+├── Queue
+├── Storage
+├── Logging
+├── API Documentation
+└── Testing Tools
+```
+
+Although every component may be excellent individually, integrating and maintaining them together can become time-consuming.
+
+Bejibun aims to provide a cohesive experience where these pieces work together from the start.
+
+---
+
+## Built Specifically for Bun
+
+Many frameworks available today were originally designed for Node.js and later adapted to support Bun.
+
+Bejibun takes a different approach.
+
+It is designed with Bun as the primary runtime rather than a secondary target.
+
+This enables the framework to take advantage of:
+
+- Native TypeScript execution
+- Fast startup performance
+- Efficient package management
+- Modern runtime APIs
+- Reduced dependency complexity
+
+By building around Bun from the beginning, Bejibun can provide a more optimized and streamlined developer experience.
+
+---
+
+## Less Configuration, More Development
+
+Developers should spend their time building products rather than configuring infrastructure.
+
+Many projects begin with hours of setup before the first feature is implemented.
+
+Bejibun provides sensible defaults for common tasks such as:
+
+- Routing
+- Controllers
+- Validation
+- Database access
+- Environment configuration
+- API documentation
+- CLI tooling
+
+This allows teams to focus on application development immediately.
+
+### Without a Framework
+
+```text
+Install Router
+Install Validation Library
+Install ORM
+Configure Database
+Configure Environment Variables
+Configure Documentation
+Configure Testing
+Configure CLI Tools
+```
+
+### With Bejibun
+
+```bash
+bunx @bejibun/cli my-app
+```
+
+Start building.
+
+---
+
+## Consistent Architecture
+
+One challenge in many JavaScript projects is the lack of architectural consistency.
+
+Different developers often organize applications differently.
+
+For example:
+
+```text
+Project A
+├── api
+├── routes
+├── services
+
+Project B
+├── handlers
+├── business
+├── controllers
+
+Project C
+├── src
+├── modules
+├── actions
+```
+
+Over time, these inconsistencies can make projects harder to understand and maintain.
+
+Bejibun promotes a structured architecture that encourages:
+
+- Predictable code organization
+- Clear separation of concerns
+- Easier onboarding
+- Improved maintainability
+
+A typical Bejibun application follows a familiar structure:
+
+```text
+app
+├── controllers
+├── exceptions
+├── jobs
+├── middlewares
+├── models
+├── validators
+└── websockets
+
+database
+├── migrations
+└── seeders
+
+routes
+└── api.ts
+```
+
+Developers can move between projects with confidence because the structure remains familiar.
+
+---
+
+## TypeScript as a First-Class Citizen
+
+TypeScript is not an optional layer added on top of the framework.
+
+Bejibun is designed around TypeScript from the beginning.
+
+This provides:
+
+- Better autocomplete
+- Improved developer tooling
+- Strong type safety
+- Easier refactoring
+- Fewer runtime errors
+
+Example:
+
+```ts
+const user = await User.findOrFail(id);
+
+user.email;
+user.createdAt;
+```
+
+Your editor understands the application's types and can assist throughout development.
+
+---
+
+## Productivity Through Conventions
+
+Every framework must decide how much freedom to provide and how much guidance to enforce.
+
+Bejibun follows a convention-over-configuration approach.
+
+This means common tasks work as expected without extensive setup.
+
+Examples include:
+
+- Automatic file discovery
+- Standardized project structure
+- Resource controllers
+- Migration conventions
+- Environment loading
+- Validation patterns
+
+Developers can customize behavior when necessary, but the default experience should cover the majority of use cases.
+
+---
+
+## Batteries Included
+
+Modern backend applications often require more than just routing.
+
+Bejibun aims to provide a complete toolkit for backend development.
+
+Depending on the installed packages and framework version, this may include:
+
+- Routing
+- Middleware
+- Validation
+- ORM
+- Query Builder
+- Migrations
+- Seeders
+- Authentication
+- Authorization
+- Caching
+- Storage
+- WebSockets
+- Queues
+- Task Scheduling
+- OpenAPI
+- Swagger UI
+- CLI Generators
+
+Instead of evaluating dozens of packages, developers can rely on a unified ecosystem.
+
+---
+
+## Designed for APIs
+
+API development has become the foundation of modern applications.
+
+Whether serving:
+
+- Web applications
+- Mobile applications
+- Microservices
+- AI agents
+- External integrations
+
+APIs must be reliable, maintainable, and easy to document.
+
+Bejibun includes features that simplify API development:
+
+### Request Validation
+
+```ts
+const payload = await super.parse(request);
+await super.validate(UserValidator.create, payload);
+```
+
+### Structured Responses
+
+```ts
+return super.response.setData(user).send();
+```
+
+### API Documentation
+
+```text
+/apis
+```
+
+### Versioning
+
+```text
+/api/v1/users
+```
+
+The framework encourages patterns that scale as applications grow.
+
+---
+
+## Built for Modern Workloads
+
+Backend applications today handle more than traditional web requests.
+
+Developers increasingly build:
+
+- AI-powered services
+- Event-driven systems
+- Realtime applications
+- Blockchain integrations
+- Payment infrastructure
+- Distributed architectures
+
+Bejibun is designed with these modern workloads in mind.
+
+The framework aims to support both traditional web applications and emerging backend requirements.
+
+---
+
+## Performance Matters
+
+Developer experience is important, but performance cannot be ignored.
+
+By leveraging Bun's runtime architecture, Bejibun can benefit from:
+
+- Fast startup times
+- Efficient request handling
+- Lower memory overhead
+- Modern JavaScript execution
+
+This allows developers to enjoy high-level abstractions without sacrificing runtime performance.
+
+---
+
+## Built for Teams
+
+As projects grow, consistency becomes increasingly important.
+
+Bejibun encourages patterns that help teams collaborate effectively.
+
+Benefits include:
+
+- Predictable project structure
+- Shared conventions
+- Clear code organization
+- Standardized tooling
+- Easier onboarding
+
+New team members can understand a Bejibun application quickly because the framework promotes familiar patterns across projects.
+
+---
+
+## Long-Term Maintainability
+
+The cost of software is rarely in writing the first version.
+
+The real challenge is maintaining applications over months and years.
+
+Bejibun emphasizes:
+
+- Readable code
+- Clear architecture
+- Consistent conventions
+- Strong typing
+- Developer tooling
+
+These principles help reduce maintenance costs and improve long-term project sustainability.
+
+---
+
+## Our Vision
+
+The long-term vision of Bejibun is simple:
+
+> Create a modern, Bun-native framework that delivers excellent developer experience, strong architectural foundations, and the tools necessary to build production-ready applications at any scale.
+
+Rather than forcing developers to choose between productivity and performance, Bejibun strives to provide both.
+
+---
+
+## Next Steps
+
+Now that you understand why Bejibun exists, continue to:
+
+- Framework Philosophy
+- Feature Overview
+- Installation
+- Creating Your First Application
