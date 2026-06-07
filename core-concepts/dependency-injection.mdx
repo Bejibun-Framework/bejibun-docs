@@ -1,732 +1,794 @@
 ---
-title: Environment Variables
-description: Learn how Bejibun manages environment variables, protects sensitive configuration, and supports multiple deployment environments.
+title: Dependency Injection
+description: Learn how Dependency Injection works in Bejibun and how it helps build maintainable, testable, and loosely coupled applications.
 ---
 
-# Environment Variables
+# Dependency Injection
 
-Modern applications rarely run in a single environment.
+Dependency Injection (DI) is one of the most important architectural concepts in modern application development.
 
-A local development environment, staging server, and production deployment often require different configuration values while sharing the same application code.
+It allows classes to receive their dependencies from the framework rather than creating them manually.
 
-Environment variables allow applications to adapt to their environment without modifying source code.
+Instead of a class being responsible for constructing everything it needs, the framework provides those dependencies automatically through the Service Container.
 
-In Bejibun, environment variables are the primary mechanism for configuring sensitive values and environment-specific settings.
+This results in applications that are:
 
----
-
-# What Are Environment Variables?
-
-Environment variables are key-value pairs that exist outside your application's source code.
-
-Example:
-
-```env
-APP_NAME=My Application
-
-APP_ENV=development
-
-PORT=3000
-```
-
-Your application can access these values at runtime.
-
-```ts
-Env.get("APP_NAME");
-```
-
-Result:
-
-```text
-My Application
-```
-
-This approach allows the same codebase to be used across multiple environments.
+- Easier to maintain
+- Easier to test
+- More flexible
+- Less tightly coupled
+- More scalable
 
 ---
 
-# Why Use Environment Variables?
+# What Is a Dependency?
 
-Without environment variables, applications often contain hardcoded values.
-
-Avoid:
-
-```ts
-const databaseHost =
-  "localhost";
-
-const databasePassword =
-  "super-secret-password";
-```
-
-Instead:
-
-```ts
-const databaseHost =
-  Env.get("DB_HOST");
-
-const databasePassword =
-  Env.get("DB_PASSWORD");
-```
-
-Benefits include:
-
-- Improved security
-- Easier deployments
-- Environment-specific configuration
-- Better team collaboration
-- Cleaner code
-
----
-
-# The `.env` File
-
-Bejibun loads environment variables from a `.env` file located at the root of your project.
-
-Example:
-
-```env
-APP_NAME=Bejibun
-
-APP_ENV=development
-
-APP_DEBUG=true
-
-APP_URL=http://localhost:3000
-```
-
-Project structure:
-
-```text
-my-app/
-├── app/
-├── config/
-├── routes/
-├── .env
-└── package.json
-```
-
-The `.env` file is typically used during local development.
-
----
-
-# Example Environment Configuration
-
-A typical application may contain:
-
-```env
-APP_NAME=My Application
-
-APP_ENV=development
-
-APP_DEBUG=true
-
-APP_URL=http://localhost:3000
-
-PORT=3000
-
-DB_CONNECTION=mysql
-
-DB_HOST=127.0.0.1
-
-DB_PORT=3306
-
-DB_DATABASE=my_app
-
-DB_USERNAME=root
-
-DB_PASSWORD=password
-```
-
-These values can be accessed through configuration files or framework services.
-
----
-
-# Accessing Environment Variables
-
-Use the `Env` service to retrieve values.
+A dependency is any object that another object requires to perform its work.
 
 Example:
 
 ```ts
-Env.get("APP_NAME");
+export default class UserService {
+  constructor(
+    protected logger: Logger
+  ) {}
+}
 ```
 
-Result:
+In this example:
 
 ```text
-My Application
+UserService
+     │
+     ▼
+Logger
 ```
 
-You may also provide a default value.
+`Logger` is a dependency of `UserService`.
+
+Without a logger, the service may not function correctly.
+
+---
+
+# The Problem Without Dependency Injection
+
+Consider the following example:
 
 ```ts
-Env.get(
-  "PORT",
-  3000
+export default class UserService {
+  protected logger =
+    new Logger();
+}
+```
+
+At first glance, this seems simple.
+
+However, several problems quickly emerge:
+
+### Tight Coupling
+
+`UserService` is permanently tied to `Logger`.
+
+Replacing the logger requires modifying the service.
+
+---
+
+### Difficult Testing
+
+Testing becomes harder because dependencies are created internally.
+
+Example:
+
+```ts
+const service =
+  new UserService();
+```
+
+You cannot easily replace the logger with a mock implementation.
+
+---
+
+### Reduced Flexibility
+
+Switching implementations becomes cumbersome.
+
+Example:
+
+```text
+Logger
+   ▼
+FileLogger
+```
+
+Every class using the logger may require changes.
+
+---
+
+# The Dependency Injection Solution
+
+Instead of creating dependencies manually:
+
+```ts
+export default class UserService {
+  protected logger =
+    new Logger();
+}
+```
+
+Inject them:
+
+```ts
+export default class UserService {
+  constructor(
+    protected logger: Logger
+  ) {}
+}
+```
+
+Now the service no longer cares where the logger comes from.
+
+The framework provides it automatically.
+
+---
+
+# How Dependency Injection Works
+
+The process is straightforward.
+
+```text
+Application
+      │
+      ▼
+Service Container
+      │
+      ▼
+Resolve Dependencies
+      │
+      ▼
+Instantiate Class
+```
+
+Example:
+
+```ts
+Container.make(
+  UserService
 );
 ```
 
-If `PORT` is missing:
+The container:
 
-```text
-3000
-```
-
-will be returned.
+1. Inspects the constructor.
+2. Finds required dependencies.
+3. Resolves them.
+4. Creates the object.
+5. Returns the fully configured instance.
 
 ---
 
-# Recommended Usage
+# Constructor Injection
 
-Environment variables should generally be consumed within configuration files.
+Constructor Injection is the preferred form of dependency injection in Bejibun.
 
-Good:
+Example:
 
 ```ts
-export default {
-  host: Env.get("DB_HOST")
-};
+export default class UserService {
+  constructor(
+    protected logger: Logger,
+    protected cache: Cache
+  ) {}
+}
 ```
 
-Then:
+Dependency graph:
+
+```text
+UserService
+ ├── Logger
+ └── Cache
+```
+
+The framework automatically resolves both dependencies.
+
+---
+
+# Automatic Resolution
+
+Suppose you have:
 
 ```ts
-Config.get(
-  "database.host"
+class Logger {}
+
+class UserService {
+  constructor(
+    private logger: Logger
+  ) {}
+}
+```
+
+Resolving:
+
+```ts
+Container.make(
+  UserService
 );
 ```
 
-throughout the application.
-
-Avoid:
+Internally becomes:
 
 ```ts
-Env.get("DB_HOST");
-
-Env.get("DB_PORT");
-
-Env.get("DB_DATABASE");
+new UserService(
+  new Logger()
+);
 ```
 
-inside controllers, services, and business logic.
-
-This keeps environment concerns centralized.
+The difference is that the framework performs the work for you.
 
 ---
 
-# Environment Files
+# Nested Dependency Resolution
 
-Applications often require different settings for different environments.
-
-Example:
-
-```text
-.env
-.env.local
-.env.testing
-.env.staging
-.env.production
-```
-
-Each environment can provide its own values.
-
-Development:
-
-```env
-APP_ENV=development
-
-APP_DEBUG=true
-```
-
-Production:
-
-```env
-APP_ENV=production
-
-APP_DEBUG=false
-```
-
-The application behavior changes without modifying source code.
-
----
-
-# Common Application Variables
-
-Most Bejibun applications will use variables similar to the following.
-
----
-
-## Application
-
-```env
-APP_NAME=Bejibun
-
-APP_ENV=development
-
-APP_DEBUG=true
-
-APP_URL=http://localhost:3000
-```
-
-Purpose:
-
-- Application metadata
-- Environment detection
-- Debug settings
-
----
-
-## Server
-
-```env
-HOST=0.0.0.0
-
-PORT=3000
-```
-
-Purpose:
-
-- Network configuration
-- HTTP server settings
-
----
-
-## Database
-
-```env
-DB_CONNECTION=mysql
-
-DB_HOST=127.0.0.1
-
-DB_PORT=3306
-
-DB_DATABASE=app
-
-DB_USERNAME=root
-
-DB_PASSWORD=password
-```
-
-Purpose:
-
-- Database connections
-- Migration support
-- ORM functionality
-
----
-
-## Redis
-
-```env
-REDIS_HOST=127.0.0.1
-
-REDIS_PORT=6379
-
-REDIS_PASSWORD=
-```
-
-Purpose:
-
-- Cache storage
-- Queue processing
-- Session storage
-
----
-
-## Mail
-
-```env
-MAIL_HOST=smtp.example.com
-
-MAIL_PORT=587
-
-MAIL_USERNAME=user
-
-MAIL_PASSWORD=password
-```
-
-Purpose:
-
-- Email delivery
-- Notifications
-- Password resets
-
----
-
-## Storage
-
-```env
-STORAGE_DISK=local
-```
-
-Or:
-
-```env
-STORAGE_DISK=s3
-
-AWS_ACCESS_KEY_ID=
-
-AWS_SECRET_ACCESS_KEY=
-
-AWS_BUCKET=
-```
-
-Purpose:
-
-- File uploads
-- Asset storage
-- Cloud integrations
-
----
-
-# Environment Detection
-
-Applications often need to determine their current environment.
+Dependencies often depend on other dependencies.
 
 Example:
 
 ```ts
-Env.get("APP_ENV");
+class Logger {}
+
+class UserRepository {
+  constructor(
+    private logger: Logger
+  ) {}
+}
+
+class UserService {
+  constructor(
+    private repository:
+      UserRepository
+  ) {}
+}
 ```
 
-Result:
+Resolution tree:
 
 ```text
-development
+UserService
+      │
+      ▼
+UserRepository
+      │
+      ▼
+Logger
 ```
 
-or:
-
-```text
-production
-```
-
-Example usage:
-
-```ts
-const isProduction =
-  Env.get("APP_ENV")
-  === "production";
-```
-
-This is commonly used within framework internals and configuration files.
+The container automatically resolves the entire chain.
 
 ---
 
-# Validating Environment Variables
+# Controller Injection
 
-Missing configuration values can cause runtime failures.
-
-Instead of discovering problems after deployment, Bejibun may validate environment variables during startup.
+Dependency injection is commonly used within controllers.
 
 Example:
 
 ```ts
-Env.validate({
-  APP_NAME: "string",
+export default class UserController {
+  constructor(
+    protected users:
+      UserService
+  ) {}
+}
+```
 
-  DB_HOST: "string",
+Route:
 
-  DB_DATABASE: "string"
-});
+```ts
+Router.get(
+  "/users",
+  UserController
+);
+```
+
+When the route is executed, the framework creates the controller and injects the required service.
+
+---
+
+# Injecting Multiple Services
+
+Controllers may receive several dependencies.
+
+Example:
+
+```ts
+export default class UserController {
+  constructor(
+    protected users:
+      UserService,
+
+    protected mail:
+      MailService,
+
+    protected cache:
+      CacheService
+  ) {}
+}
+```
+
+The framework resolves all dependencies automatically.
+
+---
+
+# Service Injection
+
+Services can also receive dependencies.
+
+Example:
+
+```ts
+export default class UserService {
+  constructor(
+    protected repository:
+      UserRepository,
+
+    protected logger:
+      Logger
+  ) {}
+}
+```
+
+This creates a clean separation between layers.
+
+---
+
+# Repository Injection
+
+For larger applications:
+
+```text
+Controller
+      │
+      ▼
+Service
+      │
+      ▼
+Repository
+      │
+      ▼
+Database
+```
+
+Example:
+
+```ts
+class UserRepository {}
+
+class UserService {
+  constructor(
+    private repository:
+      UserRepository
+  ) {}
+}
+```
+
+This architecture promotes maintainability and scalability.
+
+---
+
+# Interface-Based Injection
+
+Applications should often depend on contracts rather than implementations.
+
+Example contract:
+
+```ts
+export interface Mailer {
+  send(): Promise<void>;
+}
+```
+
+Implementation:
+
+```ts
+export class SmtpMailer
+  implements Mailer {}
+```
+
+Container binding:
+
+```ts
+Container.bind(
+  "mailer",
+  () => new SmtpMailer()
+);
+```
+
+Usage:
+
+```ts
+constructor(
+  protected mailer: Mailer
+) {}
 ```
 
 Benefits:
 
-- Early error detection
-- Safer deployments
-- Improved reliability
-
-Applications should fail fast when critical configuration is missing.
+- Swappable implementations
+- Easier testing
+- Better architecture
 
 ---
 
-# Type Conversion
+# Request Injection
 
-Environment variables are always stored as strings.
-
-Example:
-
-```env
-PORT=3000
-```
-
-Raw value:
-
-```text
-"3000"
-```
-
-The framework may automatically convert values when appropriate.
+Framework-provided objects may also be injected.
 
 Example:
 
 ```ts
-Env.getNumber("PORT");
+export default class UserController {
+  async store(
+    request: Request
+  ) {
+    //
+  }
+}
 ```
 
-Result:
+Possible framework injections include:
 
-```ts
-3000
-```
+- Request
+- Response
+- Auth
+- Session
+- Context
 
-Similarly:
-
-```ts
-Env.getBoolean(
-  "APP_DEBUG"
-);
-```
-
-Result:
-
-```ts
-true
-```
-
-Type-safe environment access reduces common configuration errors.
+This eliminates the need for global state.
 
 ---
 
-# Protecting Sensitive Data
+# Method Injection
 
-Environment variables often contain secrets.
-
-Examples:
-
-```env
-DB_PASSWORD=
-
-JWT_SECRET=
-
-API_KEY=
-
-AWS_SECRET_ACCESS_KEY=
-```
-
-These values should never be committed to source control.
-
----
-
-## Add `.env` to Git Ignore
+Dependencies may also be injected directly into methods.
 
 Example:
 
-```gitignore
-.env
+```ts
+export default class UserController {
+  async index(
+    service: UserService
+  ) {
+    return service.all();
+  }
+}
 ```
 
-This prevents accidental exposure of sensitive information.
+The framework resolves the dependency before executing the method.
 
 ---
 
-## Use `.env.example`
+# Dependency Injection vs Service Locator
 
-Instead of committing real secrets:
-
-```env
-APP_NAME=
-APP_ENV=
-DB_HOST=
-DB_DATABASE=
-DB_USERNAME=
-DB_PASSWORD=
-```
-
-Store placeholders.
-
-New developers can copy:
-
-```bash
-cp .env.example .env
-```
-
-and fill in their own values.
+Both patterns use the Service Container, but they are not the same.
 
 ---
 
-# Production Environments
-
-Production environments often inject variables directly through the hosting platform.
-
-Example:
-
-```text
-APP_ENV=production
-APP_DEBUG=false
-DB_HOST=production-db
-```
-
-In many deployments, a physical `.env` file may not exist.
-
-The framework should work seamlessly regardless of where variables originate.
-
-Possible sources:
-
-```text
-Operating System
-       │
-       ▼
-Container Runtime
-       │
-       ▼
-Cloud Platform
-       │
-       ▼
-Application
-```
-
----
-
-# Environment Variables and Security
-
-Environment variables improve security but are not a complete security solution.
-
-Follow these recommendations:
-
-### Use Strong Secrets
+## Dependency Injection
 
 Good:
 
-```env
-JWT_SECRET=6e43c9...
+```ts
+constructor(
+  private logger: Logger
+) {}
 ```
 
-Avoid:
+Dependencies are explicit.
 
-```env
-JWT_SECRET=password
+You can immediately see what the class requires.
+
+---
+
+## Service Locator
+
+Less ideal:
+
+```ts
+const logger =
+  Container.make(
+    Logger
+  );
 ```
 
----
+Dependencies are hidden inside the implementation.
 
-### Rotate Credentials
-
-Periodically update:
-
-- API keys
-- Database passwords
-- Access tokens
-- Encryption keys
+This can make testing and maintenance more difficult.
 
 ---
 
-### Limit Access
+# Testing with Dependency Injection
 
-Only authorized personnel should have access to production environment variables.
+Dependency injection greatly simplifies testing.
+
+Example:
+
+```ts
+class MockLogger {
+  info() {}
+}
+```
+
+Inject:
+
+```ts
+const service =
+  new UserService(
+    new MockLogger()
+  );
+```
+
+Benefits:
+
+- No container required
+- No database required
+- No external services required
+- Faster tests
+
+Testing becomes significantly easier.
 
 ---
 
-# Common Mistakes
+# Practical Example
 
----
-
-## Committing `.env`
-
-Avoid:
+Consider a complete application flow.
 
 ```text
-Git Repository
-└── .env
+UserController
+        │
+        ▼
+UserService
+        │
+        ▼
+UserRepository
+        │
+        ▼
+Database
 ```
 
-This may expose sensitive information publicly.
-
----
-
-## Hardcoding Secrets
-
-Avoid:
+Code:
 
 ```ts
-const apiKey =
-  "secret";
+class UserRepository {}
+
+class UserService {
+  constructor(
+    private users:
+      UserRepository
+  ) {}
+}
+
+class UserController {
+  constructor(
+    private users:
+      UserService
+  ) {}
+}
 ```
 
-Use:
+Route:
 
 ```ts
-Env.get("API_KEY");
+Router.get(
+  "/users",
+  UserController
+);
 ```
 
-instead.
-
----
-
-## Missing Defaults
-
-Avoid:
-
-```ts
-Env.get("PORT");
-```
-
-when a default is appropriate.
-
-Prefer:
-
-```ts
-Env.get("PORT", 3000);
-```
-
----
-
-## Skipping Validation
-
-A missing variable can cause failures later.
-
-Validate critical variables during startup whenever possible.
-
----
-
-# Example Configuration Flow
-
-The following diagram illustrates how environment variables move through the application.
+Request lifecycle:
 
 ```text
-.env
-  │
-  ▼
-Environment Loader
-  │
-  ▼
-Config Files
-  │
-  ▼
-Config Service
-  │
-  ▼
-Application Code
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Repository
+   │
+   ▼
+Database
 ```
 
-This separation helps maintain clean architecture and predictable configuration management.
+Each layer receives its dependencies automatically.
 
 ---
 
 # Best Practices
 
-When working with environment variables:
+### Prefer Constructor Injection
 
-- Store secrets outside source code
-- Commit `.env.example`, not `.env`
-- Use configuration files as an abstraction layer
-- Validate required variables
-- Provide defaults when appropriate
-- Use strong secrets in production
-- Rotate credentials regularly
+Good:
 
-These practices help create secure and maintainable applications.
+```ts
+constructor(
+  private logger: Logger
+) {}
+```
+
+Avoid:
+
+```ts
+this.logger =
+  Container.make(
+    Logger
+  );
+```
+
+inside classes.
+
+---
+
+### Keep Dependencies Explicit
+
+A constructor should clearly communicate what the class requires.
+
+Good:
+
+```ts
+constructor(
+  logger: Logger
+) {}
+```
+
+Avoid hidden dependencies.
+
+---
+
+### Depend on Contracts
+
+Prefer:
+
+```ts
+Mailer
+```
+
+instead of:
+
+```ts
+SmtpMailer
+```
+
+whenever practical.
+
+---
+
+### Keep Constructors Reasonable
+
+Avoid:
+
+```ts
+constructor(
+  a,
+  b,
+  c,
+  d,
+  e,
+  f,
+  g
+) {}
+```
+
+Too many dependencies may indicate that a class has too many responsibilities.
+
+---
+
+### Favor Composition
+
+Build applications from smaller services rather than large monolithic classes.
+
+---
+
+# Common Mistakes
+
+### Creating Dependencies Manually
+
+Avoid:
+
+```ts
+new Logger();
+```
+
+inside application services.
+
+---
+
+### Overusing the Container
+
+Avoid:
+
+```ts
+Container.make(...)
+```
+
+everywhere.
+
+Inject dependencies instead.
+
+---
+
+### Circular Dependencies
+
+Avoid:
+
+```text
+UserService
+     │
+     ▼
+MailService
+     │
+     ▼
+UserService
+```
+
+Circular dependencies complicate resolution and maintenance.
+
+---
+
+### Treating DI as Magic
+
+Dependency injection is simply object construction delegated to the framework.
+
+Understanding this principle makes debugging much easier.
+
+---
+
+# Visual Summary
+
+```text
+┌──────────────┐
+│ Controller   │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│  Service     │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Repository   │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Database     │
+└──────────────┘
+
+       ▲
+       │
+ Service Container
+```
+
+The Service Container resolves dependencies, while Dependency Injection delivers them where they are needed.
 
 ---
 
 # What's Next?
 
-Now that you understand how Bejibun manages configuration and environment-specific settings, it's time to learn what happens when an HTTP request enters your application.
+Now that you understand Dependency Injection and the Service Container, you're ready to explore the HTTP layer of the framework.
 
 Continue to:
 
-- Request Lifecycle
+- Routing
+- Route Parameters
+- Route Groups
+- Route Model Binding
+- Middleware
+- Controllers
+- Requests
+- Responses
 
-The next chapter explores the complete journey of a request—from the moment it reaches the server until a response is returned to the client.
+These components rely heavily on dependency injection and form the foundation of every Bejibun application.

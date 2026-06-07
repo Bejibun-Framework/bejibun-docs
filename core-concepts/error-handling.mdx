@@ -1,575 +1,822 @@
 ---
-title: Configuration
-description: Learn how to configure your Bejibun application, manage environment-specific settings, and create maintainable configuration files.
+title: Error Handling
+description: Learn how Bejibun captures, reports, transforms, and responds to application errors in a consistent and predictable way.
 ---
 
-# Configuration
+# Error Handling
 
-Configuration is the foundation of every application.
+No application is immune to errors.
 
-From database connections and authentication providers to cache drivers and external services, nearly every part of your application relies on configuration values.
+Database connections may fail, external APIs can become unavailable, users may submit invalid input, and unexpected exceptions can occur at runtime.
 
-Bejibun provides a centralized configuration system that allows you to:
+A robust error handling system ensures that these failures are:
 
-- Organize application settings
-- Separate configuration from business logic
-- Manage environment-specific values
-- Access settings consistently throughout your application
-- Keep sensitive information out of source code
+- Detected quickly
+- Reported consistently
+- Logged appropriately
+- Presented safely to users
+- Managed without crashing the application
 
-This guide explains how configuration works and how to structure it effectively.
-
----
-
-# Configuration Philosophy
-
-Configuration should be predictable, maintainable, and environment-aware.
-
-A common mistake is hardcoding values directly into application code.
-
-Avoid:
-
-```ts
-const apiUrl =
-  "https://api.example.com";
-
-const apiKey =
-  "secret-key";
-```
-
-Instead:
-
-```ts
-const apiUrl =
-  Config.get("services.api.url");
-
-const apiKey =
-  Config.get("services.api.key");
-```
-
-This makes applications easier to maintain and deploy across different environments.
+Bejibun provides a centralized error handling system that allows applications to respond gracefully when something goes wrong.
 
 ---
 
-# The Config Directory
+# What Is Error Handling?
 
-All application configuration files are stored inside the `config` directory.
+Error handling is the process of detecting, processing, and responding to failures that occur during application execution.
 
-Example:
+Without proper error handling:
 
 ```text
-config/
-├── app.ts
-├── database.ts
-├── auth.ts
-├── cache.ts
-├── storage.ts
-└── services.ts
+Application Error
+       │
+       ▼
+Application Crash
 ```
 
-Each file should be responsible for a single area of configuration.
-
----
-
-# Creating Configuration Files
-
-A configuration file exports a configuration object.
-
-Example:
-
-```ts
-export default {
-  name: "My Application",
-
-  env: "development",
-
-  debug: true
-};
-```
-
-File:
+With proper error handling:
 
 ```text
-config/app.ts
+Application Error
+       │
+       ▼
+Exception Handler
+       │
+       ▼
+Log Error
+       │
+       ▼
+Generate Response
+       │
+       ▼
+Client
 ```
 
-This configuration can then be accessed anywhere in the application.
+The goal is not to eliminate errors entirely, but to manage them predictably.
 
 ---
 
-# Accessing Configuration Values
+# The Error Lifecycle
 
-Use the Config service to retrieve values.
-
-```ts
-Config.get("app.name");
-```
-
-Result:
+When an exception occurs, Bejibun follows a structured process.
 
 ```text
-My Application
+Exception Thrown
+        │
+        ▼
+Exception Captured
+        │
+        ▼
+Exception Handler
+        │
+        ▼
+Logging
+        │
+        ▼
+Response Generation
+        │
+        ▼
+Client
 ```
 
-Nested values can also be accessed.
-
-Example:
-
-```ts
-Config.get(
-  "database.connections.mysql.host"
-);
-```
-
-This allows configuration to remain organized even in large applications.
+This centralized workflow keeps error handling consistent across the application.
 
 ---
 
-# Configuration Structure
+# Types of Errors
 
-A typical configuration file might look like:
+Applications typically encounter several categories of errors.
 
-```ts
-export default {
-  name: "Bejibun",
+---
 
-  debug: true,
+## Validation Errors
 
-  timezone: "UTC",
+Occur when incoming data fails validation rules.
 
-  locale: "en"
-};
+Example:
+
+```json
+{
+  "email": "invalid-email"
+}
 ```
 
-Access values using dot notation:
+Response:
 
-```ts
-Config.get("app.timezone");
+```json
+{
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email address"
+    }
+  ]
+}
+```
+
+Validation errors are expected and should not be treated as application failures.
+
+---
+
+## Authentication Errors
+
+Occur when a user is not authenticated.
+
+Example:
+
+```http
+401 Unauthorized
+```
+
+Response:
+
+```json
+{
+  "message": "Unauthorized"
+}
 ```
 
 ---
 
-# Environment Variables
+## Authorization Errors
 
-Configuration files often depend on environment variables.
+Occur when a user lacks permission to perform an action.
 
 Example:
 
-```ts
-export default {
-  port: Env.get("PORT", 3000),
-
-  host: Env.get("HOST", "0.0.0.0")
-};
+```http
+403 Forbidden
 ```
 
-Environment variables allow applications to behave differently depending on where they are running.
+Response:
+
+```json
+{
+  "message": "Forbidden"
+}
+```
+
+---
+
+## Resource Not Found Errors
+
+Occur when a requested resource does not exist.
+
+Example:
+
+```http
+GET /users/999
+```
+
+Response:
+
+```http
+404 Not Found
+```
+
+---
+
+## Database Errors
+
+Occur during database operations.
 
 Examples:
 
-| Environment | Purpose |
-|-------------|----------|
-| Development | Local development |
-| Testing | Automated tests |
-| Staging | Pre-production validation |
-| Production | Live applications |
+```text
+Connection Failure
+Query Error
+Constraint Violation
+Transaction Failure
+```
+
+These errors should generally be logged and handled centrally.
 
 ---
 
-# Default Values
+## External Service Errors
 
-Always provide sensible defaults when appropriate.
+Occur when communicating with external systems.
 
-Example:
-
-```ts
-Env.get("PORT", 3000);
-```
-
-If the environment variable does not exist:
+Examples:
 
 ```text
-3000
+Payment Provider
+Email Service
+Cloud Storage
+Third-Party API
 ```
 
-is returned.
-
-This improves developer experience and reduces setup friction.
+Applications should expect these services to fail occasionally.
 
 ---
 
-# Application Configuration
+## Application Exceptions
 
-The application configuration file contains general settings.
+Occur when unexpected conditions arise within application logic.
 
 Example:
 
 ```ts
-export default {
-  name: Env.get(
-    "APP_NAME",
-    "Bejibun"
-  ),
-
-  env: Env.get(
-    "APP_ENV",
-    "development"
-  ),
-
-  debug: Env.get(
-    "APP_DEBUG",
-    true
-  )
-};
+throw new Error(
+  "Unexpected state"
+);
 ```
 
-Common settings include:
-
-- Application name
-- Environment
-- Debug mode
-- Timezone
-- Locale
+These typically indicate bugs or unforeseen edge cases.
 
 ---
 
-# Database Configuration
+# Throwing Exceptions
 
-Database connections are typically defined inside `config/database.ts`.
+Exceptions can be raised when an operation cannot continue safely.
 
 Example:
 
 ```ts
-export default {
-  default: "mysql",
+throw new Error(
+  "User not found"
+);
+```
 
-  connections: {
-    mysql: {
-      host: Env.get("DB_HOST"),
+Execution stops immediately.
 
-      port: Env.get("DB_PORT"),
+```text
+Code
+ │
+ ▼
+Exception
+ │
+ ▼
+Handler
+```
 
-      database: Env.get("DB_DATABASE"),
+This prevents invalid application states.
 
-      username: Env.get("DB_USERNAME"),
+---
 
-      password: Env.get("DB_PASSWORD")
-    }
+# Built-In Exceptions
+
+Framework components may throw specialized exceptions.
+
+Examples:
+
+```text
+ValidationException
+
+AuthenticationException
+
+AuthorizationException
+
+NotFoundException
+```
+
+These exceptions allow Bejibun to generate meaningful responses automatically.
+
+---
+
+# Creating Custom Exceptions
+
+Applications can define domain-specific exceptions.
+
+Example:
+
+```ts
+export class PaymentFailedException
+  extends Error {
+
+  constructor() {
+    super(
+      "Payment failed"
+    );
   }
-};
+}
 ```
 
-This separates connection details from application code.
+Usage:
+
+```ts
+throw new PaymentFailedException();
+```
+
+Custom exceptions improve clarity and maintainability.
 
 ---
 
-# Authentication Configuration
+# Catching Exceptions
 
-Authentication settings belong in a dedicated configuration file.
+Sometimes exceptions should be handled locally.
 
 Example:
 
 ```ts
-export default {
-  default: "jwt",
-
-  guards: {
-    jwt: {
-      driver: "jwt"
-    }
-  }
-};
+try {
+  await processPayment();
+} catch (error) {
+  Logger.error(
+    error.message
+  );
+}
 ```
 
-Keeping authentication settings centralized simplifies maintenance and auditing.
+This allows recovery from expected failures.
 
 ---
 
-# Cache Configuration
+# When to Catch Exceptions
 
-Cache drivers and related settings can be configured separately.
+Catch exceptions when:
+
+- Recovery is possible
+- Alternative behavior exists
+- Additional context must be added
 
 Example:
 
 ```ts
-export default {
-  default: "redis",
-
-  stores: {
-    redis: {
-      host: Env.get("REDIS_HOST")
-    }
-  }
-};
+try {
+  return await gateway.charge();
+} catch {
+  return fallbackGateway.charge();
+}
 ```
-
-This allows cache implementations to change without affecting application logic.
 
 ---
 
-# Storage Configuration
+# When Not to Catch Exceptions
 
-Storage configuration defines where files are stored.
+Avoid catching exceptions simply to ignore them.
+
+Bad:
+
+```ts
+try {
+  await process();
+} catch {}
+```
+
+Silent failures make debugging difficult.
+
+If an exception is caught, it should usually be:
+
+- Logged
+- Transformed
+- Handled appropriately
+
+---
+
+# Global Exception Handler
+
+Bejibun provides a centralized exception handler.
+
+Example structure:
+
+```text
+app/
+└── Exceptions/
+    └── Handler.ts
+```
+
+Responsibilities:
+
+- Logging exceptions
+- Formatting responses
+- Transforming errors
+- Reporting critical failures
+
+Centralized handling keeps behavior consistent.
+
+---
+
+# Reporting Exceptions
+
+Errors should be reported before responding to clients.
 
 Example:
 
 ```ts
-export default {
-  default: "local",
-
-  disks: {
-    local: {
-      root: "./storage"
-    }
-  }
-};
+Logger.error(
+  error.message
+);
 ```
 
-Future environments may switch to cloud storage without changing application code.
+Or:
+
+```ts
+Logger.error(
+  "Database failure",
+  {
+    error
+  }
+);
+```
+
+Logging provides operational visibility.
 
 ---
 
-# Service Configuration
+# Rendering Exceptions
 
-External integrations should have their own configuration file.
+The exception handler converts exceptions into HTTP responses.
 
 Example:
 
 ```ts
-export default {
-  stripe: {
-    key: Env.get(
-      "STRIPE_KEY"
-    )
-  },
-
-  mail: {
-    apiKey: Env.get(
-      "MAIL_API_KEY"
-    )
-  }
-};
+render(error) {
+  return response.internalServerError({
+    message:
+      "Something went wrong"
+  });
+}
 ```
 
-This pattern keeps third-party service settings organized.
+Users receive a safe response while internal details remain protected.
 
 ---
 
-# Environment-Based Configuration
+# Environment-Aware Error Responses
 
-Different environments often require different values.
+Development and production environments often handle errors differently.
 
 Development:
 
-```env
-APP_ENV=development
-
-APP_DEBUG=true
+```json
+{
+  "message": "Database connection failed",
+  "stack": "..."
+}
 ```
 
 Production:
 
-```env
-APP_ENV=production
-
-APP_DEBUG=false
-```
-
-Configuration files can adapt automatically based on the current environment.
-
-Example:
-
-```ts
-const isProduction =
-  Env.get("APP_ENV")
-  === "production";
-```
-
----
-
-# Typed Configuration
-
-One of the advantages of TypeScript is the ability to create strongly typed configuration.
-
-Example:
-
-```ts
-export interface AppConfig {
-  name: string;
-
-  env: string;
-
-  debug: boolean;
+```json
+{
+  "message": "Internal Server Error"
 }
 ```
 
-Typed configuration provides:
+Configuration:
 
-- Autocomplete
-- Compile-time validation
-- Better editor support
-- Safer refactoring
+```env
+APP_DEBUG=true
+```
 
-Whenever possible, configuration should remain type-safe.
+Development environments benefit from detailed diagnostics.
+
+Production environments prioritize security.
 
 ---
 
-# Organizing Large Applications
+# HTTP Exception Responses
 
-As applications grow, configuration files can become extensive.
+Bejibun may automatically convert common exceptions into HTTP responses.
 
-Instead of:
+Example mapping:
 
-```text
-config/
-└── app.ts
-```
+| Exception | HTTP Status |
+|------------|------------|
+| ValidationException | 422 |
+| AuthenticationException | 401 |
+| AuthorizationException | 403 |
+| NotFoundException | 404 |
+| Generic Error | 500 |
 
-Use:
-
-```text
-config/
-├── app.ts
-├── auth.ts
-├── cache.ts
-├── database.ts
-├── mail.ts
-├── queue.ts
-├── services.ts
-└── storage.ts
-```
-
-Each file should focus on a single concern.
+This creates a consistent API experience.
 
 ---
 
-# Avoiding Common Mistakes
+# Validation Error Handling
 
-## Hardcoding Secrets
+Validation failures should return actionable feedback.
 
-Avoid:
+Example:
 
-```ts
-const apiKey =
-  "my-secret-key";
+```json
+{
+  "errors": [
+    {
+      "field": "email",
+      "message": "The email field is required."
+    }
+  ]
+}
 ```
 
-Use:
-
-```ts
-Env.get("API_KEY");
-```
-
-Secrets should never be committed to version control.
+Applications should never treat validation failures as system errors.
 
 ---
 
-## Accessing Environment Variables Everywhere
+# API Error Responses
 
-Avoid:
+A consistent response structure improves developer experience.
 
-```ts
-Env.get("DB_HOST");
+Example:
 
-Env.get("DB_PORT");
-
-Env.get("DB_DATABASE");
+```json
+{
+  "message": "Resource not found"
+}
 ```
 
-throughout your application.
+Or:
 
-Instead:
+```json
+{
+  "message": "Validation failed",
+  "errors": []
+}
+```
+
+Consistency makes APIs easier to consume.
+
+---
+
+# Error Logging
+
+Every unexpected exception should be logged.
+
+Example:
 
 ```ts
-Config.get(
-  "database.connections.mysql"
+Logger.error(
+  "Unhandled exception",
+  {
+    error
+  }
 );
 ```
 
-Environment variables should typically be consumed by configuration files, not business logic.
+Logs should include:
+
+- Message
+- Stack trace
+- Context
+- Request metadata
 
 ---
 
-## Mixing Business Logic and Configuration
+# Request Context
+
+Errors become easier to diagnose when request information is available.
+
+Example:
+
+```ts
+Logger.error(
+  "Order creation failed",
+  {
+    userId,
+    orderId,
+    route
+  }
+);
+```
+
+Context dramatically reduces debugging time.
+
+---
+
+# Security Considerations
+
+Error responses should never expose sensitive information.
+
+Avoid:
+
+```json
+{
+  "databasePassword": "...",
+  "query": "...",
+  "stack": "..."
+}
+```
+
+in production environments.
+
+Users should only receive information necessary to understand the failure.
+
+---
+
+# Handling External Service Failures
+
+External systems should be treated as unreliable.
+
+Example:
+
+```ts
+try {
+  await mail.send();
+} catch {
+  Logger.warning(
+    "Mail delivery failed"
+  );
+}
+```
+
+Applications should degrade gracefully whenever possible.
+
+---
+
+# Handling Database Failures
+
+Example:
+
+```ts
+try {
+  await User.create(data);
+} catch (error) {
+  Logger.error(
+    "Database operation failed",
+    { error }
+  );
+
+  throw error;
+}
+```
+
+Database failures are often critical and should be logged consistently.
+
+---
+
+# Error Monitoring
+
+Production applications should integrate monitoring and alerting systems.
+
+Example flow:
+
+```text
+Application Error
+        │
+        ▼
+Logger
+        │
+        ▼
+Monitoring System
+        │
+        ▼
+Alert
+```
+
+This helps teams respond quickly to incidents.
+
+---
+
+# Best Practices
+
+### Fail Fast
+
+Detect problems as early as possible.
+
+---
+
+### Use Specific Exceptions
+
+Good:
+
+```ts
+throw new UserNotFoundException();
+```
 
 Avoid:
 
 ```ts
-if (Env.get("APP_ENV") === "production") {
-  // application logic
+throw new Error();
+```
+
+when a more descriptive exception exists.
+
+---
+
+### Log Unexpected Failures
+
+Unhandled exceptions should always be logged.
+
+---
+
+### Protect Sensitive Information
+
+Never expose internal implementation details to users.
+
+---
+
+### Keep Responses Consistent
+
+Error responses should follow a predictable structure.
+
+---
+
+# Common Mistakes
+
+### Swallowing Exceptions
+
+Avoid:
+
+```ts
+catch {}
+```
+
+This hides failures and complicates debugging.
+
+---
+
+### Exposing Stack Traces
+
+Avoid returning stack traces in production.
+
+---
+
+### Logging Sensitive Data
+
+Never log:
+
+```text
+Passwords
+API Keys
+Access Tokens
+Payment Information
+```
+
+---
+
+### Using Exceptions for Normal Control Flow
+
+Exceptions should represent exceptional situations, not regular application behavior.
+
+---
+
+# Example Request Failure
+
+Consider the following request:
+
+```http
+GET /users/999
+```
+
+Lifecycle:
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+User Not Found
+   │
+   ▼
+NotFoundException
+   │
+   ▼
+Exception Handler
+   │
+   ▼
+404 Response
+```
+
+Response:
+
+```json
+{
+  "message": "User not found"
 }
 ```
 
-Business logic should remain separate from configuration concerns whenever possible.
+The error is handled gracefully without crashing the application.
 
 ---
 
-# Configuration Caching
-
-As applications grow, repeatedly loading configuration can become inefficient.
-
-Future framework versions may provide configuration caching.
-
-Example:
-
-```bash
-bun ace config:cache
-```
-
-Benefits include:
-
-- Faster startup
-- Reduced file access
-- Improved production performance
-
-If available, configuration caches should be regenerated after configuration changes.
-
----
-
-# Recommended Practices
-
-Follow these guidelines when working with configuration:
-
-- Keep configuration centralized
-- Use environment variables for secrets
-- Provide sensible defaults
-- Create dedicated configuration files
-- Prefer type-safe configuration
-- Avoid hardcoded values
-- Separate configuration from business logic
-
-These practices improve maintainability and reduce deployment issues.
-
----
-
-# Example Configuration Flow
-
-The following diagram illustrates how configuration values are loaded.
+# Visual Summary
 
 ```text
-.env
-  │
-  ▼
-config/*.ts
-  │
-  ▼
-Config Service
-  │
-  ▼
-Application Code
+Application
+      │
+      ▼
+Exception
+      │
+      ▼
+Exception Handler
+      │
+      ├────────► Logger
+      │
+      ▼
+Response Generator
+      │
+      ▼
+Client
 ```
 
-This layered approach keeps applications organized and easy to maintain.
+The error handling system ensures that failures are managed consistently, securely, and predictably throughout the application.
 
 ---
 
 # What's Next?
 
-Now that you understand how configuration works, the next step is learning how environment variables are loaded and managed.
+Now that you understand how Bejibun handles exceptions and failures, you're ready to explore application events and asynchronous workflows.
 
 Continue to:
 
-- Environment Variables
-- Request Lifecycle
+- Events
+- Event Listeners
+- Queues
+- Jobs
+- Scheduling
 
-In the next chapter, you'll learn how Bejibun loads environment values, validates them, and uses them throughout the application.
+These systems often interact closely with logging and error handling to build reliable, production-ready applications.

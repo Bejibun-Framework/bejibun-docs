@@ -1,199 +1,273 @@
 ---
 title: Installation
-description: Install Bejibun, create your first application, and prepare your development environment.
+description: Install Bejibun and create your first application in minutes.
 ---
 
 # Installation
 
-This guide will walk you through installing Bejibun and creating your first application.
+Getting started with Bejibun is straightforward.
 
-Before you begin, ensure your system meets the minimum requirements.
+This guide will walk you through the requirements, installation process, and verification steps needed to create a new Bejibun application.
 
 ---
 
 # Requirements
 
-Bejibun is built specifically for Bun and requires a modern development environment.
+Before installing Bejibun, ensure your development environment meets the minimum requirements.
 
-## Runtime Requirements
+## Bun
 
-| Software | Version |
-|-----------|-----------|
-| Bun | Latest Stable |
-| TypeScript | Included |
-| Node.js | Not Required |
-| Git | Recommended |
+Bejibun is built specifically for Bun and requires a recent Bun release.
 
-To verify your Bun installation:
+Check your current version:
 
 ```bash
 bun --version
 ```
 
-Example output:
+If Bun is not installed, follow the official installation instructions from:
 
-```bash
-1.x.x
-```
-
-If Bun is not installed, follow the instructions below.
-
----
-
-# Installing Bun
-
-Bejibun relies on Bun as its runtime, package manager, and development toolchain.
-
-## Linux & macOS
-
-Install Bun using the official installation script:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-After installation, restart your terminal and verify:
-
-```bash
-bun --version
+```text
+https://bun.sh
 ```
 
 ---
 
-## Windows
+## Node.js (Optional)
 
-Install Bun using PowerShell:
+Some development tools may still rely on the Node.js ecosystem.
 
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
-```
-
-Verify the installation:
-
-```powershell
-bun --version
-```
+While Bejibun runs on Bun, having a recent Node.js version available can be helpful when working with third-party tooling.
 
 ---
 
-## Updating Bun
+## Database
 
-To update Bun to the latest version:
+Depending on your application, you may need one of the supported database systems.
 
-```bash
-bun upgrade
+Common choices include:
+
+```text
+PostgreSQL
+MySQL
+SQLite
 ```
 
-Keeping Bun updated ensures you receive performance improvements, bug fixes, and security updates.
+SQLite is recommended for local development and tutorials.
+
+---
+
+## Redis (Optional)
+
+Redis is required only if your application uses features such as:
+
+- Cache
+- Queues
+- Rate limiting
+- Realtime features
+
+For basic applications, Redis is optional.
 
 ---
 
 # Creating a New Application
 
-The fastest way to start a new project is with the Bejibun CLI.
-
-Run:
+Create a new Bejibun project using the framework installer.
 
 ```bash
-bunx @bejibun/cli create my-app
+bun create bejibun my-app
 ```
 
-Or:
-
-```bash
-bunx @bejibun/cli my-app
-```
-
-The CLI will generate a new project structure and install the required dependencies.
+Replace `my-app` with your preferred project name.
 
 Example:
 
 ```bash
-Creating project...
+bun create bejibun blog-api
+```
 
-✔ Generating application files
-✔ Installing dependencies
-✔ Creating environment configuration
-✔ Preparing project structure
+After installation:
 
-Application created successfully.
+```bash
+cd blog-api
 ```
 
 ---
 
-# Navigate to the Project
+# Project Creation Process
 
-Move into your newly created application:
+The installer will generate a complete application structure.
 
-```bash
-cd my-app
-```
-
-Your project directory should look similar to:
+Example:
 
 ```text
-my-app/
+blog-api/
 ├── app/
+├── bootstrap/
 ├── config/
 ├── database/
 ├── public/
 ├── routes/
 ├── storage/
-├── tests/
 ├── .env
-├── bunfig.toml
-└── package.json
+├── package.json
+└── tsconfig.json
 ```
 
-The exact structure may vary depending on the framework version and installed packages.
+This structure provides everything needed to begin development.
+
+---
+
+# Install Dependencies
+
+If dependencies are not automatically installed, run:
+
+```bash
+bun install
+```
+
+This installs all required framework packages and project dependencies.
 
 ---
 
 # Environment Configuration
 
-Most applications require environment-specific configuration.
+Create your environment file if one does not already exist.
 
-Bejibun stores environment variables inside the `.env` file.
+```bash
+cp .env.example .env
+```
+
+Open the file and configure your application settings.
 
 Example:
 
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
+APP_DEBUG=true
 APP_URL=http://localhost:3000
-
-PORT=3000
 ```
 
-You can customize these values as needed.
-
-For larger applications, environment variables are commonly used to configure:
-
-- Databases
-- Cache systems
-- Storage providers
-- Authentication services
-- External APIs
+Additional configuration options are covered in the Environment Variables guide.
 
 ---
 
-# Starting the Development Server
+# Generate Application Key
 
-Once the project is created, start the development server:
+If your version of Bejibun requires an application key, generate one using:
+
+```bash
+bun ace key:generate
+```
+
+This key is used by framework features that require cryptographic security.
+
+---
+
+# Configure the Database
+
+Update your database configuration inside the `.env` file.
+
+### SQLite
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+Create the database file:
+
+```bash
+touch database/database.sqlite
+```
+
+---
+
+### PostgreSQL
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=bejibun
+DB_USERNAME=postgres
+DB_PASSWORD=password
+```
+
+---
+
+### MySQL
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=bejibun
+DB_USERNAME=root
+DB_PASSWORD=password
+```
+
+Choose the configuration that matches your environment.
+
+---
+
+# Run Database Migrations
+
+Create the database schema:
+
+```bash
+bun ace migrate
+```
+
+Expected output:
+
+```text
+Migrating...
+Migration completed successfully.
+```
+
+Your application database is now ready.
+
+---
+
+# Seed the Database (Optional)
+
+If your project includes seeders:
+
+```bash
+bun ace db:seed
+```
+
+This populates the database with initial data.
+
+---
+
+# Start the Development Server
+
+Launch the application:
 
 ```bash
 bun dev
 ```
 
-Example output:
+Or:
 
 ```bash
-Bejibun v1.x.x
-
-Server started successfully.
-
-Local: http://localhost:3000
+bun start
 ```
+
+depending on your project configuration.
+
+Expected output:
+
+```text
+Server running on http://localhost:3000
+```
+
+---
+
+# Verify Installation
 
 Open your browser and visit:
 
@@ -201,278 +275,225 @@ Open your browser and visit:
 http://localhost:3000
 ```
 
-You should see your application running.
+If installation was successful, you should see the default Bejibun response or welcome page.
+
+You can also test using:
+
+```bash
+curl http://localhost:3000
+```
+
+Example response:
+
+```json
+{
+  "message": "Welcome to Bejibun"
+}
+```
 
 ---
 
-# Development Workflow
+# Common Commands
 
-During development, Bejibun automatically reloads when source files change.
+During development, you'll frequently use the following commands.
+
+## Start Development Server
 
 ```bash
 bun dev
 ```
 
-This allows you to edit code and see changes immediately without manually restarting the server.
-
-Typical workflow:
-
-```text
-Edit File
-     ↓
-Save
-     ↓
-Framework Reloads
-     ↓
-Refresh Browser
-```
-
 ---
 
-# Verifying the Installation
-
-To confirm that everything is working correctly:
-
-Create a simple route.
-
-```ts
-Router.get("/", async () => {
-  return {
-    framework: "Bejibun",
-    status: "running"
-  };
-});
-```
-
-Visit:
-
-```text
-http://localhost:3000
-```
-
-Expected response:
-
-```json
-{
-  "framework": "Bejibun",
-  "status": "running"
-}
-```
-
-If you see this response, your installation is working correctly.
-
----
-
-# Using the CLI
-
-The Bejibun CLI provides generators and development utilities.
-
-Display available commands:
+## Run Migrations
 
 ```bash
-bun ace list
+bun ace migrate
 ```
-
-Example:
-
-```text
-make:controller
-make:model
-make:migration
-make:seeder
-make:validator
-route:list
-migrate:latest
-migrate:rollback
-```
-
-These commands help automate common development tasks.
 
 ---
 
-# Creating Your First Controller
-
-Generate a controller:
+## Roll Back Migrations
 
 ```bash
-bun ace make:controller HomeController
+bun ace migrate:rollback
 ```
-
-Generated file:
-
-```text
-app/Controllers/HomeController.ts
-```
-
-Example:
-
-```ts
-export default class HomeController {
-  async index() {
-    return {
-      message: "Welcome to Bejibun"
-    };
-  }
-}
-```
-
-Register the route:
-
-```ts
-Router.get("/", "HomeController@index");
-```
-
-Visit your application to see the response.
 
 ---
 
-# Creating Your First Model
+## Seed Database
 
-Generate a model:
+```bash
+bun ace db:seed
+```
+
+---
+
+## Generate Controller
+
+```bash
+bun ace make:controller UserController
+```
+
+---
+
+## Generate Model
 
 ```bash
 bun ace make:model User
 ```
 
-Generated file:
-
-```text
-app/Models/User.ts
-```
-
-Example:
-
-```ts
-export default class User extends BaseModel {}
-```
-
-Models provide a convenient way to interact with database records.
-
 ---
 
-# Running Database Migrations
-
-If your application uses a database, run migrations after configuration.
-
-Generate a migration:
+## Generate Migration
 
 ```bash
 bun ace make:migration create_users_table
 ```
 
-Execute migrations:
+---
+
+# Verify Framework Installation
+
+You can confirm that Bejibun is properly installed by checking available commands.
 
 ```bash
-bun ace migrate:latest
+bun ace list
 ```
 
-Successful output:
+Example output:
 
-```bash
-✔ Migration completed
+```text
+make:controller
+make:model
+make:migration
+migrate
+db:seed
+...
 ```
 
-Your database schema is now up to date.
+If commands appear correctly, the framework has been installed successfully.
 
 ---
 
-# Production Installation
+# Development Workflow
 
-For production deployments:
+A typical workflow looks like:
 
-Install dependencies:
-
-```bash
-bun install --production
+```text
+Create Project
+       │
+       ▼
+Configure Environment
+       │
+       ▼
+Run Migrations
+       │
+       ▼
+Start Development Server
+       │
+       ▼
+Create Routes
+       │
+       ▼
+Create Controllers
+       │
+       ▼
+Build Application
 ```
 
-Build the application if required:
-
-```bash
-bun run build
-```
-
-Start the server:
-
-```bash
-bun start
-```
-
-Production environments should also configure:
-
-- Reverse proxies
-- HTTPS
-- Environment variables
-- Monitoring
-- Logging
-
-Deployment topics are covered in a later section of the documentation.
+Most applications follow this process during initial development.
 
 ---
 
 # Troubleshooting
 
-## Bun Command Not Found
+## Bun Not Found
 
-If you receive:
+Error:
 
-```bash
+```text
 bun: command not found
 ```
 
-Ensure Bun is installed correctly and available in your system PATH.
+Solution:
 
-Verify:
-
-```bash
-bun --version
-```
+Install Bun and ensure it is available in your system path.
 
 ---
 
-## Port Already in Use
+## Migration Failures
 
-If the configured port is unavailable:
-
-```bash
-EADDRINUSE
-```
-
-Change the port in your environment configuration:
+Check:
 
 ```env
-PORT=4000
+DB_HOST
+DB_PORT
+DB_DATABASE
+DB_USERNAME
+DB_PASSWORD
 ```
 
-Restart the development server afterward.
+and verify that the database server is running.
 
 ---
 
-## Dependency Installation Fails
+## Port Already In Use
 
-Clear the dependency cache and reinstall:
+Error:
 
-```bash
-rm -rf node_modules
-rm bun.lock
-
-bun install
+```text
+Address already in use
 ```
 
-Then start the application again.
+Solution:
+
+Change the application port or stop the process using the port.
 
 ---
 
-# Next Steps
+## Missing Environment Variables
 
-Congratulations! Your Bejibun environment is now ready.
+Ensure:
+
+```env
+APP_ENV
+APP_URL
+DB_CONNECTION
+```
+
+and any required credentials are correctly configured.
+
+---
+
+# Recommended Development Setup
+
+For most developers:
+
+```text
+Bun
++
+TypeScript
++
+SQLite
++
+Redis (Optional)
++
+VS Code
+```
+
+This setup provides a fast and lightweight development experience.
+
+---
+
+# What's Next?
+
+Congratulations! Your Bejibun application is now installed and ready for development.
 
 Continue with:
 
 - Creating Your First Application
 - Project Structure
 - Configuration
-- Environment Variables
-- Request Lifecycle
 
-In the next guide, you'll build a complete application and learn how the framework components work together.
+These guides will help you understand how a Bejibun application is organized and how to start building features.

@@ -1,478 +1,819 @@
 ---
-title: Installation
-description: Install Bejibun, create your first application, and prepare your development environment.
+title: Logging
+description: Learn how to record, organize, and monitor application events using the Bejibun logging system.
 ---
 
-# Installation
+# Logging
 
-This guide will walk you through installing Bejibun and creating your first application.
+Logging is one of the most important aspects of application development and operations.
 
-Before you begin, ensure your system meets the minimum requirements.
+When applications run in production, logs provide visibility into what is happening inside the system. They help developers diagnose issues, monitor application health, audit behavior, and understand how users interact with the application.
 
----
-
-# Requirements
-
-Bejibun is built specifically for Bun and requires a modern development environment.
-
-## Runtime Requirements
-
-| Software | Version |
-|-----------|-----------|
-| Bun | Latest Stable |
-| TypeScript | Included |
-| Node.js | Not Required |
-| Git | Recommended |
-
-To verify your Bun installation:
-
-```bash
-bun --version
-```
-
-Example output:
-
-```bash
-1.x.x
-```
-
-If Bun is not installed, follow the instructions below.
+A well-designed logging strategy can significantly reduce debugging time and improve system reliability.
 
 ---
 
-# Installing Bun
+# What Is Logging?
 
-Bejibun relies on Bun as its runtime, package manager, and development toolchain.
+Logging is the process of recording events that occur during application execution.
 
-## Linux & macOS
+Examples include:
 
-Install Bun using the official installation script:
+- Incoming requests
+- Authentication attempts
+- Validation failures
+- Database errors
+- Background job execution
+- External API calls
+- System warnings
 
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-After installation, restart your terminal and verify:
-
-```bash
-bun --version
-```
-
----
-
-## Windows
-
-Install Bun using PowerShell:
-
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
-```
-
-Verify the installation:
-
-```powershell
-bun --version
-```
-
----
-
-## Updating Bun
-
-To update Bun to the latest version:
-
-```bash
-bun upgrade
-```
-
-Keeping Bun updated ensures you receive performance improvements, bug fixes, and security updates.
-
----
-
-# Creating a New Application
-
-The fastest way to start a new project is with the Bejibun CLI.
-
-Run:
-
-```bash
-bunx @bejibun/cli create my-app
-```
-
-Or:
-
-```bash
-bunx @bejibun/cli my-app
-```
-
-The CLI will generate a new project structure and install the required dependencies.
-
-Example:
-
-```bash
-Creating project...
-
-✔ Generating application files
-✔ Installing dependencies
-✔ Creating environment configuration
-✔ Preparing project structure
-
-Application created successfully.
-```
-
----
-
-# Navigate to the Project
-
-Move into your newly created application:
-
-```bash
-cd my-app
-```
-
-Your project directory should look similar to:
+Example log entry:
 
 ```text
-my-app/
-├── app/
-├── config/
-├── database/
-├── public/
-├── routes/
-├── storage/
-├── tests/
-├── .env
-├── bunfig.toml
-└── package.json
+[2026-06-07 10:15:42] INFO User authenticated successfully
 ```
 
-The exact structure may vary depending on the framework version and installed packages.
+Logs create a historical record of application activity.
 
 ---
 
-# Environment Configuration
+# Why Logging Matters
 
-Most applications require environment-specific configuration.
+Without logs:
 
-Bejibun stores environment variables inside the `.env` file.
-
-Example:
-
-```env
-APP_NAME=Bejibun
-APP_ENV=development
-APP_URL=http://localhost:3000
-
-PORT=3000
+```text
+Application Error
+      │
+      ▼
+Unknown Cause
 ```
 
-You can customize these values as needed.
+With logs:
 
-For larger applications, environment variables are commonly used to configure:
+```text
+Application Error
+      │
+      ▼
+Error Log
+      │
+      ▼
+Root Cause Identified
+```
 
+Benefits include:
+
+- Faster debugging
+- Production visibility
+- Security auditing
+- Operational monitoring
+- Performance analysis
+- Incident investigation
+
+---
+
+# Logging Architecture
+
+At a high level:
+
+```text
+Application
+      │
+      ▼
+Logger
+      │
+      ▼
+Channel
+      │
+      ▼
+Storage Destination
+```
+
+Possible destinations include:
+
+- Files
+- Console
+- Remote log services
 - Databases
-- Cache systems
-- Storage providers
-- Authentication services
-- External APIs
+- Monitoring platforms
 
 ---
 
-# Starting the Development Server
+# Writing Logs
 
-Once the project is created, start the development server:
+The Logger service provides methods for recording events.
 
-```bash
-bun dev
-```
-
-Example output:
-
-```bash
-Bejibun v1.x.x
-
-Server started successfully.
-
-Local: http://localhost:3000
-```
-
-Open your browser and visit:
-
-```text
-http://localhost:3000
-```
-
-You should see your application running.
-
----
-
-# Development Workflow
-
-During development, Bejibun automatically reloads when source files change.
-
-```bash
-bun dev
-```
-
-This allows you to edit code and see changes immediately without manually restarting the server.
-
-Typical workflow:
-
-```text
-Edit File
-     ↓
-Save
-     ↓
-Framework Reloads
-     ↓
-Refresh Browser
-```
-
----
-
-# Verifying the Installation
-
-To confirm that everything is working correctly:
-
-Create a simple route.
+Example:
 
 ```ts
-Router.get("/", async () => {
-  return {
-    framework: "Bejibun",
-    status: "running"
-  };
+Logger.info(
+  "User logged in"
+);
+```
+
+Result:
+
+```text
+[INFO] User logged in
+```
+
+This is the most common form of logging.
+
+---
+
+# Log Levels
+
+Not all log messages have the same importance.
+
+Bejibun supports multiple log levels to categorize events.
+
+---
+
+## Emergency
+
+The system is unusable.
+
+Example:
+
+```ts
+Logger.emergency(
+  "Database cluster unavailable"
+);
+```
+
+Use only for critical failures.
+
+---
+
+## Alert
+
+Immediate action is required.
+
+Example:
+
+```ts
+Logger.alert(
+  "Payment service unreachable"
+);
+```
+
+---
+
+## Critical
+
+A critical component has failed.
+
+Example:
+
+```ts
+Logger.critical(
+  "Unable to connect to database"
+);
+```
+
+---
+
+## Error
+
+An operation failed.
+
+Example:
+
+```ts
+Logger.error(
+  "User creation failed"
+);
+```
+
+Errors typically require investigation.
+
+---
+
+## Warning
+
+Unexpected behavior occurred but execution continues.
+
+Example:
+
+```ts
+Logger.warning(
+  "Rate limit threshold reached"
+);
+```
+
+Warnings indicate potential issues.
+
+---
+
+## Notice
+
+Important but expected events.
+
+Example:
+
+```ts
+Logger.notice(
+  "User password changed"
+);
+```
+
+---
+
+## Info
+
+General application activity.
+
+Example:
+
+```ts
+Logger.info(
+  "User authenticated"
+);
+```
+
+Most operational logs belong here.
+
+---
+
+## Debug
+
+Detailed diagnostic information.
+
+Example:
+
+```ts
+Logger.debug({
+  query,
+  executionTime
 });
 ```
 
-Visit:
-
-```text
-http://localhost:3000
-```
-
-Expected response:
-
-```json
-{
-  "framework": "Bejibun",
-  "status": "running"
-}
-```
-
-If you see this response, your installation is working correctly.
+Debug logs are useful during development and troubleshooting.
 
 ---
 
-# Using the CLI
+# Choosing Log Levels
 
-The Bejibun CLI provides generators and development utilities.
+A simple guideline:
 
-Display available commands:
+| Level | Usage |
+|---------|---------|
+| Emergency | Application unavailable |
+| Alert | Immediate action required |
+| Critical | Major component failure |
+| Error | Failed operations |
+| Warning | Unexpected situations |
+| Notice | Significant events |
+| Info | Normal activity |
+| Debug | Diagnostic information |
 
-```bash
-bun ace list
-```
-
-Example:
-
-```text
-make:controller
-make:model
-make:migration
-make:seeder
-make:validator
-route:list
-migrate:latest
-migrate:rollback
-```
-
-These commands help automate common development tasks.
+Selecting appropriate levels improves observability.
 
 ---
 
-# Creating Your First Controller
+# Structured Logging
 
-Generate a controller:
+Avoid:
 
-```bash
-bun ace make:controller HomeController
+```ts
+Logger.info(
+  "User 123 logged in"
+);
 ```
 
-Generated file:
+Prefer:
 
-```text
-app/Controllers/HomeController.ts
+```ts
+Logger.info(
+  "User authenticated",
+  {
+    userId: 123
+  }
+);
 ```
+
+Structured logs provide machine-readable metadata.
+
+Benefits include:
+
+- Better searching
+- Easier filtering
+- Improved analytics
+- Enhanced monitoring
+
+---
+
+# Contextual Logging
+
+Logs become more valuable when context is included.
 
 Example:
 
 ```ts
-export default class HomeController {
-  async index() {
-    return {
-      message: "Welcome to Bejibun"
-    };
+Logger.error(
+  "Payment failed",
+  {
+    userId: 123,
+    orderId: 456,
+    provider: "stripe"
+  }
+);
+```
+
+Result:
+
+```json
+{
+  "level": "error",
+  "message": "Payment failed",
+  "userId": 123,
+  "orderId": 456,
+  "provider": "stripe"
+}
+```
+
+Context helps identify issues quickly.
+
+---
+
+# Log Channels
+
+A channel defines where logs are written.
+
+Example configuration:
+
+```ts
+export default {
+  default: "file",
+
+  channels: {
+    file: {},
+    console: {}
+  }
+};
+```
+
+Possible channels:
+
+```text
+File
+Console
+Remote Service
+Database
+Custom Driver
+```
+
+Applications may use multiple channels simultaneously.
+
+---
+
+# File Logging
+
+File logging is the most common approach.
+
+Example:
+
+```text
+storage/logs/
+```
+
+Files may look like:
+
+```text
+storage/logs/app.log
+```
+
+Example entry:
+
+```text
+[INFO] User created successfully
+```
+
+File logs are simple and reliable.
+
+---
+
+# Console Logging
+
+Useful during development and containerized deployments.
+
+Example:
+
+```ts
+Logger.info(
+  "Server started"
+);
+```
+
+Output:
+
+```text
+[INFO] Server started
+```
+
+Container platforms often collect console output automatically.
+
+---
+
+# Logging Exceptions
+
+Exceptions should be logged with sufficient detail.
+
+Example:
+
+```ts
+try {
+  await processPayment();
+} catch (error) {
+  Logger.error(
+    error.message
+  );
+}
+```
+
+Better:
+
+```ts
+Logger.error(
+  "Payment processing failed",
+  {
+    error
+  }
+);
+```
+
+This preserves useful debugging information.
+
+---
+
+# Request Logging
+
+Applications often log incoming requests.
+
+Example:
+
+```text
+GET /users
+POST /orders
+DELETE /posts/1
+```
+
+Request logs help:
+
+- Audit activity
+- Measure traffic
+- Diagnose issues
+- Investigate incidents
+
+---
+
+## Example Middleware
+
+```ts
+export default class LoggingMiddleware {
+  async handle(ctx, next) {
+    Logger.info(
+      "Incoming request",
+      {
+        method:
+          ctx.request.method(),
+        url:
+          ctx.request.url()
+      }
+    );
+
+    await next();
   }
 }
 ```
 
-Register the route:
+---
+
+# Performance Logging
+
+Performance metrics can be logged for analysis.
+
+Example:
 
 ```ts
-Router.get("/", "HomeController@index");
+const start =
+  performance.now();
+
+await service.execute();
+
+Logger.debug(
+  "Execution completed",
+  {
+    duration:
+      performance.now() -
+      start
+  }
+);
 ```
 
-Visit your application to see the response.
+Useful for identifying bottlenecks.
 
 ---
 
-# Creating Your First Model
+# Security Logging
 
-Generate a model:
+Security-sensitive events should always be logged.
 
-```bash
-bun ace make:model User
-```
-
-Generated file:
+Examples:
 
 ```text
-app/Models/User.ts
+Failed Login Attempt
+
+Permission Denied
+
+Password Reset
+
+API Key Revoked
 ```
 
 Example:
 
 ```ts
-export default class User extends BaseModel {}
+Logger.notice(
+  "Failed login",
+  {
+    email
+  }
+);
 ```
 
-Models provide a convenient way to interact with database records.
+Security logs aid investigations and auditing.
 
 ---
 
-# Running Database Migrations
+# Background Job Logging
 
-If your application uses a database, run migrations after configuration.
+Jobs should log important lifecycle events.
 
-Generate a migration:
+Example:
 
-```bash
-bun ace make:migration create_users_table
+```ts
+Logger.info(
+  "Email job started"
+);
 ```
 
-Execute migrations:
+Later:
 
-```bash
-bun ace migrate:latest
+```ts
+Logger.info(
+  "Email job completed"
+);
 ```
 
-Successful output:
-
-```bash
-✔ Migration completed
-```
-
-Your database schema is now up to date.
+This improves visibility into asynchronous processing.
 
 ---
 
-# Production Installation
+# Logging Configuration
 
-For production deployments:
+Example configuration file:
 
-Install dependencies:
+```ts
+export default {
+  default: "file",
 
-```bash
-bun install --production
+  level: "info",
+
+  channels: {
+    file: {
+      path:
+        "storage/logs/app.log"
+    }
+  }
+};
 ```
 
-Build the application if required:
+Common settings include:
 
-```bash
-bun run build
+- Default channel
+- Log level
+- File location
+- Rotation policy
+
+---
+
+# Log Rotation
+
+Logs grow continuously.
+
+Without rotation:
+
+```text
+app.log
 ```
 
-Start the server:
+can become extremely large.
 
-```bash
-bun start
+Rotation creates:
+
+```text
+app.log
+app-2026-06-06.log
+app-2026-06-07.log
 ```
 
-Production environments should also configure:
+Benefits:
 
-- Reverse proxies
-- HTTPS
-- Environment variables
+- Reduced disk usage
+- Easier maintenance
+- Improved performance
+
+Production environments should always implement log rotation.
+
+---
+
+# Centralized Logging
+
+Larger applications often aggregate logs from multiple servers.
+
+Example architecture:
+
+```text
+Server A
+      │
+Server B
+      │
+Server C
+      ▼
+Central Log System
+```
+
+Benefits:
+
+- Unified search
+- Faster troubleshooting
+- Better observability
+
+Popular solutions include:
+
+- Elasticsearch
+- Loki
+- Datadog
+- Splunk
+
+---
+
+# Logging Best Practices
+
+### Log Important Events
+
+Good:
+
+```ts
+Logger.info(
+  "Order completed"
+);
+```
+
+Avoid logging trivial operations excessively.
+
+---
+
+### Include Context
+
+Good:
+
+```ts
+Logger.info(
+  "Order completed",
+  {
+    orderId
+  }
+);
+```
+
+Context improves usefulness.
+
+---
+
+### Use Appropriate Levels
+
+Do not log everything as:
+
+```ts
+Logger.error(...)
+```
+
+Use levels consistently.
+
+---
+
+### Avoid Sensitive Data
+
+Never log:
+
+```text
+Passwords
+Tokens
+Secret Keys
+Credit Card Numbers
+```
+
+Logs should not expose confidential information.
+
+---
+
+### Prefer Structured Logs
+
+Structured data is easier to process and analyze.
+
+---
+
+# Common Mistakes
+
+### Logging Secrets
+
+Avoid:
+
+```ts
+Logger.info(password);
+```
+
+Sensitive information should never appear in logs.
+
+---
+
+### Logging Excessively
+
+Too many logs create noise and increase storage costs.
+
+---
+
+### Ignoring Errors
+
+Critical failures should always be logged.
+
+---
+
+### Using Debug Logs in Production
+
+Verbose debugging may impact performance and overwhelm log storage.
+
+---
+
+# Example Application Flow
+
+```text
+Incoming Request
+        │
+        ▼
+Request Logged
+        │
+        ▼
+Controller Executes
+        │
+        ▼
+Database Query
+        │
+        ▼
+Response Returned
+        │
+        ▼
+Request Completed Log
+```
+
+Logs provide visibility throughout the entire lifecycle.
+
+---
+
+# Visual Summary
+
+```text
+Application
+      │
+      ▼
+Logger
+      │
+      ▼
+Log Channel
+      │
+      ▼
+File / Console / Service
+      │
+      ▼
+Monitoring & Analysis
+```
+
+Logging acts as the application's operational record and is essential for both development and production environments.
+
+---
+
+# What's Next?
+
+Now that you understand how logging works, you're ready to explore additional operational features of the framework.
+
+Continue to:
+
+- Events
+- Queues
+- Scheduling
+- Caching
 - Monitoring
-- Logging
+- Error Handling
 
-Deployment topics are covered in a later section of the documentation.
-
----
-
-# Troubleshooting
-
-## Bun Command Not Found
-
-If you receive:
-
-```bash
-bun: command not found
-```
-
-Ensure Bun is installed correctly and available in your system PATH.
-
-Verify:
-
-```bash
-bun --version
-```
-
----
-
-## Port Already in Use
-
-If the configured port is unavailable:
-
-```bash
-EADDRINUSE
-```
-
-Change the port in your environment configuration:
-
-```env
-PORT=4000
-```
-
-Restart the development server afterward.
-
----
-
-## Dependency Installation Fails
-
-Clear the dependency cache and reinstall:
-
-```bash
-rm -rf node_modules
-rm bun.lock
-
-bun install
-```
-
-Then start the application again.
-
----
-
-# Next Steps
-
-Congratulations! Your Bejibun environment is now ready.
-
-Continue with:
-
-- Creating Your First Application
-- Project Structure
-- Configuration
-- Environment Variables
-- Request Lifecycle
-
-In the next guide, you'll build a complete application and learn how the framework components work together.
+These systems work closely with logging and help build reliable, observable applications at scale.

@@ -1,694 +1,725 @@
 ---
-title: Project Structure
-description: Understand the directory structure of a Bejibun application and learn where different parts of your code belong.
+title: Service Container
+description: Learn how the Bejibun Service Container manages dependencies, resolves services, and powers dependency injection throughout the framework.
 ---
 
-# Project Structure
+# Service Container
 
-A well-organized project structure makes applications easier to develop, maintain, and scale.
+The Service Container is the heart of dependency management in Bejibun.
 
-Bejibun follows a convention-driven architecture that provides a predictable layout for application code. Whether you're working on a personal project or collaborating with a large team, understanding the project structure will help you navigate the framework more efficiently.
+It is responsible for creating, storing, and resolving application services whenever they are needed.
 
-This guide explains the purpose of each directory and how the different parts of a Bejibun application work together.
-
----
-
-# Overview
-
-A freshly created Bejibun application may look similar to the following:
-
-```text
-my-app/
-├── app/
-├── bootstrap/
-├── config/
-├── database/
-├── public/
-├── routes/
-├── storage/
-├── tests/
-├── .env
-├── .env.example
-├── bunfig.toml
-├── package.json
-└── tsconfig.json
-```
-
-The exact structure may evolve as the framework grows, but the core principles remain the same.
+Instead of manually constructing dependencies throughout your application, the container handles object creation automatically, allowing your code to remain clean, testable, and maintainable.
 
 ---
 
-# The `app` Directory
+# What Is a Service Container?
 
-The `app` directory contains the primary application code.
+A Service Container is an object registry responsible for managing application dependencies.
 
-```text
-app/
-├── Controllers/
-├── Middleware/
-├── Models/
-├── Services/
-├── Validators/
-├── Jobs/
-├── Events/
-├── Listeners/
-└── Policies/
-```
-
-Most of your daily development work will take place here.
-
----
-
-## Controllers
-
-Controllers handle incoming HTTP requests.
-
-```text
-app/
-└── Controllers/
-    └── UserController.ts
-```
-
-Example:
+Without a container:
 
 ```ts
-export default class UserController {
-  async index() {
-    return User.all();
-  }
-}
-```
+const logger = new Logger();
 
-Controllers should focus on request handling rather than complex business logic.
+const userService =
+  new UserService(logger);
 
-Responsibilities:
-
-- Processing requests
-- Returning responses
-- Calling services
-- Coordinating application flow
-
-Avoid placing database-heavy or business-critical logic directly inside controllers.
-
----
-
-## Models
-
-Models represent database entities.
-
-```text
-app/
-└── Models/
-    └── User.ts
-```
-
-Example:
-
-```ts
-export default class User extends BaseModel {
-  static tableName = "users";
-}
-```
-
-Models typically handle:
-
-- Database interaction
-- Relationships
-- Query scopes
-- Data serialization
-
----
-
-## Middleware
-
-Middleware executes before or after a request reaches a controller.
-
-```text
-app/
-└── Middleware/
-    └── AuthMiddleware.ts
-```
-
-Example:
-
-```ts
-export default class AuthMiddleware {
-  async handle(ctx, next) {
-    await next();
-  }
-}
-```
-
-Common use cases:
-
-- Authentication
-- Authorization
-- Logging
-- Rate limiting
-- Request transformation
-
----
-
-## Validators
-
-Validators define rules for incoming data.
-
-```text
-app/
-└── Validators/
-    └── CreateUserValidator.ts
-```
-
-Example:
-
-```ts
-export const CreateUserValidator =
-  vine.compile(
-    vine.object({
-      name: vine.string(),
-      email: vine.string().email()
-    })
+const controller =
+  new UserController(
+    userService
   );
 ```
 
-Keeping validation separate from controllers improves maintainability and reusability.
+As applications grow, manually creating dependencies becomes difficult to manage.
+
+With a container:
+
+```ts
+const controller =
+  Container.make(
+    UserController
+  );
+```
+
+The framework automatically resolves all required dependencies.
 
 ---
 
-## Services
+# Why Use a Service Container?
 
-Services contain business logic.
+The Service Container provides several benefits:
+
+- Dependency Injection
+- Automatic Resolution
+- Loose Coupling
+- Improved Testing
+- Centralized Service Registration
+- Better Maintainability
+
+Instead of depending on implementations directly, classes depend on abstractions.
+
+---
+
+# How the Container Works
+
+At a high level, the container performs three tasks:
 
 ```text
-app/
-└── Services/
-    └── UserService.ts
+Register Service
+       │
+       ▼
+Store Definition
+       │
+       ▼
+Resolve Service
 ```
+
+Example:
+
+```text
+Container
+ ├── Logger
+ ├── Cache
+ ├── Mail
+ └── UserService
+```
+
+When a dependency is requested, the container returns the appropriate instance.
+
+---
+
+# Service Registration
+
+Before a service can be resolved, it must be registered.
+
+Example:
+
+```ts
+Container.bind(
+  "logger",
+  () => new Logger()
+);
+```
+
+Now the service can be resolved anywhere in the application.
+
+```ts
+const logger =
+  Container.make("logger");
+```
+
+---
+
+# Binding Classes
+
+You may also bind classes directly.
+
+Example:
+
+```ts
+Container.bind(
+  UserService,
+  () => new UserService()
+);
+```
+
+Resolve:
+
+```ts
+const service =
+  Container.make(
+    UserService
+  );
+```
+
+The container returns an instance of the registered class.
+
+---
+
+# Singleton Bindings
+
+Some services should only exist once during the application's lifecycle.
+
+Examples:
+
+- Database Connections
+- Cache Managers
+- Event Dispatchers
+- Loggers
+
+For these cases, use a singleton.
+
+```ts
+Container.singleton(
+  Logger,
+  () => new Logger()
+);
+```
+
+Now every resolution returns the same instance.
+
+```ts
+const a =
+  Container.make(Logger);
+
+const b =
+  Container.make(Logger);
+
+a === b; // true
+```
+
+---
+
+# Transient Bindings
+
+By default, services may be created each time they are requested.
+
+Example:
+
+```ts
+Container.bind(
+  UserService,
+  () => new UserService()
+);
+```
+
+Each resolution creates a new instance.
+
+```ts
+const a =
+  Container.make(
+    UserService
+  );
+
+const b =
+  Container.make(
+    UserService
+  );
+
+a === b; // false
+```
+
+Use transient bindings when services should remain isolated.
+
+---
+
+# Dependency Injection
+
+The most common use of the Service Container is dependency injection.
+
+Instead of creating dependencies manually:
+
+```ts
+export default class UserController {
+  constructor() {
+    this.service =
+      new UserService();
+  }
+}
+```
+
+Inject them:
+
+```ts
+export default class UserController {
+  constructor(
+    protected service:
+      UserService
+  ) {}
+}
+```
+
+The container automatically resolves the dependency.
+
+---
+
+# Constructor Injection
+
+Constructor injection is the preferred approach.
 
 Example:
 
 ```ts
 export default class UserService {
-  static async create(data) {
-    return User.create(data);
-  }
-}
-```
-
-Services help keep controllers focused and prevent business rules from being scattered throughout the application.
-
----
-
-## Jobs
-
-Jobs represent background tasks.
-
-```text
-app/
-└── Jobs/
-    └── SendWelcomeEmailJob.ts
-```
-
-Example:
-
-```ts
-export default class SendWelcomeEmailJob {
-  async handle(user) {
-    //
-  }
-}
-```
-
-Jobs are useful for:
-
-- Email delivery
-- Notifications
-- Data processing
-- Report generation
-
----
-
-## Events
-
-Events describe actions that occur within the application.
-
-```text
-app/
-└── Events/
-    └── UserRegistered.ts
-```
-
-Example:
-
-```ts
-export default class UserRegistered {
   constructor(
-    public user: User
+    protected logger:
+      Logger
   ) {}
 }
 ```
 
-Events help decouple application components.
+Lifecycle:
+
+```text
+UserService
+     │
+     ▼
+Logger Dependency
+     │
+     ▼
+Container Resolution
+```
+
+The framework automatically provides the required dependencies.
 
 ---
 
-## Listeners
+# Nested Dependencies
 
-Listeners respond to events.
+The container can resolve dependency chains.
+
+Example:
+
+```ts
+UserController
+     │
+     ▼
+UserService
+     │
+     ▼
+Logger
+```
+
+Resolution:
+
+```text
+Container
+     │
+     ▼
+Logger
+     │
+     ▼
+UserService
+     │
+     ▼
+UserController
+```
+
+You only request the controller—the framework resolves everything else.
+
+---
+
+# Resolving Services Manually
+
+Sometimes a service must be resolved directly.
+
+Example:
+
+```ts
+const cache =
+  Container.make(
+    CacheService
+  );
+```
+
+This is useful for:
+
+- CLI commands
+- Bootstrap code
+- Framework internals
+
+However, dependency injection should generally be preferred.
+
+---
+
+# Service Providers
+
+Service registration is commonly performed within service providers.
+
+Example:
 
 ```text
 app/
-└── Listeners/
-    └── SendWelcomeEmail.ts
+└── Providers/
+    └── AppProvider.ts
 ```
 
 Example:
 
 ```ts
-export default class SendWelcomeEmail {
-  async handle(event) {
-    //
+export default class AppProvider {
+  register() {
+    Container.singleton(
+      Logger,
+      () => new Logger()
+    );
   }
 }
 ```
 
-A single event may have multiple listeners.
+Service providers centralize application bootstrapping.
 
 ---
 
-## Policies
+# Register vs Boot
 
-Policies define authorization rules.
-
-```text
-app/
-└── Policies/
-    └── PostPolicy.ts
-```
+Service providers often contain two lifecycle methods.
 
 Example:
 
 ```ts
-export default class PostPolicy {
-  update(user, post) {
-    return user.id === post.userId;
-  }
+export default class AppProvider {
+  register() {}
+
+  boot() {}
 }
 ```
 
-Policies centralize access control logic.
+### Register
 
----
+Used for:
 
-# The `routes` Directory
-
-The `routes` directory defines application endpoints.
-
-```text
-routes/
-└── index.ts
-```
+- Binding services
+- Registering dependencies
+- Container setup
 
 Example:
 
 ```ts
-Router.get("/", "HomeController@index");
-
-Router.resource(
-  "users",
-  UserController
-);
+register() {
+  Container.bind(
+    UserService,
+    () => new UserService()
+  );
+}
 ```
-
-As applications grow, routes may be organized into multiple files.
-
-Example:
-
-```text
-routes/
-├── api.ts
-├── web.ts
-├── admin.ts
-└── index.ts
-```
-
-This separation improves maintainability.
 
 ---
 
-# The `config` Directory
+### Boot
 
-The `config` directory stores framework and application configuration.
-
-```text
-config/
-├── app.ts
-├── database.ts
-├── auth.ts
-├── cache.ts
-└── storage.ts
-```
+Used after all services have been registered.
 
 Example:
 
 ```ts
-export default {
-  name: "Bejibun App"
-};
-```
-
-Configuration files should contain application settings rather than business logic.
-
----
-
-# The `database` Directory
-
-Database-related resources are stored here.
-
-```text
-database/
-├── migrations/
-├── seeders/
-└── factories/
-```
-
----
-
-## Migrations
-
-Schema definitions live inside migrations.
-
-```text
-database/
-└── migrations/
-```
-
-Example:
-
-```ts
-export default class CreateUsersTable {}
-```
-
-Migrations allow schema changes to be tracked through version control.
-
----
-
-## Seeders
-
-Seeders populate the database with data.
-
-```text
-database/
-└── seeders/
-```
-
-Example:
-
-```ts
-export default class UserSeeder {}
-```
-
-Seeders are commonly used during development and testing.
-
----
-
-## Factories
-
-Factories generate realistic testing data.
-
-```text
-database/
-└── factories/
-```
-
-Example:
-
-```ts
-UserFactory.create();
-```
-
-Factories simplify automated testing and development workflows.
-
----
-
-# The `bootstrap` Directory
-
-The bootstrap directory is responsible for starting the application.
-
-```text
-bootstrap/
+boot() {
+  //
+}
 ```
 
 Typical responsibilities:
 
+- Event listeners
+- Route registration
 - Framework initialization
-- Service registration
-- Application startup
-- Dependency loading
-
-Most developers rarely modify bootstrap files.
 
 ---
 
-# The `public` Directory
+# Binding Interfaces
 
-Publicly accessible assets are stored here.
+Applications should often depend on contracts rather than concrete implementations.
 
-```text
-public/
-├── favicon.ico
-├── images/
-└── robots.txt
+Example contract:
+
+```ts
+export interface Mailer {
+  send(): Promise<void>;
+}
 ```
 
-Files in this directory may be served directly by the web server.
+Implementation:
 
-Examples:
-
-- Images
-- Icons
-- Static assets
-- Generated documentation
-
-Avoid storing sensitive information here.
-
----
-
-# The `storage` Directory
-
-The storage directory contains runtime-generated files.
-
-```text
-storage/
-├── logs/
-├── cache/
-├── uploads/
-└── temp/
+```ts
+export class SmtpMailer
+  implements Mailer {}
 ```
 
-Typical contents include:
+Binding:
 
-- Application logs
-- Cached data
-- Temporary files
-- Uploaded content
+```ts
+Container.bind(
+  "mailer",
+  () => new SmtpMailer()
+);
+```
 
-This directory is often excluded from version control.
+Resolution:
+
+```ts
+const mailer =
+  Container.make("mailer");
+```
+
+This allows implementations to be swapped without changing application code.
 
 ---
 
-# The `tests` Directory
+# Practical Example
 
-Automated tests belong in the tests directory.
+Suppose you have:
+
+```ts
+class Logger {}
+
+class UserService {
+  constructor(
+    private logger: Logger
+  ) {}
+}
+
+class UserController {
+  constructor(
+    private users:
+      UserService
+  ) {}
+}
+```
+
+Request:
+
+```ts
+Container.make(
+  UserController
+);
+```
+
+Resolution process:
 
 ```text
-tests/
-├── unit/
-├── integration/
-└── feature/
+UserController
+       │
+       ▼
+UserService
+       │
+       ▼
+Logger
+```
+
+The container automatically builds the dependency graph.
+
+---
+
+# Testing Benefits
+
+Dependency injection makes testing significantly easier.
+
+Without a container:
+
+```ts
+new UserService(
+  new Logger()
+);
+```
+
+With dependency injection:
+
+```ts
+new UserService(
+  mockLogger
+);
 ```
 
 Example:
 
-```text
-tests/
-└── feature/
-    └── UserTest.ts
+```ts
+const mockLogger = {
+  info() {}
+};
 ```
 
-Testing helps ensure application reliability and prevents regressions.
+Benefits:
+
+- Faster tests
+- Easier mocking
+- Better isolation
+- More predictable behavior
 
 ---
 
-# Root Configuration Files
+# Container Events
 
-Several important files exist at the project root.
-
----
-
-## `.env`
-
-Contains environment-specific variables.
-
-```env
-APP_NAME=Bejibun
-APP_ENV=development
-```
-
-Never commit sensitive values to version control.
-
----
-
-## `.env.example`
-
-Provides a template for required environment variables.
-
-```env
-APP_NAME=
-APP_ENV=
-```
-
-New team members can copy this file and fill in their own values.
-
----
-
-## `package.json`
-
-Defines project metadata and scripts.
+Advanced applications may need to react when services are resolved.
 
 Example:
 
-```json
-{
-  "scripts": {
-    "dev": "bun run dev"
+```ts
+Container.resolving(
+  Logger,
+  logger => {
+    //
   }
-}
+);
 ```
+
+Possible use cases:
+
+- Instrumentation
+- Monitoring
+- Framework extensions
 
 ---
 
-## `tsconfig.json`
+# Service Lifetimes
 
-TypeScript compiler configuration.
+Services generally fall into three categories.
+
+| Lifetime | Description |
+|-----------|-------------|
+| Singleton | One instance for the application |
+| Scoped | One instance per request |
+| Transient | New instance every resolution |
 
 Example:
 
-```json
-{
-  "compilerOptions": {}
-}
+```text
+Singleton
+ └── Database
+
+Scoped
+ └── Request Context
+
+Transient
+ └── UserService
 ```
 
-This file controls TypeScript behavior throughout the project.
+Choosing the correct lifetime improves performance and predictability.
 
 ---
 
-## `bunfig.toml`
+# Best Practices
 
-Bun-specific configuration.
-
-Example:
-
-```toml
-[test]
-preload = ["./tests/setup.ts"]
-```
-
-Used to configure runtime and development settings.
-
----
-
-# Recommended Organization
-
-As your application grows, organize code by responsibility.
+### Prefer Constructor Injection
 
 Good:
 
-```text
-app/
-├── Controllers/
-├── Models/
-├── Services/
-├── Validators/
-└── Policies/
+```ts
+constructor(
+  private logger: Logger
+) {}
 ```
 
 Avoid:
 
-```text
-app/
-├── misc/
-├── helpers/
-├── random/
-└── temp/
+```ts
+const logger =
+  Container.make(
+    Logger
+  );
 ```
 
-Clear organization improves discoverability and maintainability.
+inside application code.
 
 ---
 
-# A Typical Request Journey
+### Register Services Centrally
 
-To understand how these directories work together, consider a request to create a user.
+Use service providers instead of scattered registrations.
 
-```text
-Client Request
-       │
-       ▼
-routes/
-       │
-       ▼
-Middleware/
-       │
-       ▼
-Validators/
-       │
-       ▼
-Controllers/
-       │
-       ▼
-Services/
-       │
-       ▼
-Models/
-       │
-       ▼
-Database
+---
+
+### Depend on Contracts
+
+Prefer abstractions over concrete implementations whenever possible.
+
+---
+
+### Use Singletons Carefully
+
+Singletons are ideal for shared infrastructure services but should not hold request-specific state.
+
+---
+
+### Keep Services Focused
+
+Each service should have a single responsibility.
+
+---
+
+# Common Mistakes
+
+### Manually Creating Dependencies
+
+Avoid:
+
+```ts
+new UserService(
+  new Logger()
+);
 ```
 
-Each layer has a distinct responsibility, making applications easier to reason about and maintain.
+throughout the application.
 
 ---
 
-# What You Should Remember
+### Service Locator Abuse
 
-The most important directories are:
+Avoid excessive use of:
 
-| Directory | Purpose |
-|------------|----------|
-| app | Application code |
-| routes | Route definitions |
-| config | Configuration |
-| database | Migrations and seeders |
-| public | Public assets |
-| storage | Runtime files |
-| tests | Automated tests |
+```ts
+Container.make(...)
+```
 
-If you're ever unsure where code belongs, ask yourself:
+inside business logic.
 
-> "What responsibility does this code have?"
-
-The answer usually determines its location.
+Dependency injection is usually cleaner.
 
 ---
 
-# Next Steps
+### Registering Too Much in Controllers
 
-Now that you understand the structure of a Bejibun application, continue to:
+Controllers should consume services, not configure them.
 
-- Configuration
-- Environment Variables
-- Request Lifecycle
+---
 
-The next chapter explains how configuration works and how to customize your application's behavior across different environments.
+### Circular Dependencies
+
+Avoid:
+
+```text
+UserService
+     │
+     ▼
+MailService
+     │
+     ▼
+UserService
+```
+
+Circular dependency chains make applications difficult to maintain.
+
+---
+
+# Visual Summary
+
+```text
+┌──────────────┐
+│  Controller  │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Service    │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│   Logger     │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│  Container   │
+└──────────────┘
+```
+
+The Service Container acts as the dependency management system that connects every layer of the application.
+
+---
+
+# What's Next?
+
+Now that you understand how dependencies are managed, it's time to explore the HTTP layer of the framework.
+
+Continue to:
+
+- Routing
+- Route Parameters
+- Route Groups
+- Middleware
+- Controllers
+- Requests
+- Responses
+
+These components work closely with the Service Container and form the foundation of every Bejibun application.

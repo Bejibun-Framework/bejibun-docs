@@ -1,714 +1,765 @@
 ---
-title: Deployment Overview
-description: Learn the fundamentals of deploying Bejibun applications to production environments and preparing your application for real-world traffic.
+title: Configuration System
+description: Learn how the Bejibun Configuration System loads, manages, caches, and provides access to application settings throughout your application.
 ---
 
-# Deployment Overview
+# Configuration System
 
-Building an application is only part of the journey.
+Every application requires configuration.
 
-Once your application is ready, it must be deployed to a production environment where users can access it reliably, securely, and efficiently.
+Database connections, cache drivers, authentication providers, storage disks, third-party integrations, and application settings all rely on configuration values.
 
-This guide provides a high-level overview of deploying Bejibun applications and introduces the concepts you'll encounter throughout the deployment process.
+The Bejibun Configuration System provides a centralized way to define, organize, and access configuration throughout your application.
 
-More detailed deployment guides are available later in the documentation.
+Instead of scattering configuration across your codebase, Bejibun keeps it structured, predictable, and environment-aware.
 
 ---
 
-# What Is Deployment?
+# What Is the Configuration System?
 
-Deployment is the process of moving your application from a development environment to a server where it can serve real users.
+The Configuration System is responsible for:
 
-During deployment, your application typically goes through several stages:
+- Loading configuration files
+- Reading environment variables
+- Providing configuration values
+- Managing application settings
+- Supporting multiple environments
+- Enabling future configuration caching
+
+At a high level:
 
 ```text
-Development
-      │
-      ▼
-Version Control
-      │
-      ▼
-Build Process
-      │
-      ▼
-Deployment
-      │
-      ▼
-Production Server
-      │
-      ▼
-Users
+Environment Variables
+         │
+         ▼
+Configuration Files
+         │
+         ▼
+Configuration Service
+         │
+         ▼
+Application Code
 ```
 
-A successful deployment should be:
-
-- Repeatable
-- Reliable
-- Secure
-- Observable
-- Easy to maintain
+This separation allows application logic to remain independent from deployment-specific configuration.
 
 ---
 
-# Deployment Goals
+# Configuration Philosophy
 
-Every production deployment should aim to achieve the following objectives.
+Configuration should be:
 
-## Reliability
+### Centralized
 
-Applications should remain available and stable.
-
-Goals include:
-
-- Minimal downtime
-- Automatic recovery
-- Consistent performance
-- Stable infrastructure
+All application settings should live in dedicated configuration files.
 
 ---
 
-## Security
+### Environment-Aware
 
-Production systems must protect sensitive data.
-
-Common security measures include:
-
-- HTTPS
-- Secure credentials
-- Environment variables
-- Firewall configuration
-- Access controls
+Development, testing, staging, and production environments often require different values.
 
 ---
 
-## Performance
+### Type-Safe
 
-Applications should respond quickly under load.
-
-Common optimization strategies include:
-
-- Caching
-- Database optimization
-- Compression
-- Reverse proxies
-- CDN integration
+Configuration should provide predictable and validated values.
 
 ---
 
-## Observability
+### Easy to Maintain
 
-You cannot fix problems you cannot see.
-
-Production environments should provide:
-
-- Logging
-- Error reporting
-- Monitoring
-- Health checks
-- Metrics collection
+Changes should be made in one place rather than throughout the application.
 
 ---
 
-# Production Environment Architecture
+# Configuration Directory
 
-A typical Bejibun deployment may look like:
+All configuration files are stored inside:
 
 ```text
-                Internet
-                     │
-                     ▼
-             Load Balancer
-                     │
-                     ▼
-              Reverse Proxy
-                 (Nginx)
-                     │
-                     ▼
-              Bejibun App
-                     │
-       ┌─────────────┼─────────────┐
-       ▼             ▼             ▼
-   Database       Redis        Storage
+config/
 ```
 
-Not every application requires this level of infrastructure, but understanding the architecture helps as applications grow.
+Example:
+
+```text
+config/
+├── app.ts
+├── auth.ts
+├── cache.ts
+├── database.ts
+├── mail.ts
+├── queue.ts
+├── services.ts
+└── storage.ts
+```
+
+Each file is responsible for a single area of configuration.
 
 ---
 
-# Runtime Requirements
+# Configuration Files
 
-Bejibun is built specifically for Bun.
+A configuration file exports a plain object.
 
-Production servers should have:
+Example:
 
-| Component | Recommended |
-|------------|------------|
-| Bun | Latest Stable |
-| Linux | Ubuntu LTS or equivalent |
-| Database | PostgreSQL, MySQL, SQLite |
-| Cache | Redis |
-| Reverse Proxy | Nginx or Caddy |
+```ts
+export default {
+  name: "Bejibun",
 
-Always keep dependencies updated to receive security patches and performance improvements.
+  timezone: "UTC",
+
+  debug: true
+};
+```
+
+File:
+
+```text
+config/app.ts
+```
+
+The framework automatically loads configuration files during application startup.
 
 ---
 
-# Preparing for Production
+# Configuration Namespaces
 
-Before deploying, review your application configuration.
+Each configuration file creates its own namespace.
+
+Example:
+
+```ts
+// config/app.ts
+
+export default {
+  name: "Bejibun"
+};
+```
+
+Access:
+
+```ts
+Config.get("app.name");
+```
+
+Result:
+
+```text
+Bejibun
+```
+
+The filename becomes the root namespace.
 
 ---
 
-## Disable Debug Mode
+# Accessing Configuration
+
+Configuration values can be retrieved through the Config service.
+
+Example:
+
+```ts
+Config.get("app.name");
+```
+
+Result:
+
+```text
+Bejibun
+```
+
+Nested values are also supported.
+
+Example:
+
+```ts
+Config.get(
+  "database.connections.mysql.host"
+);
+```
+
+---
+
+# Default Values
+
+You may provide a fallback value.
+
+Example:
+
+```ts
+Config.get(
+  "mail.default",
+  "smtp"
+);
+```
+
+If the key does not exist:
+
+```text
+smtp
+```
+
+is returned.
+
+This helps prevent runtime failures caused by missing configuration.
+
+---
+
+# Nested Configuration
+
+Configuration objects can be deeply nested.
+
+Example:
+
+```ts
+export default {
+  connections: {
+    mysql: {
+      host: "localhost",
+
+      port: 3306
+    }
+  }
+};
+```
+
+Access:
+
+```ts
+Config.get(
+  "database.connections.mysql.host"
+);
+```
+
+Result:
+
+```text
+localhost
+```
+
+Dot notation makes deeply nested configuration easy to access.
+
+---
+
+# Environment Variable Integration
+
+Configuration files often rely on environment variables.
+
+Example:
+
+```ts
+export default {
+  host: Env.get(
+    "DB_HOST",
+    "127.0.0.1"
+  ),
+
+  port: Env.get(
+    "DB_PORT",
+    3306
+  )
+};
+```
+
+This allows configuration to change without modifying source code.
+
+---
+
+# Application Configuration
+
+Example:
+
+```ts
+// config/app.ts
+
+export default {
+  name: Env.get(
+    "APP_NAME",
+    "Bejibun"
+  ),
+
+  env: Env.get(
+    "APP_ENV",
+    "development"
+  ),
+
+  debug: Env.get(
+    "APP_DEBUG",
+    true
+  )
+};
+```
+
+Usage:
+
+```ts
+Config.get("app.name");
+```
+
+---
+
+# Database Configuration
+
+Example:
+
+```ts
+// config/database.ts
+
+export default {
+  default: "mysql",
+
+  connections: {
+    mysql: {
+      host: Env.get("DB_HOST"),
+
+      database:
+        Env.get("DB_DATABASE")
+    }
+  }
+};
+```
+
+Usage:
+
+```ts
+Config.get(
+  "database.default"
+);
+```
+
+---
+
+# Service Configuration
+
+External services should have dedicated configuration files.
+
+Example:
+
+```ts
+// config/services.ts
+
+export default {
+  stripe: {
+    secret:
+      Env.get(
+        "STRIPE_SECRET"
+      )
+  },
+
+  mailgun: {
+    apiKey:
+      Env.get(
+        "MAILGUN_API_KEY"
+      )
+  }
+};
+```
+
+Usage:
+
+```ts
+Config.get(
+  "services.stripe.secret"
+);
+```
+
+---
+
+# Runtime Configuration Access
+
+Configuration can be accessed from:
+
+- Controllers
+- Services
+- Middleware
+- Jobs
+- Event Listeners
+- Console Commands
+
+Example:
+
+```ts
+export default class MailService {
+  send() {
+    const host =
+      Config.get(
+        "mail.host"
+      );
+  }
+}
+```
+
+Configuration remains available throughout the application lifecycle.
+
+---
+
+# Type-Safe Configuration
+
+One advantage of TypeScript is stronger configuration validation.
+
+Example:
+
+```ts
+export interface AppConfig {
+  name: string;
+
+  env: string;
+
+  debug: boolean;
+}
+```
+
+Benefits include:
+
+- Autocomplete
+- Compile-time validation
+- Better IDE support
+- Safer refactoring
+
+Large applications should leverage TypeScript whenever possible.
+
+---
+
+# Configuration Loading Process
+
+During application startup:
+
+```text
+Application Starts
+         │
+         ▼
+Load Environment Variables
+         │
+         ▼
+Load Configuration Files
+         │
+         ▼
+Register Config Service
+         │
+         ▼
+Application Ready
+```
+
+Configuration is loaded before routes, controllers, and services are executed.
+
+---
+
+# Configuration Immutability
+
+Configuration should generally be treated as read-only.
+
+Good:
+
+```ts
+Config.get("app.name");
+```
+
+Avoid:
+
+```ts
+Config.set(
+  "app.name",
+  "Something Else"
+);
+```
+
+during runtime.
+
+Configuration changes should typically occur through configuration files or environment variables.
+
+---
+
+# Organizing Large Applications
+
+As applications grow, configuration should remain organized by domain.
+
+Good:
+
+```text
+config/
+├── app.ts
+├── auth.ts
+├── cache.ts
+├── database.ts
+├── mail.ts
+├── queue.ts
+└── storage.ts
+```
+
+Avoid:
+
+```text
+config/
+└── settings.ts
+```
+
+containing hundreds of unrelated settings.
+
+Smaller focused files are easier to maintain.
+
+---
+
+# Configuration Caching
+
+Loading configuration files on every startup can become expensive in large applications.
+
+Future versions of Bejibun may support configuration caching.
+
+Example:
+
+```bash
+bun ace config:cache
+```
+
+Potential workflow:
+
+```text
+Config Files
+      │
+      ▼
+Compiled Cache
+      │
+      ▼
+Fast Startup
+```
+
+Benefits include:
+
+- Faster boot times
+- Reduced file system access
+- Improved production performance
+
+---
+
+# Environment-Specific Behavior
+
+Different environments often require different configuration.
 
 Development:
 
 ```env
+APP_ENV=development
+
 APP_DEBUG=true
 ```
 
 Production:
 
 ```env
+APP_ENV=production
+
 APP_DEBUG=false
 ```
 
-Debug information should never be exposed publicly.
+Configuration files adapt automatically through environment variables.
 
 ---
 
-## Set Production Environment
-
-```env
-APP_ENV=production
-```
-
-Many framework features behave differently depending on the current environment.
+# Common Configuration Patterns
 
 ---
 
-## Configure Application URL
-
-```env
-APP_URL=https://api.example.com
-```
-
-This allows the framework to generate correct URLs and links.
-
----
-
-# Environment Variables
-
-Production environments should never store secrets in source code.
-
-Instead:
-
-```env
-DB_PASSWORD=
-
-JWT_SECRET=
-
-API_KEY=
-```
-
-should be provided through secure environment management systems.
-
-Examples include:
-
-- Server environment variables
-- Container secrets
-- Cloud secret managers
-- CI/CD pipelines
-
----
-
-# Database Preparation
-
-Before serving traffic, ensure your database is ready.
-
-Run migrations:
-
-```bash
-bun ace migrate:latest
-```
-
-If necessary, seed initial data:
-
-```bash
-bun ace db:seed
-```
-
-Always verify migrations in a staging environment before applying them to production systems.
-
----
-
-# Starting the Application
-
-A production application is typically started using:
-
-```bash
-bun start
-```
+## Feature Flags
 
 Example:
-
-```bash
-APP_ENV=production bun start
-```
-
-Your deployment platform may manage this process automatically.
-
----
-
-# Process Management
-
-Production applications should not rely on terminal sessions remaining open.
-
-Instead, use a process manager.
-
-Examples:
-
-```text
-PM2
-Systemd
-Docker
-Kubernetes
-```
-
-Benefits include:
-
-- Automatic restarts
-- Crash recovery
-- Process monitoring
-- Log management
-
-Example workflow:
-
-```text
-Application Crash
-        │
-        ▼
-Process Manager
-        │
-        ▼
-Automatic Restart
-```
-
----
-
-# Reverse Proxies
-
-Most production deployments place a reverse proxy in front of the application.
-
-Example:
-
-```text
-User
- │
- ▼
-Nginx
- │
- ▼
-Bejibun
-```
-
-Benefits:
-
-- HTTPS termination
-- Compression
-- Static file serving
-- Load balancing
-- Security controls
-
-Popular options:
-
-- Nginx
-- Caddy
-- Traefik
-
----
-
-# HTTPS
-
-All production applications should use HTTPS.
-
-Benefits include:
-
-- Encrypted traffic
-- Improved security
-- Browser trust
-- Better SEO
-
-Example:
-
-```text
-https://example.com
-```
-
-instead of:
-
-```text
-http://example.com
-```
-
-Certificates can be obtained through providers such as:
-
-- Let's Encrypt
-- Cloudflare
-- Managed hosting providers
-
----
-
-# Logging
-
-Logs are essential for diagnosing issues.
-
-Common production logs include:
-
-```text
-Application Logs
-
-Access Logs
-
-Error Logs
-
-Audit Logs
-```
-
-Example:
-
-```text
-storage/logs/
-```
-
-Logs should be monitored regularly and retained according to organizational requirements.
-
----
-
-# Monitoring
-
-Monitoring helps detect issues before users report them.
-
-Common metrics include:
-
-- CPU usage
-- Memory usage
-- Request latency
-- Error rates
-- Database performance
-
-Example monitoring stack:
-
-```text
-Application
-     │
-     ▼
-Metrics Collector
-     │
-     ▼
-Dashboard
-```
-
-Monitoring should be considered a production requirement rather than an optional feature.
-
----
-
-# Health Checks
-
-Health checks allow infrastructure to determine whether an application is functioning correctly.
-
-Example route:
 
 ```ts
-Router.get("/health", () => {
-  return {
-    status: "ok"
-  };
-});
+export default {
+  registration: true
+};
 ```
 
-Response:
+Usage:
 
-```json
-{
-  "status": "ok"
+```ts
+if (
+  Config.get(
+    "features.registration"
+  )
+) {
+  //
 }
 ```
 
-Load balancers and orchestration platforms often rely on health endpoints.
-
 ---
 
-# Caching
-
-Caching can significantly improve production performance.
-
-Examples:
-
-```text
-Database Query Cache
-
-Application Cache
-
-Response Cache
-
-Redis Cache
-```
-
-Benefits:
-
-- Faster responses
-- Reduced database load
-- Improved scalability
-
-Caching strategies should be evaluated based on application requirements.
-
----
-
-# Queue Workers
-
-Applications using background jobs must run queue workers separately from the web server.
+## Service Drivers
 
 Example:
 
-```text
-Web Server
-     │
-     ▼
-HTTP Requests
-
-Queue Worker
-     │
-     ▼
-Background Jobs
+```ts
+export default {
+  default: "redis"
+};
 ```
 
-Typical tasks include:
+Usage:
 
-- Email delivery
-- Notifications
-- Image processing
-- Data synchronization
+```ts
+Config.get(
+  "cache.default"
+);
+```
 
 ---
 
-# File Storage
+## Application Metadata
 
-Production file storage often differs from local development.
+Example:
 
-Development:
+```ts
+export default {
+  name: "Bejibun",
 
-```text
-Local Disk
+  version: "1.0.0"
+};
 ```
 
-Production:
-
-```text
-Amazon S3
-
-Cloud Storage
-
-Object Storage
-```
-
-Separating storage from application servers improves scalability and reliability.
-
----
-
-# Deployment Strategies
-
-There are multiple ways to deploy a Bejibun application.
-
----
-
-## Traditional Servers
-
-```text
-Ubuntu
- ├── Nginx
- ├── Bun
- └── Database
-```
-
-Best for:
-
-- VPS hosting
-- Dedicated servers
-- Simple deployments
-
----
-
-## Docker
-
-```text
-Docker Container
- ├── Bejibun
- └── Bun Runtime
-```
-
-Benefits:
-
-- Consistent environments
-- Simplified deployments
-- Easy scaling
-
----
-
-## Kubernetes
-
-```text
-Cluster
- ├── Pods
- ├── Services
- └── Ingress
-```
-
-Best for:
-
-- Large-scale systems
-- High availability
-- Enterprise workloads
-
----
-
-## Platform-as-a-Service
-
-Examples:
-
-```text
-Railway
-Fly.io
-Render
-DigitalOcean App Platform
-```
-
-Benefits:
-
-- Simplified infrastructure
-- Automated deployments
-- Managed environments
-
----
-
-# CI/CD Pipelines
-
-Modern deployments are often automated.
-
-Typical workflow:
-
-```text
-Git Push
-    │
-    ▼
-Tests
-    │
-    ▼
-Build
-    │
-    ▼
-Deploy
-```
-
-Benefits:
-
-- Faster releases
-- Reduced human error
-- Consistent deployments
-
-Common platforms include:
-
-- GitHub Actions
-- GitLab CI
-- Jenkins
-- CircleCI
-
----
-
-# Production Checklist
-
-Before going live, verify the following:
-
-### Application
-
-- [ ] Debug mode disabled
-- [ ] Environment set to production
-- [ ] Health checks configured
-- [ ] Logging enabled
-
-### Security
-
-- [ ] HTTPS enabled
-- [ ] Secrets stored securely
-- [ ] Access controls configured
-- [ ] Dependencies updated
-
-### Database
-
-- [ ] Migrations executed
-- [ ] Backups configured
-- [ ] Monitoring enabled
-
-### Infrastructure
-
-- [ ] Process manager configured
-- [ ] Reverse proxy configured
-- [ ] Monitoring configured
-- [ ] Alerts configured
+Useful for monitoring and diagnostics.
 
 ---
 
 # Common Mistakes
 
-Avoid the following:
+### Accessing Environment Variables Everywhere
 
-### Running in Debug Mode
+Avoid:
 
-```env
-APP_DEBUG=true
+```ts
+Env.get("DB_HOST");
 ```
 
-in production.
+throughout your application.
 
----
+Prefer:
 
-### Committing Secrets
-
-Never commit:
-
-```env
-DB_PASSWORD=
-JWT_SECRET=
-API_KEY=
+```ts
+Config.get(
+  "database.host"
+);
 ```
 
-to version control.
+This keeps environment concerns isolated.
 
 ---
 
-### Skipping Backups
+### Hardcoding Configuration
 
-Every production database should have an automated backup strategy.
+Avoid:
+
+```ts
+const host =
+  "localhost";
+```
+
+Use configuration files instead.
 
 ---
 
-### Deploying Without Monitoring
+### Storing Secrets in Code
 
-Production systems should always have visibility into application health and performance.
+Avoid:
+
+```ts
+secret:
+  "my-secret-key";
+```
+
+Use:
+
+```ts
+Env.get(
+  "API_SECRET"
+);
+```
+
+---
+
+### Mixing Business Logic and Configuration
+
+Configuration files should contain settings, not application logic.
+
+---
+
+# Best Practices
+
+### Use Dedicated Configuration Files
+
+Keep related settings together.
+
+---
+
+### Read Environment Variables Once
+
+Load them inside configuration files.
+
+---
+
+### Prefer Config Over Env
+
+Application code should usually access:
+
+```ts
+Config.get(...)
+```
+
+rather than:
+
+```ts
+Env.get(...)
+```
+
+---
+
+### Provide Defaults
+
+Reasonable defaults improve developer experience.
+
+---
+
+### Keep Configuration Predictable
+
+Developers should always know where a setting belongs.
+
+---
+
+# Visual Summary
+
+```text
+.env
+ │
+ ▼
+config/*.ts
+ │
+ ▼
+Configuration System
+ │
+ ▼
+Config Service
+ │
+ ▼
+Application Code
+```
+
+The Configuration System acts as the central source of truth for application settings.
 
 ---
 
 # What's Next?
 
-This guide introduced the core concepts of deploying a Bejibun application.
+Now that you understand how configuration is loaded and managed, you're ready to explore the HTTP layer of the framework.
 
-Detailed deployment instructions are covered later in the documentation, including:
+Continue to:
 
-- Bun Runtime Deployment
-- Docker Deployment
-- Nginx Configuration
-- Reverse Proxy Setup
-- Production Optimization
-- Monitoring & Logging
+- Routing
+- Route Parameters
+- Route Groups
+- Named Routes
+- Middleware
+- Requests
+- Responses
 
-With deployment fundamentals covered, you're ready to continue exploring the framework's core concepts and internal architecture.
+These components use the Configuration System extensively and form the foundation of every Bejibun application.
