@@ -1,0 +1,923 @@
+---
+title: Controllers
+description: Learn how controllers organize application logic, handle requests, coordinate services, and generate responses in Bejibun.
+---
+
+# Controllers
+
+Controllers are responsible for handling incoming requests and returning responses.
+
+They serve as the bridge between the routing layer and your application's business logic.
+
+In a typical Bejibun application, controllers:
+
+- Receive requests
+- Validate input
+- Call services
+- Coordinate application logic
+- Return responses
+
+Controllers help keep route definitions clean while organizing request-handling logic into dedicated classes.
+
+---
+
+# What Is a Controller?
+
+A controller is a class that groups related request handlers.
+
+Example:
+
+```ts
+export default class UserController {
+  async index() {
+    //
+  }
+
+  async show() {
+    //
+  }
+
+  async store() {
+    //
+  }
+}
+```
+
+Each method represents an action that can be executed when a route is matched.
+
+---
+
+# Why Controllers Exist
+
+Without controllers:
+
+```ts
+Router.get("/users", async () => {
+  // logic
+});
+
+Router.post("/users", async () => {
+  // logic
+});
+
+Router.put("/users/:id", async () => {
+  // logic
+});
+```
+
+As the application grows:
+
+```text
+Routes Become Large
+
+Logic Becomes Repetitive
+
+Code Becomes Harder To Maintain
+```
+
+Controllers solve this problem by grouping related behavior.
+
+---
+
+# Controller Lifecycle
+
+Every controller action follows a similar flow.
+
+```text
+Request
+   │
+   ▼
+Router
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Response
+```
+
+Controllers act as coordinators rather than containers for business logic.
+
+---
+
+# Creating a Controller
+
+Example:
+
+```ts
+export default class UserController {
+  async index() {
+    return [];
+  }
+}
+```
+
+Route:
+
+```ts
+Router.get(
+  "/users",
+  [UserController, "index"]
+);
+```
+
+When a request reaches:
+
+```http
+GET /users
+```
+
+the `index()` method is executed.
+
+---
+
+# Controller Actions
+
+A controller action is simply a method that handles a request.
+
+Example:
+
+```ts
+export default class UserController {
+  async show() {
+    //
+  }
+}
+```
+
+Route:
+
+```ts
+Router.get(
+  "/users/:id",
+  [UserController, "show"]
+);
+```
+
+The router calls the specified action automatically.
+
+---
+
+# Single Responsibility
+
+Controllers should focus on request handling.
+
+Good:
+
+```text
+Receive Request
+
+Validate Data
+
+Call Services
+
+Return Response
+```
+
+Avoid:
+
+```text
+Database Logic
+
+Complex Business Rules
+
+Infrastructure Logic
+```
+
+Controllers should remain thin.
+
+---
+
+# Dependency Injection
+
+Controllers can receive dependencies through constructor injection.
+
+Example:
+
+```ts
+export default class UserController {
+  constructor(
+    protected users:
+      UserService
+  ) {}
+}
+```
+
+When the controller is resolved:
+
+```text
+Controller Requested
+        │
+        ▼
+Container Resolves Dependencies
+        │
+        ▼
+Controller Created
+```
+
+This is powered by the Service Container.
+
+---
+
+# Controller Example
+
+```ts
+export default class UserController {
+  constructor(
+    protected users:
+      UserService
+  ) {}
+
+  async index() {
+    return await this.users.all();
+  }
+}
+```
+
+Benefits:
+
+```text
+Clean Controllers
+
+Reusable Services
+
+Better Testing
+```
+
+---
+
+# Working With Route Parameters
+
+Routes may contain dynamic parameters.
+
+Route:
+
+```ts
+Router.get(
+  "/users/:id",
+  [UserController, "show"]
+);
+```
+
+Request:
+
+```http
+GET /users/10
+```
+
+Controller:
+
+```ts
+export default class UserController {
+  async show() {
+    //
+  }
+}
+```
+
+The framework provides access to the captured route parameters.
+
+---
+
+# Handling Requests
+
+Controllers frequently consume request data.
+
+Example:
+
+```http
+POST /users
+```
+
+Body:
+
+```json
+{
+  "name": "John"
+}
+```
+
+Controller:
+
+```ts
+export default class UserController {
+  async store() {
+    //
+  }
+}
+```
+
+The request object provides access to incoming data.
+
+---
+
+# Returning Responses
+
+Controllers return responses to clients.
+
+Example:
+
+```ts
+async index() {
+  return {
+    users: []
+  };
+}
+```
+
+Response:
+
+```json
+{
+  "users": []
+}
+```
+
+The framework automatically serializes the result.
+
+---
+
+# JSON Responses
+
+Most API controllers return JSON.
+
+Example:
+
+```ts
+async show() {
+  return {
+    id: 1,
+    name: "John"
+  };
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "name": "John"
+}
+```
+
+This is the most common response type in API-driven applications.
+
+---
+
+# HTTP Status Codes
+
+Controllers may return custom status codes.
+
+Example:
+
+```ts
+return Response.json(
+  {
+    success: true
+  },
+  201
+);
+```
+
+Response:
+
+```http
+201 Created
+```
+
+Using correct status codes improves API usability.
+
+---
+
+# Validation
+
+Controllers commonly validate incoming requests.
+
+Example:
+
+```ts
+async store() {
+  //
+}
+```
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Validation
+   │
+   ▼
+Controller Logic
+```
+
+Validation should occur before business logic executes.
+
+---
+
+# Service Layer Integration
+
+Controllers should delegate business operations to services.
+
+Good:
+
+```ts
+async store() {
+  return await this.users.create();
+}
+```
+
+Avoid:
+
+```ts
+async store() {
+  // hundreds of lines
+}
+```
+
+Services should contain business rules.
+
+---
+
+# Controller and Service Relationship
+
+```text
+Controller
+     │
+     ▼
+Service
+     │
+     ▼
+Repository
+     │
+     ▼
+Database
+```
+
+Each layer has a specific responsibility.
+
+---
+
+# Resource Controllers
+
+Many controllers represent resources.
+
+Example:
+
+```text
+UserController
+
+PostController
+
+CommentController
+
+ProductController
+```
+
+These controllers often follow a standard action pattern.
+
+---
+
+# Common Resource Actions
+
+Typical actions include:
+
+```text
+index
+
+show
+
+store
+
+update
+
+destroy
+```
+
+Purpose:
+
+| Action | Description |
+|----------|----------|
+| index | List resources |
+| show | Retrieve one resource |
+| store | Create resource |
+| update | Update resource |
+| destroy | Delete resource |
+
+This convention improves consistency.
+
+---
+
+# Example Resource Controller
+
+```ts
+export default class UserController {
+  async index() {}
+
+  async show() {}
+
+  async store() {}
+
+  async update() {}
+
+  async destroy() {}
+}
+```
+
+This pattern is common across API applications.
+
+---
+
+# Invokable Controllers
+
+Some controllers handle a single action.
+
+Example:
+
+```ts
+export default class HealthController {
+  async handle() {
+    return {
+      status: "ok"
+    };
+  }
+}
+```
+
+Route:
+
+```ts
+Router.get(
+  "/health",
+  HealthController
+);
+```
+
+This approach is useful for focused endpoints.
+
+---
+
+# Middleware and Controllers
+
+Middleware executes before controllers.
+
+Flow:
+
+```text
+Request
+    │
+    ▼
+Middleware
+    │
+    ▼
+Controller
+```
+
+Example:
+
+```ts
+Router.get(
+  "/profile",
+  [ProfileController, "show"]
+)
+.middleware([
+  AuthMiddleware
+]);
+```
+
+The controller executes only if middleware succeeds.
+
+---
+
+# Error Handling
+
+Controllers may throw exceptions.
+
+Example:
+
+```ts
+throw new Error(
+  "User not found"
+);
+```
+
+Flow:
+
+```text
+Controller
+     │
+     ▼
+Exception
+     │
+     ▼
+Exception Handler
+```
+
+The framework handles uncaught exceptions automatically.
+
+---
+
+# Authentication
+
+Protected controllers often require authentication.
+
+Example:
+
+```text
+Request
+    │
+    ▼
+Auth Middleware
+    │
+    ▼
+Controller
+```
+
+This ensures only authorized users can access protected actions.
+
+---
+
+# Authorization
+
+Controllers may enforce permissions.
+
+Example:
+
+```text
+User
+   │
+   ▼
+Permission Check
+   │
+   ▼
+Controller Action
+```
+
+Authorization protects application resources.
+
+---
+
+# Organizing Controllers
+
+Controllers are typically stored in:
+
+```text
+app/controllers/
+```
+
+Example:
+
+```text
+app/controllers/
+├── AuthController.ts
+├── UserController.ts
+├── PostController.ts
+└── AdminController.ts
+```
+
+Grouping controllers improves maintainability.
+
+---
+
+# Domain Organization
+
+Large applications often organize controllers by domain.
+
+Example:
+
+```text
+app/controllers/
+├── auth/
+├── users/
+├── billing/
+├── admin/
+└── api/
+```
+
+This structure scales more effectively.
+
+---
+
+# API Controllers
+
+API controllers typically:
+
+```text
+Receive JSON
+
+Validate Input
+
+Call Services
+
+Return JSON
+```
+
+This is the most common controller type in modern applications.
+
+---
+
+# Controller Testing
+
+Controllers become easier to test when they depend on services.
+
+Example:
+
+```ts
+new UserController(
+  fakeUserService
+);
+```
+
+Benefits:
+
+```text
+Isolation
+
+Predictability
+
+Faster Tests
+```
+
+Dependency Injection simplifies testing considerably.
+
+---
+
+# Fat Controllers vs Thin Controllers
+
+Bad:
+
+```ts
+Controller
+   │
+   ├── Business Logic
+   ├── Database Logic
+   ├── Validation
+   ├── Notifications
+   └── Everything Else
+```
+
+Good:
+
+```text
+Controller
+     │
+     ▼
+Service Layer
+```
+
+Thin controllers are easier to maintain.
+
+---
+
+# Best Practices
+
+## Keep Controllers Small
+
+Controllers should coordinate operations, not implement them.
+
+---
+
+## Use Services
+
+Move business logic into dedicated services.
+
+---
+
+## Validate Early
+
+Validate requests before executing business logic.
+
+---
+
+## Return Consistent Responses
+
+Clients should receive predictable response structures.
+
+---
+
+## Use Dependency Injection
+
+Allow the container to resolve dependencies automatically.
+
+---
+
+# Common Mistakes
+
+### Fat Controllers
+
+Avoid placing large amounts of business logic inside controllers.
+
+---
+
+### Direct Database Access Everywhere
+
+Prefer using services and repositories.
+
+---
+
+### Duplicated Logic
+
+Shared logic should live in services.
+
+---
+
+### Missing Validation
+
+Always validate user input.
+
+---
+
+### Mixed Responsibilities
+
+Controllers should focus on request handling.
+
+---
+
+# Typical Request Flow
+
+```text
+Request
+   │
+   ▼
+Router
+   │
+   ▼
+Middleware
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Repository
+   │
+   ▼
+Database
+   │
+   ▼
+Response
+```
+
+Controllers occupy a central position in the application architecture.
+
+---
+
+# Visual Summary
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Application Services
+   │
+   ▼
+Response
+```
+
+Controllers translate incoming requests into meaningful application operations.
+
+---
+
+# Key Takeaways
+
+✔ Controllers handle incoming requests
+
+✔ Controllers coordinate application logic
+
+✔ Controllers should remain thin
+
+✔ Services should contain business logic
+
+✔ Dependency Injection improves maintainability
+
+✔ Resource controllers provide consistency
+
+✔ Middleware executes before controllers
+
+✔ Controllers generate responses
+
+Controllers are one of the most frequently used components in a Bejibun application and serve as the primary entry point into your application's business layer.
+
+---
+
+# What's Next?
+
+Now that you understand controllers, continue with:
+
+- Requests
+- Responses
+- Middleware
+- Validation
+
+These guides explain how data enters the application, how responses are generated, and how request processing can be customized.

@@ -1,0 +1,810 @@
+---
+title: Seeders
+description: Learn how Bejibun seeders populate databases with initial, development, testing, and reference data in a consistent and repeatable manner.
+---
+
+# Seeders
+
+Seeders are classes that populate the database with predefined data.
+
+They allow applications to automatically insert records without requiring manual database operations.
+
+Seeders are commonly used for:
+
+- Development data
+- Test data
+- Initial application setup
+- Default configuration
+- Roles and permissions
+- Reference data
+
+Instead of manually creating records every time a database is created, seeders automate the process.
+
+---
+
+# What Is A Seeder?
+
+A seeder is a class responsible for inserting data into the database.
+
+Example:
+
+```text
+User Seeder
+
+Role Seeder
+
+Permission Seeder
+
+Settings Seeder
+```
+
+Each seeder typically focuses on a specific set of records.
+
+---
+
+# Why Seeders Exist
+
+Without seeders:
+
+```text
+Create Database
+       │
+       ▼
+Manually Insert Data
+       │
+       ▼
+Repeat For Every Environment
+```
+
+This becomes:
+
+```text
+Slow
+
+Error-Prone
+
+Inconsistent
+```
+
+Seeders automate the process.
+
+---
+
+# Seeder Philosophy
+
+Database structure and database content serve different purposes.
+
+```text
+Migration
+     │
+     ▼
+Database Structure
+```
+
+```text
+Seeder
+     │
+     ▼
+Database Content
+```
+
+Migrations define tables.
+
+Seeders populate those tables.
+
+---
+
+# Seeder Lifecycle
+
+A typical seeding workflow:
+
+```text
+Run Migrations
+       │
+       ▼
+Create Tables
+       │
+       ▼
+Run Seeders
+       │
+       ▼
+Insert Records
+```
+
+Seeders usually run after migrations.
+
+---
+
+# Creating A Seeder
+
+A seeder begins as a dedicated class.
+
+Example:
+
+```ts
+export default class UserSeeder {
+  async run() {}
+}
+```
+
+The `run()` method contains the data insertion logic.
+
+---
+
+# Seeder Responsibilities
+
+Seeders commonly handle:
+
+```text
+Default Users
+
+Roles
+
+Permissions
+
+Application Settings
+
+Reference Data
+```
+
+Each seeder should focus on a single concern.
+
+---
+
+# Simple Seeder Example
+
+Conceptually:
+
+```text
+User Seeder
+     │
+     ▼
+Insert Users
+```
+
+Result:
+
+```text
+Users Table Populated
+```
+
+The seeder executes automatically when invoked.
+
+---
+
+# Inserting Records
+
+A seeder may create records directly through models.
+
+Example:
+
+```ts
+await User.create({
+  name: "John Doe",
+  email: "john@example.com"
+});
+```
+
+This inserts a new database record.
+
+---
+
+# Multiple Records
+
+Seeders often insert multiple entries.
+
+Example:
+
+```text
+Admin User
+
+Editor User
+
+Guest User
+```
+
+This provides useful development data immediately.
+
+---
+
+# Development Seeders
+
+Development environments frequently require sample data.
+
+Examples:
+
+```text
+Users
+
+Posts
+
+Products
+
+Orders
+```
+
+Benefits:
+
+```text
+Faster Development
+
+UI Testing
+
+Feature Verification
+```
+
+Developers can begin working immediately.
+
+---
+
+# Test Seeders
+
+Testing often requires predictable data.
+
+Example:
+
+```text
+Known User
+
+Known Role
+
+Known Permission
+```
+
+This ensures consistent test results.
+
+---
+
+# Production Seeders
+
+Production seeders usually contain critical system data.
+
+Examples:
+
+```text
+Roles
+
+Permissions
+
+Settings
+
+System Configuration
+```
+
+Unlike development seeders, production seeders should avoid unnecessary sample records.
+
+---
+
+# Reference Data
+
+Some data rarely changes.
+
+Examples:
+
+```text
+Countries
+
+Currencies
+
+Languages
+
+Categories
+```
+
+Seeders provide a reliable way to populate these tables.
+
+---
+
+# Roles And Permissions
+
+A common use case:
+
+```text
+Admin
+
+Editor
+
+User
+```
+
+Along with:
+
+```text
+Create Post
+
+Delete Post
+
+Manage Users
+```
+
+Seeders guarantee required authorization data exists.
+
+---
+
+# Application Settings
+
+Applications often depend on default configuration records.
+
+Examples:
+
+```text
+Site Name
+
+Default Locale
+
+Email Settings
+
+Feature Flags
+```
+
+Seeders can initialize these values automatically.
+
+---
+
+# Seeder Organization
+
+Large applications may contain many seeders.
+
+Example:
+
+```text
+Database
+└── Seeders
+    ├── UserSeeder
+    ├── RoleSeeder
+    ├── PermissionSeeder
+    └── SettingsSeeder
+```
+
+Organized seeders improve maintainability.
+
+---
+
+# Database Seeder
+
+Applications commonly define a root seeder.
+
+Example:
+
+```text
+DatabaseSeeder
+```
+
+Purpose:
+
+```text
+Execute Other Seeders
+```
+
+Flow:
+
+```text
+DatabaseSeeder
+     │
+     ├── UserSeeder
+     ├── RoleSeeder
+     └── SettingsSeeder
+```
+
+This becomes the application's entry point for seeding.
+
+---
+
+# Seeder Execution Order
+
+Some seeders depend on others.
+
+Example:
+
+```text
+Roles
+   │
+   ▼
+Permissions
+   │
+   ▼
+Users
+```
+
+Execution order is important when relationships exist.
+
+---
+
+# Idempotent Seeders
+
+Good seeders should avoid creating duplicate data.
+
+Example:
+
+```text
+Role Already Exists
+        │
+        ▼
+Skip Creation
+```
+
+Benefits:
+
+```text
+Safe Re-Execution
+
+Reliable Deployments
+
+Consistent Results
+```
+
+---
+
+# Seeder Reusability
+
+Seeders should be reusable across environments.
+
+Examples:
+
+```text
+Development
+
+Testing
+
+Staging
+
+Production
+```
+
+Reusable seeders reduce duplication.
+
+---
+
+# Seeders And Models
+
+Seeders typically interact with models.
+
+Flow:
+
+```text
+Seeder
+   │
+   ▼
+Model
+   │
+   ▼
+Database
+```
+
+Models provide a convenient way to create records.
+
+---
+
+# Seeders And Factories
+
+Factories and seeders often work together.
+
+Example:
+
+```text
+Seeder
+   │
+   ▼
+Factory
+   │
+   ▼
+Generated Data
+```
+
+This allows large amounts of realistic test data to be created quickly.
+
+---
+
+# Seeders And Relationships
+
+Related records may be seeded together.
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+```
+
+Flow:
+
+```text
+Create User
+      │
+      ▼
+Create Posts
+```
+
+Relationship-aware seeders produce more realistic datasets.
+
+---
+
+# Seeders And Transactions
+
+Some seeders execute inside transactions.
+
+Benefits:
+
+```text
+Consistency
+
+Atomic Operations
+
+Rollback Safety
+```
+
+If an error occurs, the database can remain unchanged.
+
+---
+
+# Seeders During Development
+
+A common development workflow:
+
+```text
+Reset Database
+       │
+       ▼
+Run Migrations
+       │
+       ▼
+Run Seeders
+       │
+       ▼
+Begin Development
+```
+
+This ensures every developer starts with the same environment.
+
+---
+
+# Seeders During Testing
+
+Automated tests often require fresh data.
+
+Flow:
+
+```text
+Create Test Database
+       │
+       ▼
+Run Migrations
+       │
+       ▼
+Run Seeders
+       │
+       ▼
+Execute Tests
+```
+
+This improves test reliability.
+
+---
+
+# Seeders During Deployment
+
+Production deployments may include seeders for:
+
+```text
+Permissions
+
+Settings
+
+Reference Data
+```
+
+Care should be taken to avoid inserting development-only records.
+
+---
+
+# Seeder Performance
+
+Large datasets can impact seeding speed.
+
+Strategies include:
+
+```text
+Batch Inserts
+
+Factories
+
+Efficient Queries
+
+Transactions
+```
+
+Performance becomes increasingly important as datasets grow.
+
+---
+
+# Seeder Maintenance
+
+Over time, application requirements change.
+
+Examples:
+
+```text
+New Roles
+
+New Permissions
+
+New Settings
+```
+
+Seeders should evolve alongside the application.
+
+---
+
+# Seeders And Source Control
+
+Seeders should be committed to version control.
+
+Benefits:
+
+```text
+Consistency
+
+Collaboration
+
+Reproducibility
+```
+
+All environments can share the same initialization process.
+
+---
+
+# Best Practices
+
+## Keep Seeders Focused
+
+One seeder should handle one responsibility.
+
+Good:
+
+```text
+RoleSeeder
+```
+
+Avoid:
+
+```text
+EverythingSeeder
+```
+
+---
+
+## Use A Root Seeder
+
+Create a central entry point that executes all required seeders.
+
+---
+
+## Seed Only Necessary Production Data
+
+Avoid filling production databases with sample records.
+
+---
+
+## Make Seeders Re-Runnable
+
+Prevent duplicate records whenever possible.
+
+---
+
+## Use Factories For Large Datasets
+
+Factories simplify generating large amounts of data.
+
+---
+
+# Common Mistakes
+
+### Mixing Migrations And Seeders
+
+Migrations define structure.
+
+Seeders define content.
+
+Keep them separate.
+
+---
+
+### Hardcoding Environment-Specific Data
+
+Seeders should remain reusable.
+
+---
+
+### Creating Duplicate Records
+
+Always consider repeat execution.
+
+---
+
+### Seeding Excessive Production Data
+
+Production databases should contain only necessary records.
+
+---
+
+### Ignoring Relationships
+
+Related data should be seeded consistently.
+
+---
+
+# Typical Seeder Flow
+
+```text
+Migration
+     │
+     ▼
+Create Tables
+     │
+     ▼
+Seeder
+     │
+     ▼
+Insert Data
+     │
+     ▼
+Application Ready
+```
+
+Seeders transform empty databases into usable environments.
+
+---
+
+# Visual Summary
+
+```text
+Seeder
+   │
+   ├── Users
+   ├── Roles
+   ├── Permissions
+   ├── Settings
+   └── Reference Data
+   │
+   ▼
+Database
+```
+
+Seeders provide a repeatable mechanism for populating databases with the data required by an application.
+
+---
+
+# Key Takeaways
+
+✔ Seeders populate databases with predefined data
+
+✔ Seeders are separate from migrations
+
+✔ Seeders automate environment setup
+
+✔ Development, testing, and production may use different seeders
+
+✔ Root seeders coordinate multiple seeders
+
+✔ Factories simplify generating large datasets
+
+✔ Seeders improve consistency across environments
+
+✔ Re-runnable seeders help prevent duplicate data
+
+Seeders are an essential part of the Bejibun database ecosystem because they ensure databases contain the data required for development, testing, deployment, and day-to-day application operation.
+
+---
+
+# What's Next?
+
+Now that you understand seeders, continue with:
+
+- Relationships
+- Factories
+- Transactions
+- Pagination
+- Database Testing
+
+These guides explain how data is connected, generated, managed safely, and tested throughout your application lifecycle.

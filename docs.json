@@ -36,29 +36,50 @@
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Architecture",
             "pages": [
-              "core-concepts/request-lifecycle",
-              "core-concepts/service-container",
-              "core-concepts/dependency-injection",
-              "core-concepts/configuration-system",
-              "core-concepts/logging",
-              "core-concepts/error-handling"
+              "architecture/mvc-pattern",
+              "architecture/request-lifecycle",
+              "architecture/service-container",
+              "architecture/dependency-injection",
+              "architecture/service-providers",
+              "architecture/configuration-system",
+              "architecture/logging",
+              "architecture/error-handling"
             ]
           },
           {
-            "group": "HTTP Layer",
+            "group": "HTTP",
             "pages": [
-              "http-layer/routing",
-              "http-layer/route-parameters",
-              "http-layer/route-groups",
-              "http-layer/route-model-binding",
-              "http-layer/controllers",
-              "http-layer/middleware",
-              "http-layer/request-object",
-              "http-layer/response-object",
-              "http-layer/cookies",
-              "http-layer/file-uploads"
+              "http/routing",
+              "http/controllers",
+              "http/requests",
+              "http/responses",
+              "http/validation",
+              "http/api-resources"
+            ]
+          },
+          {
+            "group": "Database",
+            "pages": [
+              "database/introduction",
+              "database/models",
+              "database/query-builder",
+              "database/migrations",
+              "database/seeders",
+              "database/relationships",
+              "database/scopes",
+              "database/soft-deletes",
+              "database/transactions"
+            ]
+          },
+          {
+            "group": "Cache & Storage",
+            "pages": [
+              "cache-and-storage/cache",
+              "cache-and-storage/redis",
+              "cache-and-storage/storage",
+              "cache-and-storage/file-uploads"
             ]
           }
         ]

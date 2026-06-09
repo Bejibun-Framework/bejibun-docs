@@ -1,0 +1,856 @@
+---
+title: API Resources
+description: Learn how Bejibun API Resources transform models and domain objects into consistent, maintainable, and client-friendly API responses.
+---
+
+# API Resources
+
+API Resources provide a dedicated layer for transforming application data into API responses.
+
+Instead of returning raw models directly from controllers, resources allow you to control exactly what data is exposed to clients.
+
+API Resources help:
+
+- Standardize API responses
+- Hide internal implementation details
+- Transform model data
+- Format relationships
+- Add metadata
+- Maintain backward compatibility
+- Improve API consistency
+
+Resources act as the presentation layer of your API.
+
+---
+
+# Why API Resources Exist
+
+Consider a controller that returns a model directly.
+
+```ts
+return user;
+```
+
+The model may contain:
+
+```json
+{
+  "id": 1,
+  "name": "John",
+  "email": "john@example.com",
+  "password": "...",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+Some fields should never be exposed publicly.
+
+Examples:
+
+```text
+Passwords
+
+Internal IDs
+
+Private Metadata
+
+System Information
+```
+
+API Resources provide a controlled transformation layer.
+
+---
+
+# The Problem With Returning Models Directly
+
+Without resources:
+
+```text
+Database Model
+       │
+       ▼
+API Response
+```
+
+The API becomes tightly coupled to the database structure.
+
+Problems:
+
+```text
+Breaking Changes
+
+Security Risks
+
+Inconsistent Responses
+
+Difficult Refactoring
+```
+
+Resources solve these issues by introducing a transformation layer.
+
+---
+
+# Resource Lifecycle
+
+A typical response flow:
+
+```text
+Database
+    │
+    ▼
+Model
+    │
+    ▼
+API Resource
+    │
+    ▼
+JSON Response
+    │
+    ▼
+Client
+```
+
+Resources determine how data is presented externally.
+
+---
+
+# Creating A Resource
+
+A resource represents a single object transformation.
+
+Example:
+
+```ts
+export default class UserResource {
+  //
+}
+```
+
+Its responsibility is to transform application data into a response structure.
+
+---
+
+# Basic Resource Example
+
+Model:
+
+```json
+{
+  "id": 1,
+  "name": "John",
+  "email": "john@example.com"
+}
+```
+
+Resource:
+
+```ts
+export default class UserResource {
+  toJSON(user: User) {
+    return {
+      id: user.id,
+      name: user.name
+    };
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "name": "John"
+}
+```
+
+The email field remains hidden.
+
+---
+
+# Resources As A Presentation Layer
+
+Think of resources as translators.
+
+```text
+Application Data
+        │
+        ▼
+API Resource
+        │
+        ▼
+Public API Format
+```
+
+The client only sees the transformed result.
+
+---
+
+# Resource Usage
+
+Controller:
+
+```ts
+async show() {
+  return new UserResource(
+    user
+  );
+}
+```
+
+Flow:
+
+```text
+Controller
+     │
+     ▼
+Resource
+     │
+     ▼
+JSON Response
+```
+
+This keeps controllers focused on request handling.
+
+---
+
+# Consistent Response Structure
+
+Resources encourage predictable responses.
+
+Example:
+
+```json
+{
+  "id": 1,
+  "name": "John"
+}
+```
+
+Every user response follows the same structure.
+
+Benefits:
+
+```text
+Consistency
+
+Maintainability
+
+Developer Experience
+```
+
+---
+
+# Transforming Fields
+
+Resources can rename fields.
+
+Database:
+
+```json
+{
+  "created_at": "..."
+}
+```
+
+API Response:
+
+```json
+{
+  "createdAt": "..."
+}
+```
+
+This allows APIs to maintain a consistent naming convention.
+
+---
+
+# Formatting Values
+
+Resources can transform values before returning them.
+
+Database:
+
+```json
+{
+  "createdAt":
+  "2026-01-01T00:00:00Z"
+}
+```
+
+Resource:
+
+```json
+{
+  "createdAt":
+  "January 1, 2026"
+}
+```
+
+Resources help present data in a client-friendly format.
+
+---
+
+# Conditional Attributes
+
+Some fields should only be included under certain conditions.
+
+Example:
+
+```text
+Admin User
+     │
+     ▼
+Include Internal Fields
+```
+
+Regular users may receive a reduced response.
+
+Benefits:
+
+```text
+Flexibility
+
+Security
+
+Role-Based Exposure
+```
+
+---
+
+# Computed Attributes
+
+Resources can expose calculated values.
+
+Model:
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+
+Resource:
+
+```json
+{
+  "fullName": "John Doe"
+}
+```
+
+Computed fields improve API usability.
+
+---
+
+# Resource Collections
+
+Resources can transform lists of objects.
+
+Example:
+
+```text
+Users
+   │
+   ▼
+UserCollection
+   │
+   ▼
+JSON Array
+```
+
+Response:
+
+```json
+[
+  {
+    "id": 1
+  },
+  {
+    "id": 2
+  }
+]
+```
+
+Collections ensure consistency across list endpoints.
+
+---
+
+# Collection Resources
+
+Controller:
+
+```ts
+return UserResource.collection(
+  users
+);
+```
+
+Flow:
+
+```text
+Users
+   │
+   ▼
+Collection Resource
+   │
+   ▼
+Response
+```
+
+This applies the same transformation to every item.
+
+---
+
+# Nested Resources
+
+Resources may contain other resources.
+
+Example:
+
+```json
+{
+  "id": 1,
+  "profile": {
+    "bio": "Developer"
+  }
+}
+```
+
+Flow:
+
+```text
+User Resource
+      │
+      ▼
+Profile Resource
+```
+
+Nested resources help model complex relationships.
+
+---
+
+# Relationship Transformation
+
+Database:
+
+```text
+User
+  │
+  └── Posts
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "posts": []
+}
+```
+
+Resources control how relationships are exposed.
+
+---
+
+# Loading Relationships
+
+Resources work best when required relationships are already loaded.
+
+Example:
+
+```text
+User
+  │
+  └── Posts
+```
+
+Benefits:
+
+```text
+Fewer Queries
+
+Better Performance
+
+Predictable Responses
+```
+
+Resources should transform data, not fetch it.
+
+---
+
+# Resource Metadata
+
+Additional metadata can be included alongside data.
+
+Example:
+
+```json
+{
+  "data": {},
+  "meta": {
+    "version": "1.0"
+  }
+}
+```
+
+Metadata may include:
+
+```text
+Pagination
+
+Versioning
+
+Statistics
+
+Additional Context
+```
+
+---
+
+# Pagination Resources
+
+Paginated responses commonly include metadata.
+
+Example:
+
+```json
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "total": 100
+  }
+}
+```
+
+This helps clients navigate large datasets.
+
+---
+
+# Wrapping Responses
+
+Resources may wrap data inside a standard structure.
+
+Example:
+
+```json
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+Benefits:
+
+```text
+Consistency
+
+Future Extensibility
+
+Metadata Support
+```
+
+---
+
+# API Versioning
+
+Resources help support API evolution.
+
+Example:
+
+```text
+UserResourceV1
+
+UserResourceV2
+```
+
+Different versions can expose different fields while preserving compatibility.
+
+---
+
+# Resource Inheritance
+
+Common behavior can be shared through a base resource.
+
+Example:
+
+```ts
+export abstract class Resource {
+  //
+}
+```
+
+Benefits:
+
+```text
+Consistency
+
+Reuse
+
+Centralized Logic
+```
+
+---
+
+# Resource and Controllers
+
+Controllers should return resources instead of formatting data manually.
+
+Good:
+
+```ts
+return new UserResource(
+  user
+);
+```
+
+Avoid:
+
+```ts
+return {
+  id: user.id,
+  name: user.name
+};
+```
+
+throughout every controller.
+
+Resources centralize transformation logic.
+
+---
+
+# Resource and Models
+
+Models represent data.
+
+Resources represent presentation.
+
+```text
+Model
+  │
+  ▼
+Resource
+  │
+  ▼
+API Response
+```
+
+Each layer has a distinct responsibility.
+
+---
+
+# Resource and Services
+
+Services should return domain data.
+
+Resources should transform that data.
+
+```text
+Service
+   │
+   ▼
+Resource
+   │
+   ▼
+Response
+```
+
+This separation improves maintainability.
+
+---
+
+# Resource and Validation
+
+Validation ensures incoming data is valid.
+
+Resources ensure outgoing data is properly formatted.
+
+```text
+Request
+   │
+Validation
+   │
+Controller
+   │
+Resource
+   │
+Response
+```
+
+Together they create a clean API boundary.
+
+---
+
+# API Resource Design Principles
+
+Resources should be:
+
+```text
+Predictable
+
+Consistent
+
+Reusable
+
+Minimal
+
+Client-Focused
+```
+
+The goal is to expose useful data while hiding implementation details.
+
+---
+
+# Best Practices
+
+## Always Use Resources
+
+Avoid returning raw models directly.
+
+---
+
+## Keep Resources Focused
+
+Resources should transform data, not perform business logic.
+
+---
+
+## Hide Sensitive Fields
+
+Never expose:
+
+```text
+Passwords
+
+Tokens
+
+Secrets
+
+Internal Metadata
+```
+
+---
+
+## Keep Responses Consistent
+
+Use resources across the entire API.
+
+---
+
+## Use Nested Resources Carefully
+
+Avoid deeply nested structures that become difficult to consume.
+
+---
+
+# Common Mistakes
+
+### Returning Raw Models
+
+This tightly couples APIs to the database.
+
+---
+
+### Business Logic In Resources
+
+Resources should transform data, not execute workflows.
+
+---
+
+### Exposing Sensitive Data
+
+Always review what fields are publicly accessible.
+
+---
+
+### Duplicating Transformations
+
+Centralize transformations in resources.
+
+---
+
+### Excessive Nesting
+
+Deep response trees can become difficult for clients to consume.
+
+---
+
+# Typical API Resource Flow
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Model
+   │
+   ▼
+Resource
+   │
+   ▼
+JSON Response
+```
+
+Resources are the final transformation step before data reaches clients.
+
+---
+
+# Visual Summary
+
+```text
+Application Data
+        │
+        ▼
+API Resource
+        │
+        ▼
+Transformed Response
+        │
+        ▼
+Client
+```
+
+Resources act as a protective and consistent presentation layer between your application and external consumers.
+
+---
+
+# Key Takeaways
+
+✔ API Resources transform application data into API responses
+
+✔ Resources prevent direct exposure of database models
+
+✔ Resources improve consistency across endpoints
+
+✔ Resources can format, rename, and compute fields
+
+✔ Collection resources handle lists of data
+
+✔ Nested resources manage relationships
+
+✔ Resources help maintain API stability over time
+
+✔ Resources separate presentation concerns from business logic
+
+API Resources are a critical part of building maintainable APIs because they define the public contract between your application and its consumers.
+
+---
+
+# What's Next?
+
+Now that you understand API Resources, continue with:
+
+- Middleware
+- Authentication
+- Authorization
+- Rate Limiting
+
+These guides explain how requests are secured, protected, and controlled before reaching your application logic.

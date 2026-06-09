@@ -1,0 +1,776 @@
+---
+title: Service Providers
+description: Learn how Service Providers bootstrap your application, register services, and configure framework components.
+---
+
+# Service Providers
+
+Service Providers are the central place for bootstrapping your application.
+
+Almost every feature within Bejibun is initialized through a Service Provider, making them one of the most important concepts in the framework.
+
+Service Providers are responsible for:
+
+- Registering services
+- Binding dependencies
+- Configuring integrations
+- Bootstrapping framework features
+- Initializing application components
+
+If the Service Container is the heart of dependency management, Service Providers are the mechanism that teaches the container what it should know.
+
+---
+
+# What Is a Service Provider?
+
+A Service Provider is a class that participates in the application's startup process.
+
+During bootstrapping, Bejibun loads providers and allows them to register services before requests are handled.
+
+Example:
+
+```ts
+export default class AppProvider {
+  register() {
+    //
+  }
+
+  boot() {
+    //
+  }
+}
+```
+
+Providers act as the bridge between:
+
+```text
+Application Startup
+         │
+         ▼
+Service Providers
+         │
+         ▼
+Service Container
+         │
+         ▼
+Application Services
+```
+
+---
+
+# Why Service Providers Exist
+
+Without providers, application initialization becomes scattered throughout the codebase.
+
+Example:
+
+```ts
+container.bind(
+  Logger,
+  () => new Logger()
+);
+
+container.bind(
+  Cache,
+  () => new Cache()
+);
+
+container.bind(
+  Mailer,
+  () => new Mailer()
+);
+```
+
+As applications grow, managing registrations becomes difficult.
+
+Providers organize this process.
+
+Example:
+
+```ts
+export default class AppProvider {
+  register() {
+    //
+  }
+}
+```
+
+All related registrations remain in one place.
+
+---
+
+# Provider Lifecycle
+
+Every provider participates in the application startup lifecycle.
+
+```text
+Application Starts
+         │
+         ▼
+Load Providers
+         │
+         ▼
+Register Services
+         │
+         ▼
+Boot Services
+         │
+         ▼
+Application Ready
+```
+
+This process occurs once when the application starts.
+
+---
+
+# The register Method
+
+The `register()` method is responsible for registering services into the Service Container.
+
+Example:
+
+```ts
+export default class AppProvider {
+  register() {
+    container.singleton(
+      Logger,
+      () => new Logger()
+    );
+  }
+}
+```
+
+Responsibilities:
+
+```text
+Register Bindings
+
+Register Singletons
+
+Configure Services
+
+Prepare Dependencies
+```
+
+Avoid performing application logic here.
+
+---
+
+# The boot Method
+
+The `boot()` method runs after all providers have been registered.
+
+Example:
+
+```ts
+export default class AppProvider {
+  boot() {
+    //
+  }
+}
+```
+
+At this stage:
+
+```text
+All Providers Registered
+
+All Services Available
+
+Application Ready
+```
+
+Boot is commonly used for initialization tasks that depend on other services.
+
+---
+
+# Registering Services
+
+Providers are commonly used to register application services.
+
+Example:
+
+```ts
+export default class AppProvider {
+  register() {
+    container.singleton(
+      UserService,
+      () => new UserService()
+    );
+  }
+}
+```
+
+Now any class can receive:
+
+```ts
+UserService
+```
+
+through dependency injection.
+
+---
+
+# Registering Infrastructure Services
+
+Providers often register infrastructure dependencies.
+
+Examples:
+
+```text
+Logger
+
+Cache
+
+Redis
+
+Mail
+
+Storage
+
+Payment Gateways
+```
+
+Example:
+
+```ts
+container.singleton(
+  Cache,
+  () => new Cache()
+);
+```
+
+This centralizes service configuration.
+
+---
+
+# Binding Interfaces
+
+One of the most common provider responsibilities is binding abstractions to implementations.
+
+Interface:
+
+```ts
+interface Mailer {
+  send(): Promise<void>;
+}
+```
+
+Implementation:
+
+```ts
+class SmtpMailer
+  implements Mailer {}
+```
+
+Provider:
+
+```ts
+container.bind(
+  Mailer,
+  () => new SmtpMailer()
+);
+```
+
+The rest of the application depends only on the abstraction.
+
+---
+
+# Registering Singletons
+
+Many framework services should only exist once.
+
+Example:
+
+```ts
+container.singleton(
+  Logger,
+  () => new Logger()
+);
+```
+
+Lifecycle:
+
+```text
+First Resolution
+       │
+       ▼
+Create Logger
+
+Future Resolutions
+       │
+       ▼
+Reuse Logger
+```
+
+Singletons are commonly registered inside providers.
+
+---
+
+# Provider Organization
+
+Small applications may have a single provider.
+
+Example:
+
+```text
+app/providers/
+└── AppProvider.ts
+```
+
+Larger applications often separate providers by responsibility.
+
+Example:
+
+```text
+app/providers/
+├── AppProvider.ts
+├── AuthProvider.ts
+├── EventProvider.ts
+├── CacheProvider.ts
+└── MailProvider.ts
+```
+
+This keeps initialization organized.
+
+---
+
+# Example App Provider
+
+```ts
+export default class AppProvider {
+  register() {
+    container.singleton(
+      Logger,
+      () => new Logger()
+    );
+
+    container.singleton(
+      Cache,
+      () => new Cache()
+    );
+  }
+
+  boot() {
+    //
+  }
+}
+```
+
+This provider prepares application-wide services.
+
+---
+
+# Configuration Integration
+
+Providers often work closely with configuration.
+
+Example:
+
+```ts
+container.singleton(
+  Storage,
+  () => {
+    return new Storage(
+      Config.get(
+        "storage.driver"
+      )
+    );
+  }
+);
+```
+
+Benefits:
+
+```text
+Centralized Configuration
+
+Environment Awareness
+
+Reusable Services
+```
+
+---
+
+# Environment-Aware Services
+
+Providers can register different implementations depending on the environment.
+
+Example:
+
+```ts
+if (
+  Env.get("APP_ENV")
+  === "production"
+) {
+  //
+}
+```
+
+Development:
+
+```text
+Fake Services
+```
+
+Production:
+
+```text
+Real Services
+```
+
+This pattern is useful for testing and local development.
+
+---
+
+# Package Providers
+
+Framework packages commonly expose providers.
+
+Example:
+
+```text
+CacheProvider
+
+RedisProvider
+
+WebSocketProvider
+
+StorageProvider
+```
+
+When installed, these providers register package functionality automatically.
+
+---
+
+# Framework Bootstrapping
+
+Many internal framework features are initialized through providers.
+
+Examples:
+
+```text
+Routing
+
+Caching
+
+Database Connections
+
+Queue Systems
+
+WebSockets
+
+OpenAPI
+
+Storage
+```
+
+Providers make framework components available to the application.
+
+---
+
+# Provider Loading
+
+Providers are typically loaded during application startup.
+
+Lifecycle:
+
+```text
+Load Configuration
+        │
+        ▼
+Load Providers
+        │
+        ▼
+Register Services
+        │
+        ▼
+Boot Services
+        │
+        ▼
+Start Server
+```
+
+No requests are processed until startup is complete.
+
+---
+
+# Service Provider Example
+
+Imagine an email service.
+
+Provider:
+
+```ts
+export default class MailProvider {
+  register() {
+    container.singleton(
+      Mailer,
+      () => {
+        return new SmtpMailer(
+          Config.get(
+            "mail.host"
+          )
+        );
+      }
+    );
+  }
+}
+```
+
+Controller:
+
+```ts
+export default class UserController {
+  constructor(
+    protected mailer:
+      Mailer
+  ) {}
+}
+```
+
+The controller receives the service automatically.
+
+---
+
+# Deferred Loading
+
+Some frameworks support deferred service loading.
+
+Conceptually:
+
+```text
+Application Starts
+        │
+        ▼
+Provider Registered
+        │
+        ▼
+Service Not Created Yet
+```
+
+Only when needed:
+
+```text
+Resolve Service
+       │
+       ▼
+Create Instance
+```
+
+This improves startup performance.
+
+---
+
+# Testing Providers
+
+Providers can register testing implementations.
+
+Example:
+
+```ts
+container.bind(
+  Mailer,
+  () => new FakeMailer()
+);
+```
+
+Benefits:
+
+```text
+Isolated Tests
+
+No External Services
+
+Fast Execution
+```
+
+Providers make environment-specific configuration simple.
+
+---
+
+# Common Provider Categories
+
+Most applications eventually contain providers for:
+
+```text
+Application Services
+
+Authentication
+
+Caching
+
+Events
+
+Storage
+
+Payments
+
+Notifications
+
+Third-Party Integrations
+```
+
+Organizing providers by responsibility improves maintainability.
+
+---
+
+# Best Practices
+
+## Keep Providers Focused
+
+Good:
+
+```text
+MailProvider
+
+CacheProvider
+
+StorageProvider
+```
+
+Avoid giant providers that register unrelated services.
+
+---
+
+## Register Services Only
+
+Providers should register and configure services.
+
+Avoid placing business logic inside providers.
+
+---
+
+## Use Configuration
+
+Prefer:
+
+```ts
+Config.get(...)
+```
+
+over hardcoded values.
+
+---
+
+## Depend on Abstractions
+
+Register interfaces whenever possible.
+
+This improves flexibility and testing.
+
+---
+
+## Use Singletons Carefully
+
+Singletons are ideal for:
+
+```text
+Loggers
+
+Caches
+
+Database Clients
+
+Configuration Services
+```
+
+Not every service should be a singleton.
+
+---
+
+# Common Mistakes
+
+### Business Logic in Providers
+
+Avoid:
+
+```ts
+register() {
+  // application logic
+}
+```
+
+Providers should focus on initialization.
+
+---
+
+### Hardcoded Configuration
+
+Avoid:
+
+```ts
+new Mailer(
+  "smtp.example.com"
+);
+```
+
+Use configuration values instead.
+
+---
+
+### Overloading a Single Provider
+
+Avoid placing every registration into a single large provider.
+
+Split providers by responsibility.
+
+---
+
+### Manual Dependency Resolution
+
+Providers should register dependencies, not continuously resolve them.
+
+---
+
+# Visual Summary
+
+```text
+Application Startup
+         │
+         ▼
+Service Providers
+         │
+         ▼
+Service Container
+         │
+         ▼
+Application Services
+         │
+         ▼
+Controllers & Services
+```
+
+Providers teach the Service Container how to construct and manage the application's services.
+
+---
+
+# Key Takeaways
+
+✔ Service Providers bootstrap the application
+
+✔ Services are registered during startup
+
+✔ Providers configure dependencies
+
+✔ Providers integrate framework features
+
+✔ Providers work closely with the Service Container
+
+✔ Providers improve organization and maintainability
+
+✔ Most framework features begin with a provider
+
+Understanding Service Providers is essential because they form the foundation of how services are registered and made available throughout a Bejibun application.
+
+---
+
+# What's Next?
+
+Now that you understand Service Providers, continue with:
+
+- Configuration System
+- Logging
+- Error Handling
+
+These guides explain how configuration values are managed, how application activity is logged, and how Bejibun handles exceptions and failures.

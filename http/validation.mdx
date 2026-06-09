@@ -1,0 +1,981 @@
+---
+title: Validation
+description: Learn how Bejibun validates incoming data, enforces business rules, and protects applications from invalid or malicious input.
+---
+
+# Validation
+
+Validation is the process of verifying that incoming data meets the requirements of your application before it is processed.
+
+Every application receives input from external sources:
+
+- HTTP requests
+- Forms
+- APIs
+- Query parameters
+- File uploads
+- WebSocket messages
+
+Because this data originates outside your application, it should never be trusted without validation.
+
+Validation helps ensure:
+
+- Data integrity
+- Application stability
+- Security
+- Predictable behavior
+- Better user experience
+
+---
+
+# Why Validation Matters
+
+Consider a user registration endpoint.
+
+Expected request:
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+
+Without validation:
+
+```json
+{
+  "name": "",
+  "email": "not-email",
+  "password": "1"
+}
+```
+
+could enter the system.
+
+This may lead to:
+
+```text
+Corrupted Data
+
+Application Errors
+
+Security Risks
+
+Unexpected Behavior
+```
+
+Validation prevents invalid data from progressing further into the application.
+
+---
+
+# Validation Lifecycle
+
+Validation occurs before business logic executes.
+
+```text
+Request
+   │
+   ▼
+Validation
+   │
+   ▼
+Valid Data
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+```
+
+If validation fails:
+
+```text
+Request
+   │
+   ▼
+Validation
+   │
+   ▼
+Validation Error
+   │
+   ▼
+422 Response
+```
+
+This keeps invalid data out of the application.
+
+---
+
+# Validation Philosophy
+
+Validation should be:
+
+```text
+Declarative
+
+Predictable
+
+Reusable
+
+Readable
+
+Centralized
+```
+
+Rather than manually checking values throughout controllers, validation rules should be defined in dedicated validators.
+
+---
+
+# Manual Validation
+
+Validation can be performed manually.
+
+Example:
+
+```ts
+if (!email) {
+  throw new Error(
+    "Email is required"
+  );
+}
+```
+
+However, manual validation quickly becomes repetitive.
+
+Example:
+
+```ts
+if (!name) {}
+
+if (!email) {}
+
+if (!password) {}
+```
+
+This approach does not scale well.
+
+---
+
+# Validator Classes
+
+Bejibun encourages defining validation rules in dedicated validator classes.
+
+Example:
+
+```ts
+export default class CreateUserValidator {
+  //
+}
+```
+
+Benefits:
+
+```text
+Reusability
+
+Consistency
+
+Separation of Concerns
+```
+
+Validators become a single source of truth for input requirements.
+
+---
+
+# Request Validation
+
+Controllers typically validate requests before executing business logic.
+
+Example:
+
+```ts
+const data =
+  await request.validate(
+    CreateUserValidator
+  );
+```
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Validator
+   │
+   ▼
+Validated Data
+   │
+   ▼
+Controller
+```
+
+The controller receives trusted data.
+
+---
+
+# Validation Rules
+
+Rules describe what data is allowed.
+
+Examples:
+
+```text
+Required
+
+String
+
+Number
+
+Boolean
+
+Email
+
+URL
+
+Date
+```
+
+Rules define the expected shape of incoming data.
+
+---
+
+# Required Fields
+
+A required rule ensures a field exists.
+
+Example:
+
+```json
+{
+  "email": ""
+}
+```
+
+Validation:
+
+```text
+email is required
+```
+
+Result:
+
+```http
+422 Unprocessable Entity
+```
+
+Required validation is one of the most commonly used rules.
+
+---
+
+# String Validation
+
+Example:
+
+```json
+{
+  "name": "John"
+}
+```
+
+Valid:
+
+```text
+String
+```
+
+Invalid:
+
+```json
+{
+  "name": 123
+}
+```
+
+Type validation ensures data consistency.
+
+---
+
+# Numeric Validation
+
+Example:
+
+```json
+{
+  "age": 25
+}
+```
+
+Valid:
+
+```text
+Number
+```
+
+Invalid:
+
+```json
+{
+  "age": "twenty-five"
+}
+```
+
+Numeric validation prevents type-related issues.
+
+---
+
+# Email Validation
+
+Example:
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+Valid:
+
+```text
+john@example.com
+```
+
+Invalid:
+
+```text
+not-an-email
+```
+
+Email validation helps ensure correct contact information.
+
+---
+
+# URL Validation
+
+Valid:
+
+```text
+https://example.com
+```
+
+Invalid:
+
+```text
+hello-world
+```
+
+URL validation is useful for external links and integrations.
+
+---
+
+# Boolean Validation
+
+Valid:
+
+```json
+{
+  "active": true
+}
+```
+
+Invalid:
+
+```json
+{
+  "active": "yes"
+}
+```
+
+Boolean validation ensures predictable values.
+
+---
+
+# Array Validation
+
+Example:
+
+```json
+{
+  "tags": [
+    "api",
+    "framework"
+  ]
+}
+```
+
+Validation can enforce array requirements and element types.
+
+---
+
+# Object Validation
+
+Example:
+
+```json
+{
+  "profile": {
+    "bio": "Developer"
+  }
+}
+```
+
+Nested objects may also be validated.
+
+---
+
+# Minimum Length
+
+Example:
+
+```json
+{
+  "password": "abc"
+}
+```
+
+Rule:
+
+```text
+Minimum Length: 8
+```
+
+Result:
+
+```text
+Validation Failed
+```
+
+Length constraints improve data quality.
+
+---
+
+# Maximum Length
+
+Example:
+
+```text
+Username
+```
+
+Constraint:
+
+```text
+Maximum: 50 Characters
+```
+
+This prevents excessively large input values.
+
+---
+
+# Numeric Ranges
+
+Example:
+
+```json
+{
+  "age": 150
+}
+```
+
+Rule:
+
+```text
+Maximum Age: 120
+```
+
+Result:
+
+```text
+Validation Failed
+```
+
+Range validation enforces business requirements.
+
+---
+
+# Enumerations
+
+Sometimes only specific values are allowed.
+
+Example:
+
+```json
+{
+  "status": "published"
+}
+```
+
+Allowed values:
+
+```text
+draft
+
+published
+
+archived
+```
+
+Any other value should fail validation.
+
+---
+
+# Optional Fields
+
+Not every field must be required.
+
+Example:
+
+```json
+{
+  "name": "John"
+}
+```
+
+Optional:
+
+```text
+avatar
+```
+
+Missing optional fields should not trigger validation errors.
+
+---
+
+# Conditional Validation
+
+Some rules depend on other fields.
+
+Example:
+
+```text
+Company Name Required
+Only If
+
+Account Type = Business
+```
+
+Conditional validation supports more advanced workflows.
+
+---
+
+# Nested Validation
+
+Example:
+
+```json
+{
+  "user": {
+    "name": "John"
+  }
+}
+```
+
+Validation may target nested properties.
+
+Benefits:
+
+```text
+Structured APIs
+
+Complex Forms
+
+Nested Resources
+```
+
+---
+
+# File Validation
+
+Uploaded files should always be validated.
+
+Example checks:
+
+```text
+File Exists
+
+Maximum Size
+
+Allowed MIME Types
+
+Allowed Extensions
+```
+
+This prevents security and storage issues.
+
+---
+
+# Image Validation
+
+Example:
+
+```text
+JPEG
+
+PNG
+
+WEBP
+```
+
+Validation can ensure uploaded files are legitimate images.
+
+---
+
+# Unique Validation
+
+Some values must be unique.
+
+Example:
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+Validation:
+
+```text
+Email Must Be Unique
+```
+
+This is common for:
+
+```text
+Emails
+
+Usernames
+
+Slugs
+```
+
+---
+
+# Custom Validation Rules
+
+Applications may define custom rules.
+
+Example:
+
+```text
+Valid Employee ID
+
+Valid Membership Number
+
+Valid Business Identifier
+```
+
+Custom validators allow domain-specific requirements.
+
+---
+
+# Validation Errors
+
+When validation fails, the framework generates a validation exception.
+
+Example:
+
+```text
+Validation Failed
+        │
+        ▼
+Validation Exception
+        │
+        ▼
+422 Response
+```
+
+The controller action does not execute.
+
+---
+
+# Validation Responses
+
+Example response:
+
+```json
+{
+  "errors": {
+    "email": [
+      "The email field is required."
+    ]
+  }
+}
+```
+
+Clients can use this information to display validation feedback.
+
+---
+
+# Multiple Validation Errors
+
+Validation may return multiple errors simultaneously.
+
+Example:
+
+```json
+{
+  "errors": {
+    "name": [
+      "Required"
+    ],
+    "email": [
+      "Invalid email"
+    ]
+  }
+}
+```
+
+Providing all errors at once improves user experience.
+
+---
+
+# Sanitization
+
+Validation is often paired with sanitization.
+
+Examples:
+
+```text
+Trim Whitespace
+
+Normalize Email
+
+Remove Invalid Characters
+```
+
+Sanitization improves data consistency.
+
+---
+
+# Validation and Controllers
+
+Controllers should validate before performing work.
+
+Good:
+
+```ts
+const data =
+  await request.validate(
+    CreateUserValidator
+  );
+```
+
+Avoid:
+
+```ts
+await service.create(
+  request.body()
+);
+```
+
+Unvalidated data should not reach business logic.
+
+---
+
+# Validation and Services
+
+Services should receive validated data whenever possible.
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Validation
+   │
+   ▼
+Service
+```
+
+This reduces defensive programming throughout the application.
+
+---
+
+# Validation and Security
+
+Validation contributes significantly to application security.
+
+Benefits:
+
+```text
+Input Filtering
+
+Attack Surface Reduction
+
+Data Integrity
+
+Safer Operations
+```
+
+Validation is a foundational security layer.
+
+---
+
+# Validation and APIs
+
+Validation improves API usability.
+
+Clients receive:
+
+```text
+Clear Errors
+
+Consistent Responses
+
+Predictable Rules
+```
+
+Good validation significantly improves developer experience.
+
+---
+
+# Best Practices
+
+## Validate All External Input
+
+Never trust incoming data.
+
+---
+
+## Use Dedicated Validators
+
+Keep validation rules separate from controllers.
+
+---
+
+## Return Consistent Errors
+
+Validation failures should follow a predictable format.
+
+---
+
+## Validate Files
+
+Always validate uploaded files.
+
+---
+
+## Keep Rules Declarative
+
+Validation rules should describe requirements clearly.
+
+---
+
+# Common Mistakes
+
+### Skipping Validation
+
+Every external input should be validated.
+
+---
+
+### Duplicating Rules
+
+Keep rules centralized.
+
+---
+
+### Mixing Validation and Business Logic
+
+Validation should verify data.
+
+Business logic should process data.
+
+---
+
+### Returning Vague Errors
+
+Provide meaningful feedback whenever possible.
+
+---
+
+### Trusting Client-Side Validation
+
+Client-side validation improves UX but is never a substitute for server-side validation.
+
+---
+
+# Typical Validation Flow
+
+```text
+Request
+   │
+   ▼
+Validator
+   │
+   ▼
+Validated Data
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Response
+```
+
+Validation acts as a gatekeeper for incoming data.
+
+---
+
+# Visual Summary
+
+```text
+Incoming Data
+       │
+       ▼
+Validation Rules
+       │
+       ├── Pass
+       │      │
+       │      ▼
+       │   Application Logic
+       │
+       └── Fail
+              │
+              ▼
+         Validation Error
+```
+
+Validation ensures only acceptable data enters the application.
+
+---
+
+# Key Takeaways
+
+✔ Validation protects applications from invalid input
+
+✔ All external data should be considered untrusted
+
+✔ Validators centralize validation rules
+
+✔ Validation occurs before business logic executes
+
+✔ Validation errors typically return a 422 response
+
+✔ File uploads should always be validated
+
+✔ Validation improves both security and developer experience
+
+✔ Clean validation leads to more reliable applications
+
+Validation is one of the most important layers in a Bejibun application because every piece of external data should pass through it before entering the business domain.
+
+---
+
+# What's Next?
+
+Now that you understand validation, continue with:
+
+- Middleware
+- Authentication
+- Authorization
+- File Storage
+
+These guides explain how requests are intercepted, users are authenticated, permissions are enforced, and files are safely managed.

@@ -1,0 +1,983 @@
+---
+title: Logging
+description: Learn how logging works in Bejibun and how to record application events, errors, and operational information effectively.
+---
+
+# Logging
+
+Logging is the process of recording information about your application's behavior while it is running.
+
+Logs provide visibility into what happens inside your application and are essential for:
+
+- Debugging issues
+- Monitoring production systems
+- Tracking application activity
+- Investigating errors
+- Auditing critical operations
+- Understanding system behavior
+
+Without proper logging, diagnosing problems becomes significantly more difficult.
+
+---
+
+# Why Logging Matters
+
+Imagine a production API suddenly starts returning errors.
+
+Without logs:
+
+```text
+Something Failed
+```
+
+You have very little information about:
+
+- What happened
+- When it happened
+- Why it happened
+- Which user triggered it
+
+With logs:
+
+```text
+[ERROR]
+Database connection failed
+
+Host: database.internal
+
+Time: 2026-01-15T10:45:23Z
+```
+
+The issue becomes much easier to investigate.
+
+---
+
+# Logging Philosophy
+
+A good logging strategy should answer three questions:
+
+```text
+What Happened?
+
+When Did It Happen?
+
+Why Did It Happen?
+```
+
+Logs should provide enough context to diagnose issues without exposing sensitive information.
+
+---
+
+# Logging Lifecycle
+
+Application events generate log entries.
+
+```text
+Application Event
+         │
+         ▼
+Logger
+         │
+         ▼
+Log Driver
+         │
+         ▼
+Storage Destination
+```
+
+This process occurs throughout the application's lifecycle.
+
+---
+
+# The Logger Service
+
+Bejibun provides a centralized logging service.
+
+Example:
+
+```ts
+Logger.info(
+  "Application started"
+);
+```
+
+The logger is responsible for:
+
+- Formatting messages
+- Managing log levels
+- Routing logs to destinations
+- Handling structured data
+
+Application code should use the logger instead of writing directly to files or consoles.
+
+---
+
+# Log Levels
+
+Different events require different levels of importance.
+
+Common log levels include:
+
+```text
+DEBUG
+
+INFO
+
+WARN
+
+ERROR
+
+FATAL
+```
+
+Choosing the correct level helps operators focus on important events.
+
+---
+
+# Debug Logs
+
+Debug logs contain detailed diagnostic information.
+
+Example:
+
+```ts
+Logger.debug(
+  "User lookup started"
+);
+```
+
+Typical use cases:
+
+- Development
+- Troubleshooting
+- Internal diagnostics
+
+Example output:
+
+```text
+[DEBUG]
+User lookup started
+```
+
+Debug logging is often disabled in production environments.
+
+---
+
+# Information Logs
+
+Information logs record normal application activity.
+
+Example:
+
+```ts
+Logger.info(
+  "User registered"
+);
+```
+
+Example output:
+
+```text
+[INFO]
+User registered
+```
+
+Typical use cases:
+
+- User actions
+- Application startup
+- Service initialization
+- Business events
+
+---
+
+# Warning Logs
+
+Warnings indicate unusual situations that do not stop application execution.
+
+Example:
+
+```ts
+Logger.warn(
+  "Rate limit approaching"
+);
+```
+
+Example output:
+
+```text
+[WARN]
+Rate limit approaching
+```
+
+Warnings often signal potential issues before they become failures.
+
+---
+
+# Error Logs
+
+Errors indicate failures that require attention.
+
+Example:
+
+```ts
+Logger.error(
+  "Payment processing failed"
+);
+```
+
+Example output:
+
+```text
+[ERROR]
+Payment processing failed
+```
+
+Errors should generally be investigated.
+
+---
+
+# Fatal Logs
+
+Fatal logs indicate critical failures.
+
+Example:
+
+```ts
+Logger.fatal(
+  "Database unavailable"
+);
+```
+
+Example output:
+
+```text
+[FATAL]
+Database unavailable
+```
+
+Fatal events often require immediate action.
+
+---
+
+# Structured Logging
+
+Modern applications often use structured logs.
+
+Instead of:
+
+```ts
+Logger.info(
+  "User 123 logged in"
+);
+```
+
+Prefer:
+
+```ts
+Logger.info(
+  "User logged in",
+  {
+    userId: 123
+  }
+);
+```
+
+Result:
+
+```json
+{
+  "level": "info",
+  "message": "User logged in",
+  "userId": 123
+}
+```
+
+Structured logs are easier to search and analyze.
+
+---
+
+# Logging Context
+
+Context provides additional information about an event.
+
+Example:
+
+```ts
+Logger.info(
+  "Order created",
+  {
+    orderId: 50,
+    userId: 10
+  }
+);
+```
+
+Benefits:
+
+```text
+Better Debugging
+
+Faster Investigation
+
+Improved Searchability
+```
+
+Context often becomes invaluable during production incidents.
+
+---
+
+# Request Logging
+
+Applications commonly log incoming requests.
+
+Example:
+
+```ts
+Logger.info(
+  "Request received",
+  {
+    method: "GET",
+    path: "/users"
+  }
+);
+```
+
+Example output:
+
+```json
+{
+  "method": "GET",
+  "path": "/users"
+}
+```
+
+Request logs help monitor traffic and diagnose issues.
+
+---
+
+# Response Logging
+
+Responses may also be logged.
+
+Example:
+
+```ts
+Logger.info(
+  "Response sent",
+  {
+    status: 200
+  }
+);
+```
+
+This allows request-response tracking.
+
+---
+
+# Error Logging
+
+Exceptions should be logged whenever possible.
+
+Example:
+
+```ts
+try {
+  //
+} catch (error) {
+  Logger.error(
+    error.message
+  );
+}
+```
+
+Lifecycle:
+
+```text
+Exception
+     │
+     ▼
+Logger
+     │
+     ▼
+Log Storage
+```
+
+Error logs provide critical debugging information.
+
+---
+
+# Logging Exceptions
+
+Prefer logging full exception details.
+
+Example:
+
+```ts
+Logger.error(
+  "Database query failed",
+  {
+    error
+  }
+);
+```
+
+Useful information may include:
+
+```text
+Message
+
+Stack Trace
+
+Request ID
+
+Timestamp
+```
+
+This dramatically simplifies troubleshooting.
+
+---
+
+# Logging User Activity
+
+Applications often log important user actions.
+
+Examples:
+
+```text
+User Registration
+
+Authentication
+
+Password Reset
+
+Profile Update
+
+Payment Processing
+```
+
+Example:
+
+```ts
+Logger.info(
+  "User authenticated",
+  {
+    userId: user.id
+  }
+);
+```
+
+These logs can be useful for auditing.
+
+---
+
+# Security Logging
+
+Security-related events should always be logged.
+
+Examples:
+
+```text
+Failed Login Attempts
+
+Permission Violations
+
+Rate Limit Violations
+
+Authentication Failures
+
+Suspicious Requests
+```
+
+Example:
+
+```ts
+Logger.warn(
+  "Authentication failed",
+  {
+    ip: request.ip
+  }
+);
+```
+
+Security logs help identify threats.
+
+---
+
+# Log Drivers
+
+A log driver determines where logs are written.
+
+Common drivers include:
+
+```text
+Console
+
+File
+
+Remote Service
+
+Cloud Logging Platform
+```
+
+Applications may use multiple drivers simultaneously.
+
+---
+
+# Console Logging
+
+Useful during development.
+
+Example:
+
+```text
+[INFO]
+Application started
+```
+
+Advantages:
+
+```text
+Simple
+
+Immediate Feedback
+
+Easy Development Experience
+```
+
+---
+
+# File Logging
+
+Logs are written to files.
+
+Example:
+
+```text
+storage/logs/
+```
+
+```text
+application.log
+```
+
+Advantages:
+
+```text
+Persistence
+
+Local Inspection
+
+Historical Records
+```
+
+---
+
+# Remote Logging
+
+Production systems often send logs to centralized platforms.
+
+Architecture:
+
+```text
+Application
+      │
+      ▼
+Logger
+      │
+      ▼
+Remote Service
+```
+
+Benefits:
+
+```text
+Centralized Search
+
+Alerting
+
+Analytics
+
+Retention Policies
+```
+
+---
+
+# Log Rotation
+
+Logs continuously grow over time.
+
+Without rotation:
+
+```text
+application.log
+```
+
+may become extremely large.
+
+Typical strategy:
+
+```text
+Daily Logs
+
+Weekly Rotation
+
+Retention Policies
+```
+
+This prevents excessive disk usage.
+
+---
+
+# Configuration
+
+Logging behavior is usually configured through:
+
+```text
+config/logging.ts
+```
+
+Example:
+
+```ts
+export default {
+  driver: "console"
+};
+```
+
+Or:
+
+```ts
+export default {
+  driver: "file"
+};
+```
+
+Configuration allows different environments to use different logging strategies.
+
+---
+
+# Environment-Specific Logging
+
+Development:
+
+```env
+LOG_LEVEL=debug
+```
+
+Production:
+
+```env
+LOG_LEVEL=info
+```
+
+Production systems typically reduce noisy debug output.
+
+---
+
+# Logging Middleware
+
+Middleware can automatically record requests.
+
+Example flow:
+
+```text
+Request
+    │
+    ▼
+Logging Middleware
+    │
+    ▼
+Controller
+```
+
+Example:
+
+```ts
+Logger.info(
+  "Incoming request"
+);
+```
+
+This ensures consistent request logging.
+
+---
+
+# Correlation IDs
+
+Large systems often attach a unique identifier to every request.
+
+Example:
+
+```text
+requestId:
+8f4c6a7d
+```
+
+Every log generated during the request includes the same identifier.
+
+Benefits:
+
+```text
+Traceability
+
+Debugging
+
+Distributed Systems Support
+```
+
+---
+
+# Logging in Services
+
+Services should log meaningful events.
+
+Example:
+
+```ts
+Logger.info(
+  "Invoice generated"
+);
+```
+
+Avoid excessive logging that provides little value.
+
+---
+
+# What Should Be Logged?
+
+Good candidates include:
+
+```text
+Application Startup
+
+User Authentication
+
+Payments
+
+External API Failures
+
+Database Errors
+
+Critical Business Events
+```
+
+These events often provide operational insight.
+
+---
+
+# What Should NOT Be Logged?
+
+Avoid logging sensitive information.
+
+Examples:
+
+```text
+Passwords
+
+Access Tokens
+
+API Secrets
+
+Credit Card Data
+
+Private Keys
+```
+
+Never log credentials.
+
+---
+
+# Bad Example
+
+```ts
+Logger.info(
+  "User login",
+  {
+    password:
+      request.password
+  }
+);
+```
+
+This creates a security risk.
+
+---
+
+# Good Example
+
+```ts
+Logger.info(
+  "User login",
+  {
+    userId: user.id
+  }
+);
+```
+
+Useful information is preserved without exposing sensitive data.
+
+---
+
+# Best Practices
+
+## Use Appropriate Levels
+
+Good:
+
+```ts
+Logger.error(...)
+```
+
+for failures.
+
+Avoid:
+
+```ts
+Logger.info(...)
+```
+
+for critical errors.
+
+---
+
+## Include Context
+
+Prefer:
+
+```ts
+Logger.info(
+  "Order created",
+  {
+    orderId: 50
+  }
+);
+```
+
+over vague messages.
+
+---
+
+## Avoid Sensitive Data
+
+Never log secrets or credentials.
+
+---
+
+## Use Structured Logs
+
+Structured data is easier to search and analyze.
+
+---
+
+## Log Meaningful Events
+
+Focus on events that help diagnose issues or understand application behavior.
+
+---
+
+# Common Mistakes
+
+### Logging Everything
+
+Excessive logging creates noise.
+
+---
+
+### Logging Nothing
+
+Missing logs make troubleshooting difficult.
+
+---
+
+### Exposing Secrets
+
+Never log sensitive data.
+
+---
+
+### Using Incorrect Levels
+
+Use severity levels consistently.
+
+---
+
+### Ignoring Errors
+
+Unhandled exceptions should always be logged.
+
+---
+
+# Example Logging Strategy
+
+A production API may log:
+
+```text
+Application Startup
+
+Incoming Requests
+
+Authentication Events
+
+Business Transactions
+
+Exceptions
+
+Performance Metrics
+```
+
+This provides comprehensive operational visibility.
+
+---
+
+# Visual Summary
+
+```text
+Application Event
+         │
+         ▼
+Logger
+         │
+         ▼
+Log Driver
+         │
+         ▼
+Storage
+         │
+         ▼
+Monitoring & Analysis
+```
+
+Logging transforms application activity into actionable operational information.
+
+---
+
+# Key Takeaways
+
+✔ Logging records application activity
+
+✔ Different log levels represent different severities
+
+✔ Structured logging improves observability
+
+✔ Sensitive information should never be logged
+
+✔ Logs are essential for debugging and monitoring
+
+✔ Logging should be centralized through the Logger service
+
+✔ Production systems benefit from centralized log management
+
+A well-designed logging strategy is one of the most valuable tools for maintaining reliable applications.
+
+---
+
+# What's Next?
+
+Now that you understand logging, continue with:
+
+- Error Handling
+- Events
+- Queues
+
+These guides explain how Bejibun handles failures, enables application communication, and processes background work.

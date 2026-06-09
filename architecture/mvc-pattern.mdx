@@ -1,0 +1,435 @@
+---
+title: MVC Pattern
+description: Understand how Bejibun organizes application logic using the Model-View-Controller architecture.
+-------------------------------------------------------------------------------------------------------------
+
+# MVC Pattern
+
+Bejibun follows the Model-View-Controller (MVC) architectural pattern to help developers build maintainable, scalable, and organized applications.
+
+MVC separates application responsibilities into distinct layers, allowing each part of the application to focus on a single concern.
+
+Instead of placing database queries, validation, business logic, and response formatting inside routes, Bejibun encourages developers to organize code into dedicated components.
+
+---
+
+## What Is MVC?
+
+MVC stands for:
+
+* **Model** — Represents application data and business entities
+* **View** — Represents the data returned to clients
+* **Controller** — Handles incoming requests and coordinates application behavior
+
+A typical request flows through the application like this:
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Model
+   │
+   ▼
+Database
+   │
+   ▼
+Response
+```
+
+Each layer has a clearly defined responsibility.
+
+---
+
+## MVC In Bejibun
+
+Bejibun applications are typically organized using the following structure:
+
+```text
+app/
+├── Controllers/
+├── Models/
+├── Requests/
+├── Services/
+└── Providers/
+```
+
+This structure allows large applications to remain maintainable as they grow.
+
+---
+
+## Models
+
+Models represent data stored in the database.
+
+Examples include:
+
+```text
+User
+Post
+Product
+Order
+```
+
+Models provide an object-oriented interface for interacting with records and relationships.
+
+```ts
+const users = await User.query().get();
+```
+
+Models should focus on domain data and persistence concerns.
+
+Examples of responsibilities include:
+
+* Querying records
+* Managing relationships
+* Defining scopes
+* Handling model events
+
+Models should avoid HTTP-specific logic.
+
+---
+
+## Controllers
+
+Controllers receive HTTP requests and return responses.
+
+Example:
+
+```ts
+export class UserController {
+  async index() {
+    return User.query().get();
+  }
+}
+```
+
+Controllers act as the entry point for application behavior.
+
+Typical controller responsibilities include:
+
+* Receiving requests
+* Delegating work to services
+* Returning responses
+* Coordinating application flow
+
+Controllers should remain small and focused.
+
+---
+
+## Services
+
+Services contain business logic.
+
+Examples include:
+
+```text
+User Registration
+
+Order Processing
+
+Payment Handling
+
+Report Generation
+```
+
+Rather than placing complex workflows inside controllers, move them into dedicated services.
+
+```text
+Controller
+      │
+      ▼
+Service
+      │
+      ▼
+Model
+```
+
+Benefits include:
+
+* Improved testability
+* Better reusability
+* Cleaner controllers
+* Clear business boundaries
+
+---
+
+## Requests
+
+Request classes encapsulate validation and authorization logic.
+
+Examples:
+
+```text
+CreateUserRequest
+
+UpdateProfileRequest
+
+CreateOrderRequest
+```
+
+Request objects help keep controllers focused on application flow rather than input validation.
+
+Responsibilities include:
+
+* Validation
+* Authorization
+* Data transformation
+* Request sanitization
+
+---
+
+## Responses
+
+After application logic completes, a response is returned to the client.
+
+Depending on the application type, responses may include:
+
+* JSON
+* API Resources
+* HTML
+* Redirects
+* File Downloads
+
+Example:
+
+```ts
+return response.json({
+  message: "User created successfully"
+});
+```
+
+Response formatting should remain separate from business logic.
+
+---
+
+## Request Lifecycle
+
+A typical Bejibun request follows this flow:
+
+```text
+HTTP Request
+      │
+      ▼
+Route
+      │
+      ▼
+Controller
+      │
+      ▼
+Request Validation
+      │
+      ▼
+Service
+      │
+      ▼
+Model
+      │
+      ▼
+Database
+      │
+      ▼
+Response
+      │
+      ▼
+Client
+```
+
+Each layer contributes a specific responsibility.
+
+---
+
+## Example Workflow
+
+Consider a user registration endpoint.
+
+```http
+POST /users
+```
+
+The request may pass through:
+
+```text
+Route
+   │
+   ▼
+UserController
+   │
+   ▼
+CreateUserRequest
+   │
+   ▼
+UserService
+   │
+   ▼
+User Model
+   │
+   ▼
+Database
+```
+
+This separation keeps the application organized and easy to maintain.
+
+---
+
+## Keeping Controllers Thin
+
+Controllers should coordinate actions rather than contain application rules.
+
+Good structure:
+
+```text
+Controller
+      │
+      ▼
+Service
+      │
+      ▼
+Model
+```
+
+Avoid:
+
+```text
+Controller
+ ├── Validation
+ ├── Business Logic
+ ├── Database Logic
+ ├── Formatting
+ └── Authorization
+```
+
+Large controllers quickly become difficult to maintain.
+
+---
+
+## Dependency Injection
+
+Bejibun's service container allows dependencies to be injected into controllers and services.
+
+```text
+Controller
+      │
+      ▼
+Service
+      │
+      ▼
+Repository
+```
+
+This promotes:
+
+* Loose coupling
+* Easier testing
+* Better maintainability
+
+Dependency injection allows components to depend on abstractions rather than concrete implementations.
+
+---
+
+## Testing MVC Applications
+
+MVC naturally improves testability.
+
+Applications can be tested at multiple levels:
+
+```text
+Controller Tests
+
+Service Tests
+
+Model Tests
+
+Integration Tests
+```
+
+Each component can be verified independently.
+
+---
+
+## Benefits Of MVC
+
+### Separation of Concerns
+
+Each layer focuses on a single responsibility.
+
+### Maintainability
+
+Applications remain easier to understand and modify.
+
+### Reusability
+
+Services and models can be reused across multiple endpoints.
+
+### Testability
+
+Components can be tested independently.
+
+### Scalability
+
+Large applications remain organized as they grow.
+
+---
+
+## Common Mistakes
+
+### Fat Controllers
+
+Controllers should not contain business workflows.
+
+### Business Logic In Routes
+
+Routes should define endpoints, not application behavior.
+
+### Direct Database Queries Everywhere
+
+Use models and services to centralize application logic.
+
+### Mixing Presentation And Business Logic
+
+Response formatting should remain separate from domain behavior.
+
+---
+
+## Recommended Structure
+
+A typical Bejibun application might be organized as follows:
+
+```text
+app/
+├── Controllers/
+│   └── UserController.ts
+│
+├── Models/
+│   └── User.ts
+│
+├── Requests/
+│   └── CreateUserRequest.ts
+│
+├── Services/
+│   └── UserService.ts
+│
+└── Providers/
+```
+
+This structure scales well from small projects to large enterprise applications.
+
+---
+
+## Key Takeaways
+
+* Bejibun uses the MVC architectural pattern.
+* Models represent domain entities and database records.
+* Controllers handle incoming requests and return responses.
+* Services contain business logic and workflows.
+* Requests manage validation and authorization.
+* Responses handle data presentation.
+* Dependency injection keeps components loosely coupled.
+* MVC improves maintainability, scalability, and testability.
+
+By following MVC principles, Bejibun applications remain organized, predictable, and easier to maintain throughout their lifecycle.

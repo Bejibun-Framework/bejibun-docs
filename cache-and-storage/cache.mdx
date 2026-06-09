@@ -1,0 +1,980 @@
+---
+title: Cache
+description: Learn how Bejibun Cache improves application performance by temporarily storing frequently accessed data and reducing expensive operations.
+---
+
+# Cache
+
+Modern applications frequently perform operations that are expensive to execute repeatedly.
+
+Examples:
+
+```text
+Database Queries
+
+API Requests
+
+File Reads
+
+Complex Calculations
+
+Report Generation
+```
+
+Executing these operations on every request can significantly impact performance.
+
+Cache provides a way to temporarily store data so it can be retrieved quickly without repeating the original operation.
+
+---
+
+# What Is Cache?
+
+A cache is a temporary storage layer that stores frequently accessed data.
+
+Instead of:
+
+```text
+Request
+   │
+   ▼
+Database
+   │
+   ▼
+Response
+```
+
+Every time,
+
+the application can use:
+
+```text
+Request
+   │
+   ▼
+Cache
+   │
+   ▼
+Response
+```
+
+This dramatically reduces response time.
+
+---
+
+# Why Cache Exists
+
+Without cache:
+
+```text
+Request
+   │
+   ▼
+Database Query
+   │
+   ▼
+Response
+```
+
+Repeated thousands of times.
+
+Problems:
+
+```text
+Slow Responses
+
+High Database Load
+
+Increased Infrastructure Costs
+
+Reduced Scalability
+```
+
+Caching minimizes these issues.
+
+---
+
+# Cache Philosophy
+
+Data should only be recomputed when necessary.
+
+Instead of:
+
+```text
+Calculate Every Request
+```
+
+Use:
+
+```text
+Calculate Once
+      │
+      ▼
+Reuse Many Times
+```
+
+This principle allows applications to scale efficiently.
+
+---
+
+# Cache Lifecycle
+
+A typical cache workflow:
+
+```text
+Request
+   │
+   ▼
+Cache Check
+   │
+   ├── Hit
+   │      │
+   │      ▼
+   │   Return Cached Data
+   │
+   └── Miss
+          │
+          ▼
+      Execute Operation
+          │
+          ▼
+      Store In Cache
+          │
+          ▼
+      Return Result
+```
+
+---
+
+# Cache Hit
+
+A cache hit occurs when requested data already exists in cache.
+
+Example:
+
+```text
+Request User Count
+       │
+       ▼
+Cache Contains Value
+       │
+       ▼
+Return Cached Value
+```
+
+No database query is required.
+
+---
+
+# Cache Miss
+
+A cache miss occurs when data does not exist in cache.
+
+Example:
+
+```text
+Request User Count
+       │
+       ▼
+Cache Empty
+       │
+       ▼
+Database Query
+       │
+       ▼
+Store Result
+```
+
+Future requests become cache hits.
+
+---
+
+# Cache Storage
+
+Applications can store cache data in different backends.
+
+Examples:
+
+```text
+Memory
+
+Redis
+
+Database
+
+File System
+```
+
+Each backend has different performance characteristics.
+
+---
+
+# Common Cache Drivers
+
+Typical cache implementations include:
+
+```text
+Memory Cache
+
+Redis Cache
+
+File Cache
+
+Database Cache
+```
+
+The chosen driver depends on application requirements.
+
+---
+
+# In-Memory Cache
+
+Data is stored directly in application memory.
+
+Benefits:
+
+```text
+Extremely Fast
+
+Low Latency
+```
+
+Limitations:
+
+```text
+Lost On Restart
+
+Not Shared Across Servers
+```
+
+Useful for small deployments.
+
+---
+
+# Redis Cache
+
+A popular cache backend.
+
+Benefits:
+
+```text
+High Performance
+
+Shared Storage
+
+Persistence Options
+
+Distributed Support
+```
+
+Redis is commonly used in production environments.
+
+---
+
+# File Cache
+
+Data is stored as files.
+
+Benefits:
+
+```text
+Simple Setup
+
+No Additional Services
+```
+
+Trade-offs:
+
+```text
+Slower Than Memory
+
+Limited Scalability
+```
+
+Suitable for smaller applications.
+
+---
+
+# Database Cache
+
+Cache records are stored in database tables.
+
+Benefits:
+
+```text
+Simple Infrastructure
+
+Centralized Storage
+```
+
+Trade-offs:
+
+```text
+Additional Database Load
+```
+
+Usually slower than dedicated cache systems.
+
+---
+
+# Cache Keys
+
+Every cached value requires a unique key.
+
+Example:
+
+```text
+users.count
+
+settings.site_name
+
+dashboard.stats
+```
+
+Keys identify cached data.
+
+---
+
+# Key Design
+
+Good cache keys are:
+
+```text
+Unique
+
+Descriptive
+
+Predictable
+```
+
+Example:
+
+```text
+user:1:profile
+```
+
+instead of:
+
+```text
+data123
+```
+
+---
+
+# Storing Values
+
+Applications can cache:
+
+```text
+Strings
+
+Numbers
+
+Objects
+
+Arrays
+
+Collections
+```
+
+Most modern cache systems support complex data structures.
+
+---
+
+# Reading Cache
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Lookup Key
+   │
+   ▼
+Return Value
+```
+
+Retrieval is typically much faster than recomputing data.
+
+---
+
+# Cache Expiration
+
+Cached data should not remain forever.
+
+Example:
+
+```text
+Store Value
+      │
+      ▼
+Expire After 1 Hour
+```
+
+This prevents stale data from persisting indefinitely.
+
+---
+
+# Time To Live (TTL)
+
+TTL defines how long data remains cached.
+
+Examples:
+
+```text
+60 Seconds
+
+5 Minutes
+
+1 Hour
+
+24 Hours
+```
+
+Choosing an appropriate TTL is important.
+
+---
+
+# Short-Lived Cache
+
+Useful for rapidly changing data.
+
+Examples:
+
+```text
+Dashboard Metrics
+
+Live Statistics
+
+Session Data
+```
+
+Short TTLs ensure freshness.
+
+---
+
+# Long-Lived Cache
+
+Useful for stable data.
+
+Examples:
+
+```text
+Countries
+
+Currencies
+
+Configuration
+
+Categories
+```
+
+Long TTLs maximize performance gains.
+
+---
+
+# Cache Invalidation
+
+Eventually cached data becomes outdated.
+
+Example:
+
+```text
+User Updated
+```
+
+Cached profile must be refreshed.
+
+This process is called cache invalidation.
+
+---
+
+# Why Invalidation Matters
+
+Without invalidation:
+
+```text
+Database Updated
+      │
+      ▼
+Old Cached Value
+```
+
+Users receive stale information.
+
+Proper invalidation maintains accuracy.
+
+---
+
+# Manual Invalidation
+
+Applications may explicitly remove cache entries.
+
+Flow:
+
+```text
+Update Data
+      │
+      ▼
+Delete Cache Key
+```
+
+The next request regenerates the value.
+
+---
+
+# Automatic Invalidation
+
+Some systems automatically clear related cache entries.
+
+Example:
+
+```text
+Update User
+      │
+      ▼
+Clear User Cache
+```
+
+This reduces maintenance overhead.
+
+---
+
+# Cache-Aside Pattern
+
+The most common caching strategy.
+
+Flow:
+
+```text
+Check Cache
+      │
+      ├── Hit
+      │      │
+      │      ▼
+      │   Return Data
+      │
+      └── Miss
+             │
+             ▼
+        Database Query
+             │
+             ▼
+        Store Cache
+             │
+             ▼
+        Return Data
+```
+
+This pattern is widely used across applications.
+
+---
+
+# Read Caching
+
+Frequently requested data is cached.
+
+Examples:
+
+```text
+Profiles
+
+Settings
+
+Reports
+
+Statistics
+```
+
+Read caching improves response speed.
+
+---
+
+# Query Caching
+
+Expensive database queries are excellent cache candidates.
+
+Example:
+
+```text
+Monthly Sales Report
+```
+
+Instead of recalculating repeatedly:
+
+```text
+Cache Result
+```
+
+---
+
+# API Response Caching
+
+Entire API responses may be cached.
+
+Benefits:
+
+```text
+Faster Responses
+
+Lower Database Load
+
+Reduced Computation
+```
+
+Particularly useful for public APIs.
+
+---
+
+# Configuration Caching
+
+Application configuration rarely changes.
+
+Example:
+
+```text
+App Settings
+
+Feature Flags
+
+Localization Data
+```
+
+Caching configuration improves startup performance.
+
+---
+
+# Route Caching
+
+Frameworks may cache routing information.
+
+Benefits:
+
+```text
+Faster Bootstrapping
+
+Reduced Parsing
+
+Improved Throughput
+```
+
+Useful for larger applications.
+
+---
+
+# View Caching
+
+Rendered templates may be cached.
+
+Flow:
+
+```text
+Render Once
+      │
+      ▼
+Store Output
+      │
+      ▼
+Reuse Output
+```
+
+This reduces rendering overhead.
+
+---
+
+# Cache Tags
+
+Tags group related cache entries.
+
+Example:
+
+```text
+Users
+
+Products
+
+Orders
+```
+
+Benefits:
+
+```text
+Bulk Invalidation
+
+Organized Cache Management
+```
+
+A single action can invalidate an entire group.
+
+---
+
+# Cache And Database
+
+Cache is not a database replacement.
+
+Database:
+
+```text
+Source Of Truth
+```
+
+Cache:
+
+```text
+Performance Layer
+```
+
+The database always remains authoritative.
+
+---
+
+# Cache And Consistency
+
+Caching introduces a trade-off.
+
+Benefits:
+
+```text
+Performance
+```
+
+Potential challenge:
+
+```text
+Stale Data
+```
+
+Applications must balance speed and accuracy.
+
+---
+
+# Cache And Scalability
+
+Caching significantly improves scalability.
+
+Without cache:
+
+```text
+10,000 Requests
+       │
+       ▼
+10,000 Database Queries
+```
+
+With cache:
+
+```text
+10,000 Requests
+       │
+       ▼
+100 Database Queries
+```
+
+Database load decreases dramatically.
+
+---
+
+# Cache And Services
+
+Services often encapsulate caching logic.
+
+Flow:
+
+```text
+Controller
+     │
+     ▼
+Service
+     │
+     ▼
+Cache
+     │
+     ▼
+Database
+```
+
+This keeps controllers clean.
+
+---
+
+# Cache And Testing
+
+Applications should test:
+
+```text
+Cache Population
+
+Cache Expiration
+
+Cache Invalidation
+
+Cache Misses
+```
+
+Reliable caching requires verification.
+
+---
+
+# Cache Performance Considerations
+
+Not everything should be cached.
+
+Poor cache candidates:
+
+```text
+Rapidly Changing Data
+
+One-Time Requests
+
+Highly Personalized Data
+```
+
+Caching should provide measurable value.
+
+---
+
+# Best Practices
+
+## Cache Expensive Operations
+
+Focus on slow or frequently executed tasks.
+
+---
+
+## Use Meaningful Keys
+
+Keys should be predictable and easy to manage.
+
+---
+
+## Set Appropriate TTLs
+
+Balance freshness and performance.
+
+---
+
+## Invalidate Cache Properly
+
+Prevent stale data from persisting.
+
+---
+
+## Monitor Cache Performance
+
+Track hit rates and storage usage.
+
+---
+
+# Common Mistakes
+
+### Caching Everything
+
+Not all data benefits from caching.
+
+---
+
+### Ignoring Cache Expiration
+
+Stale data can create confusing user experiences.
+
+---
+
+### Poor Key Naming
+
+Difficult-to-manage keys increase maintenance complexity.
+
+---
+
+### Forgetting Invalidation
+
+Outdated cache often causes subtle bugs.
+
+---
+
+### Treating Cache As Permanent Storage
+
+Cache should always be considered temporary.
+
+---
+
+# Typical Cache Flow
+
+```text
+Request
+   │
+   ▼
+Cache Lookup
+   │
+   ├── Hit
+   │      │
+   │      ▼
+   │   Return Cached Data
+   │
+   └── Miss
+          │
+          ▼
+      Database Query
+          │
+          ▼
+      Store Cache
+          │
+          ▼
+      Return Data
+```
+
+Caching improves performance by reducing unnecessary work.
+
+---
+
+# Visual Summary
+
+```text
+Cache
+  │
+  ├── Store
+  ├── Retrieve
+  ├── Expire
+  ├── Invalidate
+  └── Refresh
+  │
+  ▼
+Faster Applications
+```
+
+Cache acts as a high-speed layer between application logic and expensive operations.
+
+---
+
+# Key Takeaways
+
+✔ Cache stores frequently accessed data temporarily
+
+✔ Cache reduces expensive database and API operations
+
+✔ Cache hits improve response times
+
+✔ Cache misses generate and store new values
+
+✔ TTL controls cache expiration
+
+✔ Invalidation prevents stale data
+
+✔ Redis is a common production cache backend
+
+✔ Cache improves scalability and performance
+
+Caching is a fundamental part of modern Bejibun applications because it reduces latency, improves scalability, and allows systems to serve more users with fewer resources.
+
+---
+
+# What's Next?
+
+Now that you understand caching, continue with:
+
+- Queues
+- Events
+- Scheduling
+- Rate Limiting
+- Performance Optimization
+
+These guides explain how applications process background work, communicate internally, automate tasks, and scale efficiently under heavy load.

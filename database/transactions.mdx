@@ -1,0 +1,918 @@
+---
+title: Transactions
+description: Learn how Bejibun Transactions ensure database operations execute safely, consistently, and atomically when working with multiple related changes.
+---
+
+# Transactions
+
+Applications frequently perform multiple database operations as part of a single business process.
+
+Consider creating an order:
+
+```text
+Create Order
+      │
+      ▼
+Create Payment
+      │
+      ▼
+Reduce Inventory
+      │
+      ▼
+Create Invoice
+```
+
+What happens if one of these steps fails?
+
+Without transactions:
+
+```text
+Order Created
+
+Inventory Updated
+
+Invoice Failed
+```
+
+The database enters an inconsistent state.
+
+Transactions solve this problem by treating multiple operations as a single unit of work.
+
+---
+
+# What Is A Transaction?
+
+A transaction is a group of database operations that succeed or fail together.
+
+Example:
+
+```text
+Operation A
+
+Operation B
+
+Operation C
+```
+
+Results:
+
+```text
+All Succeed
+```
+
+or
+
+```text
+All Fail
+```
+
+There is no partial completion.
+
+---
+
+# Why Transactions Exist
+
+Without transactions:
+
+```text
+Step 1 Success
+
+Step 2 Success
+
+Step 3 Failure
+```
+
+Database state:
+
+```text
+Partially Updated
+```
+
+Problems:
+
+```text
+Data Corruption
+
+Inconsistent Records
+
+Broken Relationships
+
+Financial Errors
+```
+
+Transactions prevent these issues.
+
+---
+
+# Transaction Philosophy
+
+Business operations should be treated as complete units.
+
+Example:
+
+```text
+Transfer Money
+```
+
+Should never result in:
+
+```text
+Money Removed
+
+Money Not Added
+```
+
+Either the entire process succeeds or none of it does.
+
+---
+
+# Transaction Lifecycle
+
+A transaction follows a predictable lifecycle.
+
+```text
+Begin Transaction
+        │
+        ▼
+Execute Operations
+        │
+        ▼
+Commit
+```
+
+Or:
+
+```text
+Begin Transaction
+        │
+        ▼
+Execute Operations
+        │
+        ▼
+Error
+        │
+        ▼
+Rollback
+```
+
+The database remains consistent.
+
+---
+
+# Atomic Operations
+
+Transactions provide atomicity.
+
+Atomic means:
+
+```text
+Indivisible
+```
+
+The database treats all operations as a single action.
+
+Example:
+
+```text
+5 Updates
+```
+
+Result:
+
+```text
+All Applied
+```
+
+or:
+
+```text
+None Applied
+```
+
+---
+
+# Transaction Example
+
+Creating an order:
+
+```text
+Create Order
+
+Create Items
+
+Reduce Stock
+
+Create Payment
+```
+
+If stock reduction fails:
+
+```text
+Rollback Everything
+```
+
+No partial order remains.
+
+---
+
+# Transaction Flow
+
+Successful transaction:
+
+```text
+Start
+  │
+  ▼
+Operation 1
+  │
+  ▼
+Operation 2
+  │
+  ▼
+Operation 3
+  │
+  ▼
+Commit
+```
+
+All changes become permanent.
+
+---
+
+# Rollback Flow
+
+Failed transaction:
+
+```text
+Start
+  │
+  ▼
+Operation 1
+  │
+  ▼
+Operation 2
+  │
+  ▼
+Error
+  │
+  ▼
+Rollback
+```
+
+The database returns to its previous state.
+
+---
+
+# Starting A Transaction
+
+Transactions begin before database modifications occur.
+
+Example:
+
+```ts
+await db.transaction(
+  async () => {
+    //
+  }
+);
+```
+
+Everything inside the transaction becomes part of the same unit of work.
+
+---
+
+# Committing A Transaction
+
+A commit finalizes changes.
+
+Flow:
+
+```text
+Transaction
+      │
+      ▼
+Commit
+      │
+      ▼
+Database Updated
+```
+
+Once committed, changes become permanent.
+
+---
+
+# Rolling Back A Transaction
+
+Rollback cancels changes.
+
+Flow:
+
+```text
+Transaction
+      │
+      ▼
+Rollback
+      │
+      ▼
+Database Restored
+```
+
+The database behaves as if the transaction never happened.
+
+---
+
+# Error Handling
+
+Transactions commonly integrate with error handling.
+
+Example:
+
+```text
+Error Occurs
+      │
+      ▼
+Rollback
+```
+
+This prevents inconsistent data.
+
+---
+
+# Real-World Example
+
+Bank transfer:
+
+```text
+Account A
+      │
+      ▼
+Withdraw Money
+      │
+      ▼
+Deposit Into Account B
+```
+
+Without a transaction:
+
+```text
+Withdrawal Success
+
+Deposit Failure
+```
+
+Funds disappear.
+
+Transactions eliminate this risk.
+
+---
+
+# E-Commerce Example
+
+Order creation:
+
+```text
+Order
+
+Payment
+
+Inventory
+
+Invoice
+```
+
+All operations belong to the same transaction.
+
+---
+
+# Inventory Management
+
+Example:
+
+```text
+Product Quantity
+        │
+        ▼
+Decrease Stock
+```
+
+If another operation fails:
+
+```text
+Restore Inventory
+```
+
+The rollback protects inventory accuracy.
+
+---
+
+# User Registration Example
+
+Workflow:
+
+```text
+Create User
+
+Create Profile
+
+Create Settings
+
+Send Welcome Event
+```
+
+If user creation fails:
+
+```text
+No Profile Created
+
+No Settings Created
+```
+
+The transaction ensures consistency.
+
+---
+
+# ACID Principles
+
+Transactions are based on the ACID model.
+
+```text
+Atomicity
+
+Consistency
+
+Isolation
+
+Durability
+```
+
+These principles form the foundation of reliable database systems.
+
+---
+
+# Atomicity
+
+Atomicity guarantees:
+
+```text
+All Or Nothing
+```
+
+Either every operation succeeds or every operation fails.
+
+---
+
+# Consistency
+
+Consistency ensures:
+
+```text
+Valid Data
+```
+
+Before:
+
+```text
+Valid
+```
+
+After:
+
+```text
+Valid
+```
+
+Database rules remain intact.
+
+---
+
+# Isolation
+
+Isolation prevents concurrent transactions from interfering with each other.
+
+Example:
+
+```text
+Transaction A
+
+Transaction B
+```
+
+Each operates independently.
+
+---
+
+# Durability
+
+Once committed:
+
+```text
+Data Persists
+```
+
+Even if:
+
+```text
+Server Restart
+
+Crash
+
+Failure
+```
+
+Committed changes remain intact.
+
+---
+
+# Nested Transactions
+
+Some applications execute transactions within transactions.
+
+Example:
+
+```text
+Parent Transaction
+        │
+        ▼
+Child Transaction
+```
+
+Frameworks often implement this using savepoints.
+
+---
+
+# Savepoints
+
+A savepoint creates a partial rollback location.
+
+Flow:
+
+```text
+Transaction
+     │
+     ▼
+Savepoint
+     │
+     ▼
+More Operations
+```
+
+Failures can return to the savepoint without discarding the entire transaction.
+
+---
+
+# Transaction Boundaries
+
+Good transaction boundaries are important.
+
+Keep transactions focused on:
+
+```text
+Related Operations
+```
+
+Avoid:
+
+```text
+Unrelated Work
+```
+
+inside the same transaction.
+
+---
+
+# Long Running Transactions
+
+Long transactions can cause:
+
+```text
+Lock Contention
+
+Performance Issues
+
+Reduced Scalability
+```
+
+Keep transactions as short as possible.
+
+---
+
+# Database Locks
+
+Transactions may temporarily lock records.
+
+Purpose:
+
+```text
+Prevent Conflicts
+
+Protect Consistency
+```
+
+Locks help ensure reliable updates.
+
+---
+
+# Concurrent Updates
+
+Example:
+
+```text
+User A Updates Record
+
+User B Updates Record
+```
+
+Transactions help coordinate concurrent changes safely.
+
+---
+
+# Transactions And Models
+
+Models frequently participate in transactions.
+
+Flow:
+
+```text
+Transaction
+      │
+      ▼
+Model Operations
+      │
+      ▼
+Database
+```
+
+All changes remain synchronized.
+
+---
+
+# Transactions And Query Builder
+
+Queries executed within a transaction become part of the same unit of work.
+
+Example:
+
+```text
+Transaction
+      │
+      ▼
+Query Builder
+      │
+      ▼
+Database
+```
+
+All queries share the transaction context.
+
+---
+
+# Transactions And Relationships
+
+Relationship operations often belong inside transactions.
+
+Example:
+
+```text
+Create User
+
+Create Posts
+
+Create Settings
+```
+
+If one step fails:
+
+```text
+Rollback Everything
+```
+
+Relationships remain consistent.
+
+---
+
+# Transactions And Events
+
+Applications often trigger events after successful commits.
+
+Flow:
+
+```text
+Transaction
+      │
+      ▼
+Commit
+      │
+      ▼
+Dispatch Event
+```
+
+This prevents events from acting on incomplete data.
+
+---
+
+# Transactions And Jobs
+
+Background jobs should generally be dispatched after a successful commit.
+
+Example:
+
+```text
+Create Order
+      │
+      ▼
+Commit
+      │
+      ▼
+Dispatch Job
+```
+
+Avoid dispatching jobs before transaction completion.
+
+---
+
+# Transactions And Testing
+
+Tests frequently use transactions.
+
+Benefits:
+
+```text
+Fast Cleanup
+
+Isolation
+
+Repeatability
+```
+
+A rollback restores the database after each test.
+
+---
+
+# Transaction Performance
+
+Transactions provide safety but should be used thoughtfully.
+
+Best practices:
+
+```text
+Short Transactions
+
+Focused Operations
+
+Minimal Lock Time
+```
+
+Efficient transactions improve scalability.
+
+---
+
+# Best Practices
+
+## Group Related Operations
+
+Only include operations that belong together.
+
+---
+
+## Keep Transactions Small
+
+Short transactions reduce lock contention.
+
+---
+
+## Handle Exceptions Properly
+
+Errors should trigger rollbacks.
+
+---
+
+## Commit As Late As Necessary
+
+Only commit after all operations succeed.
+
+---
+
+## Dispatch Events After Commit
+
+Ensure data has been finalized.
+
+---
+
+# Common Mistakes
+
+### Forgetting Transactions
+
+Multi-step operations can leave inconsistent data.
+
+---
+
+### Long Running Transactions
+
+Long transactions increase locking and contention.
+
+---
+
+### Swallowing Exceptions
+
+Hidden errors can prevent rollbacks.
+
+---
+
+### Mixing Unrelated Operations
+
+Transactions should represent a single business action.
+
+---
+
+### Dispatching Jobs Too Early
+
+Jobs may run before data is committed.
+
+---
+
+# Typical Transaction Flow
+
+```text
+Request
+   │
+   ▼
+Service
+   │
+   ▼
+Begin Transaction
+   │
+   ▼
+Database Operations
+   │
+   ▼
+Commit
+   │
+   ▼
+Response
+```
+
+Or:
+
+```text
+Error
+  │
+  ▼
+Rollback
+```
+
+Transactions provide a reliable mechanism for maintaining database consistency.
+
+---
+
+# Visual Summary
+
+```text
+Transaction
+      │
+      ├── Create
+      ├── Update
+      ├── Delete
+      ├── Commit
+      └── Rollback
+      │
+      ▼
+Database Consistency
+```
+
+Transactions ensure that complex database operations behave as a single, reliable unit of work.
+
+---
+
+# Key Takeaways
+
+✔ Transactions group multiple operations into a single unit of work
+
+✔ Transactions provide atomicity and consistency
+
+✔ Successful transactions are committed
+
+✔ Failed transactions are rolled back
+
+✔ Transactions protect against partial updates
+
+✔ ACID principles form the foundation of transactional databases
+
+✔ Transactions help coordinate concurrent operations safely
+
+✔ Proper transaction design improves reliability and data integrity
+
+Transactions are a critical feature of the Bejibun database layer because they guarantee that complex business operations either complete successfully or leave the database unchanged.
+
+---
+
+# What's Next?
+
+Now that you understand transactions, continue with:
+
+- Model Events
+- Factories
+- Pagination
+- Serialization
+- Database Testing
+
+These guides explain how models react to lifecycle changes, how data is generated automatically, and how application behavior remains reliable across different environments.
