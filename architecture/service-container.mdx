@@ -1,763 +1,457 @@
 ---
-title: Service Container
-description: Learn how Bejibun's Service Container manages object creation, dependency resolution, and application services.
+title: "Service Container"
+description: "Learn how the Bejibun Service Container manages dependencies and powers dependency injection throughout your application."
 ---
 
 # Service Container
 
-The Service Container is one of the most important components of the Bejibun framework.
+The Service Container is the foundation of dependency management in Bejibun.
 
-It acts as a centralized dependency management system responsible for:
+It is responsible for creating, resolving, and managing objects throughout your application.
 
-- Creating objects
-- Resolving dependencies
-- Managing service lifecycles
-- Binding abstractions to implementations
-- Powering dependency injection
+Rather than manually instantiating classes, you can allow the container to automatically provide the dependencies your application requires.
 
-Instead of manually constructing objects throughout your application, the container automatically resolves and provides them when needed.
+## Why Use a Service Container?
 
----
+As applications grow, classes often depend on other classes.
 
-# Why a Service Container?
+Without a container:
 
-Without a container, applications quickly become difficult to manage.
-
-Consider the following example:
-
-```ts
+```ts id="j83l2p"
 const logger = new Logger();
-
-const cache = new Cache();
-
-const service = new UserService(
-  logger,
-  cache
-);
+const repository = new UserRepository(logger);
+const service = new UserService(repository);
+const controller = new UserController(service);
 ```
 
-As the application grows, manually creating dependencies becomes repetitive and difficult to maintain.
+Managing dependencies manually quickly becomes difficult and error-prone.
 
-A Service Container solves this problem by managing object creation automatically.
+The Service Container solves this by automatically resolving dependencies.
 
-```ts
-const service =
-  container.make(
-    UserService
-  );
+```ts id="x2v0w7"
+const controller = container.make(UserController);
 ```
 
-The container creates everything required behind the scenes.
+The container creates all required dependencies automatically.
 
 ---
 
-# What Problems Does It Solve?
+## What Problems Does It Solve?
 
-The Service Container helps solve several common problems.
+The Service Container provides:
 
-### Dependency Management
+* Automatic dependency resolution
+* Dependency Injection support
+* Centralized service registration
+* Loose coupling between classes
+* Easier testing and mocking
+* Better application architecture
 
-Automatically creates required dependencies.
+Without a container, classes often become tightly coupled to their implementations.
 
----
-
-### Loose Coupling
-
-Classes depend on abstractions instead of concrete implementations.
-
----
-
-### Centralized Object Creation
-
-Object construction logic exists in a single place.
+With a container, classes depend on abstractions instead.
 
 ---
 
-### Testability
+## How It Works
 
-Dependencies can easily be replaced with mocks during testing.
+Consider the following controller:
 
----
-
-### Maintainability
-
-Changing implementations requires minimal code changes.
-
----
-
-# Container Overview
-
-The container sits at the center of the application.
-
-```text
-Controllers
-      │
-      ▼
-Service Container
-      ▲
-      │
-Services
-      │
-      ▼
-Repositories
-      │
-      ▼
-Infrastructure
-```
-
-Whenever the framework needs a class, it asks the container to resolve it.
-
----
-
-# How Resolution Works
-
-Suppose we have:
-
-```ts
-export class Logger {}
-```
-
-and:
-
-```ts
-export class UserService {
+```ts id="5j5w7n"
+export class UserController {
   constructor(
-    protected logger: Logger
+    private userService: UserService
   ) {}
 }
 ```
 
-When the container resolves:
+And the service:
 
-```ts
-container.make(
-  UserService
-);
+```ts id="z98bq2"
+export class UserService {
+  constructor(
+    private repository: UserRepository
+  ) {}
+}
 ```
 
-it performs:
+When the controller is resolved, the container automatically performs:
 
-```text
-Resolve UserService
-        │
-        ▼
-Inspect Constructor
-        │
-        ▼
-Find Logger Dependency
-        │
-        ▼
-Resolve Logger
-        │
-        ▼
-Create UserService
+```text id="8s9o6z"
+UserController
+       │
+       ▼
+ UserService
+       │
+       ▼
+UserRepository
 ```
 
-The dependency graph is built automatically.
+Each dependency is constructed and injected automatically.
 
 ---
 
-# Constructor Injection
+## Resolving Services
+
+Services can be resolved directly from the container.
+
+```ts id="m9yx8e"
+const service = container.make(UserService);
+```
+
+The container will:
+
+1. Inspect constructor dependencies
+2. Resolve required services
+3. Create instances
+4. Return the final object
+
+```text id="r8m2zv"
+Container
+    │
+    ▼
+Resolve Dependencies
+    │
+    ▼
+Create Instance
+    │
+    ▼
+Return Object
+```
+
+This process is called **resolution**.
+
+---
+
+## Constructor Injection
 
 The most common way to receive dependencies is through constructor injection.
 
-Example:
-
-```ts
+```ts id="s0v2fq"
 export class UserService {
   constructor(
-    protected logger: Logger
+    private logger: Logger
   ) {}
 }
 ```
 
-The container automatically provides the required dependency.
+When the service is resolved, the logger is automatically provided.
 
-Benefits:
-
-- Explicit dependencies
-- Easier testing
-- Better maintainability
-
-Constructor injection is generally preferred over manual resolution.
-
----
-
-# Automatic Resolution
-
-Many classes can be resolved automatically.
-
-Example:
-
-```ts
-const service =
-  container.make(
-    UserService
-  );
+```ts id="q0zj4r"
+const service = container.make(UserService);
 ```
 
-No manual configuration is required if all dependencies can be discovered and instantiated.
+Constructor injection makes dependencies explicit and easy to understand.
 
-This is often called **auto-wiring**.
+### Benefits
+
+* Clear dependencies
+* Better testing
+* Improved maintainability
+* Reduced coupling
 
 ---
 
-# Dependency Graph
+## Dependency Graph
 
-Consider:
+The container can resolve entire dependency trees.
 
-```ts
+```text id="zrqzdh"
 UserController
-     │
-     ▼
+       │
+       ▼
 UserService
-     │
-     ▼
+       │
+       ▼
 UserRepository
-     │
-     ▼
-Database
+       │
+       ▼
+DatabaseConnection
 ```
 
-When resolving the controller:
+When the controller is requested, every dependency beneath it is resolved automatically.
 
-```ts
-container.make(
-  UserController
-);
-```
-
-The container resolves the entire dependency graph automatically.
+This eliminates the need for manual object construction.
 
 ---
 
-# Controller Resolution
+## Registering Services
 
-Controllers are commonly resolved through the container.
+While many classes can be resolved automatically, some services must be registered explicitly.
 
-Example:
+This is typically done inside a Service Provider.
 
-```ts
-export default class UserController {
-  constructor(
-    protected users:
-      UserService
-  ) {}
-
-  async index() {
-    return this.users.all();
-  }
-}
-```
-
-Route:
-
-```ts
-Router.get(
-  "/users",
-  [UserController, "index"]
-);
-```
-
-Lifecycle:
-
-```text
-Route Matched
-      │
-      ▼
-Container Resolves Controller
-      │
-      ▼
-Dependencies Resolved
-      │
-      ▼
-Controller Executed
-```
-
-The framework handles this automatically.
-
----
-
-# Service Resolution
-
-Services are excellent candidates for container management.
-
-Example:
-
-```ts
-export class UserService {
-  //
-}
-```
-
-Usage:
-
-```ts
-const users =
-  container.make(
-    UserService
-  );
-```
-
-The container manages creation and dependency resolution.
-
----
-
-# Binding Services
-
-Sometimes automatic resolution is not enough.
-
-You may want to explicitly tell the container how a service should be created.
-
-Example:
-
-```ts
-container.bind(
-  Logger,
-  () => new Logger()
-);
-```
-
-Lifecycle:
-
-```text
-Resolve Logger
-      │
-      ▼
-Find Binding
-      │
-      ▼
-Execute Factory
-      │
-      ▼
-Return Instance
-```
-
-Bindings provide full control over object creation.
-
----
-
-# Factory Bindings
-
-Factory bindings allow custom construction logic.
-
-Example:
-
-```ts
-container.bind(
-  PaymentService,
-  () => {
-    return new PaymentService(
-      Config.get(
-        "payment.key"
-      )
+```ts id="0tzv3y"
+export class AppServiceProvider {
+  register() {
+    container.bind(
+      UserRepository,
+      DatabaseUserRepository
     );
   }
-);
+}
 ```
 
-This is useful when services require configuration values.
+This tells the container which implementation should be used when resolving a dependency.
 
 ---
 
-# Singleton Bindings
+## Bindings
 
-Sometimes only one instance should exist.
+A binding maps an abstraction to a concrete implementation.
 
-Example:
+```ts id="o7iy1n"
+container.bind(
+  MailService,
+  SmtpMailService
+);
+```
 
-```ts
+Now whenever `MailService` is requested, the container returns an instance of `SmtpMailService`.
+
+```text id="m4dt3k"
+MailService
+      │
+      ▼
+SmtpMailService
+```
+
+This allows implementations to be replaced without modifying application code.
+
+---
+
+## Singleton Services
+
+Some services should only be created once during the application's lifetime.
+
+Examples include:
+
+* Database connections
+* Cache managers
+* Event dispatchers
+* Configuration services
+
+A singleton binding ensures only one instance exists.
+
+```ts id="t8wyj0"
 container.singleton(
   Logger,
-  () => new Logger()
+  Logger
 );
 ```
 
-Behavior:
+The first resolution creates the instance.
 
-```text
-First Resolution
-      │
-      ▼
-Create Instance
+Subsequent resolutions reuse the same object.
 
-Future Resolutions
-      │
-      ▼
-Reuse Same Instance
+```text id="v9fj7m"
+Request #1
+     │
+     ▼
+ Logger Instance
+     ▲
+     │
+Request #2
 ```
-
-Singletons reduce unnecessary object creation.
 
 ---
 
-# Singleton Example
+## Instance Bindings
 
-```ts
-const a =
-  container.make(
-    Logger
-  );
+You may register an already-created object.
 
-const b =
-  container.make(
-    Logger
-  );
-```
+```ts id="5w1s6l"
+const logger = new Logger();
 
-Result:
-
-```ts
-a === b;
-```
-
-```text
-true
-```
-
-The same instance is reused.
-
----
-
-# Transient Services
-
-Not every service should be shared.
-
-Example:
-
-```ts
-container.bind(
-  UserService,
-  () => new UserService()
+container.instance(
+  Logger,
+  logger
 );
 ```
 
-Every resolution creates a new instance.
+The container will always return the registered instance.
 
-```text
-Resolution #1
-     │
-     ▼
-New Instance
-
-Resolution #2
-     │
-     ▼
-New Instance
-```
-
-This behavior is often called transient resolution.
+This is useful for configuration-driven services.
 
 ---
 
-# Interface Bindings
+## Interface-Based Design
 
-Applications should depend on abstractions whenever possible.
+Applications should depend on abstractions rather than implementations.
 
-Example:
-
-```ts
-interface Mailer {
-  send(): Promise<void>;
+```ts id="g0b6qg"
+export abstract class MailService {
+  abstract send(): Promise<void>;
 }
 ```
 
 Implementation:
 
-```ts
-class SmtpMailer
-  implements Mailer {}
-```
+```ts id="0yjxjp"
+export class SmtpMailService
+  extends MailService {
 
-Binding:
-
-```ts
-container.bind(
-  Mailer,
-  () => new SmtpMailer()
-);
-```
-
-Now the application depends on the abstraction rather than a specific implementation.
-
----
-
-# Swapping Implementations
-
-One of the biggest advantages of a container is the ability to replace implementations.
-
-Production:
-
-```ts
-container.bind(
-  Mailer,
-  () => new SmtpMailer()
-);
-```
-
-Testing:
-
-```ts
-container.bind(
-  Mailer,
-  () => new FakeMailer()
-);
-```
-
-The rest of the application remains unchanged.
-
----
-
-# Container in Testing
-
-Containers make testing significantly easier.
-
-Example:
-
-```ts
-container.bind(
-  PaymentGateway,
-  () => new FakeGateway()
-);
-```
-
-Now tests can run without external services.
-
-Benefits:
-
-```text
-Faster Tests
-
-More Reliable Tests
-
-Better Isolation
-```
-
----
-
-# Service Providers
-
-In larger applications, bindings are often grouped into service providers.
-
-Example:
-
-```text
-app/providers/
-```
-
-```ts
-export default class AppProvider {
-  register() {
+  async send() {
     //
   }
 }
 ```
 
-Responsibilities:
+Binding:
 
-- Register bindings
-- Configure services
-- Bootstrap integrations
-
-Service providers are covered in a dedicated guide.
-
----
-
-# Container Lifecycle
-
-Application startup:
-
-```text
-Application Starts
-        │
-        ▼
-Load Providers
-        │
-        ▼
-Register Bindings
-        │
-        ▼
-Ready
+```ts id="3nfh1v"
+container.bind(
+  MailService,
+  SmtpMailService
+);
 ```
 
-Request handling:
+Usage:
 
-```text
-Controller Needed
-       │
-       ▼
-Container Resolves Dependencies
-       │
-       ▼
-Controller Executed
+```ts id="km5ixh"
+export class UserService {
+  constructor(
+    private mail: MailService
+  ) {}
+}
 ```
 
-The container operates throughout the application's lifetime.
+This makes implementations easy to swap and mock.
 
 ---
 
-# Best Practices
+## Container and Controllers
 
-## Prefer Constructor Injection
+Controllers are automatically resolved through the container.
 
-Good:
-
-```ts
-constructor(
-  protected users:
-    UserService
-) {}
+```ts id="v9bq0w"
+router.get(
+  "/users",
+  [UserController, "index"]
+);
 ```
 
-Avoid:
+When the route executes:
 
-```ts
-const users =
-  container.make(
-    UserService
-  );
+```text id="n5o6eq"
+Route
+   │
+   ▼
+Container
+   │
+   ▼
+Controller
 ```
 
-inside application code whenever possible.
+Dependencies are injected automatically before the controller method runs.
 
 ---
 
-## Depend on Abstractions
+## Container and Middleware
 
-Prefer:
+Middleware may also receive dependencies from the container.
 
-```ts
-Mailer
+```ts id="g5r6s0"
+export class AuthMiddleware {
+  constructor(
+    private auth: AuthService
+  ) {}
+}
 ```
 
-Instead of:
+The framework resolves middleware instances the same way it resolves controllers.
 
-```ts
-SmtpMailer
+---
+
+## Testing with the Container
+
+One major advantage of a service container is improved testability.
+
+Production:
+
+```ts id="zv7xgn"
+container.bind(
+  MailService,
+  SmtpMailService
+);
 ```
 
-This improves flexibility.
+Testing:
 
----
-
-## Use Singletons Carefully
-
-Singletons are useful for:
-
-```text
-Loggers
-
-Cache Clients
-
-Database Clients
-
-Configuration Services
+```ts id="5lkg6z"
+container.bind(
+  MailService,
+  FakeMailService
+);
 ```
 
-Avoid turning every service into a singleton.
+No application code needs to change.
+
+This allows dependencies to be replaced with test doubles during automated testing.
 
 ---
 
-## Keep Services Focused
+## Best Practices
 
-Services should have a single responsibility.
+<CardGroup cols={2}>
+  <Card title="Prefer Constructor Injection">
+    Declare dependencies in constructors rather than creating them manually.
+  </Card>
 
-Good:
+  <Card title="Depend on Abstractions">
+    Use interfaces or abstract classes whenever possible.
+  </Card>
 
-```text
-UserService
+  <Card title="Use Singletons Carefully">
+    Reserve singleton bindings for truly shared services.
+  </Card>
 
-PaymentService
+  <Card title="Keep Providers Focused">
+    Register container bindings inside Service Providers.
+  </Card>
+</CardGroup>
 
-EmailService
+---
+
+## Common Mistakes
+
+### Creating Dependencies Manually
+
+```ts id="xhnfmu"
+export class UserService {
+  private logger = new Logger();
+}
 ```
 
-Avoid large, multipurpose services.
+This tightly couples the service to a specific implementation.
 
----
+### Preferred Approach
 
-# Common Mistakes
-
-### Service Locator Pattern
-
-Avoid resolving everything manually:
-
-```ts
-container.make(...)
-container.make(...)
-container.make(...)
+```ts id="93i27u"
+export class UserService {
+  constructor(
+    private logger: Logger
+  ) {}
+}
 ```
 
-Prefer dependency injection.
+The container remains responsible for dependency creation.
 
 ---
 
-### Overusing Singletons
+## Summary
 
-Not every object should be shared globally.
+The Service Container is responsible for creating and managing application dependencies.
 
----
+It provides:
 
-### Large Service Graphs
+* Automatic dependency resolution
+* Constructor injection
+* Service bindings
+* Singleton management
+* Interface-based architecture
+* Improved testability
 
-Deep dependency trees can become difficult to maintain.
+The container powers many core Bejibun features, including controllers, middleware, services, commands, and package integrations.
 
-Keep services focused and modular.
-
----
-
-### Business Logic in Providers
-
-Providers should register services, not contain application logic.
-
----
-
-# Visual Summary
-
-```text
-Application
-      │
-      ▼
-Service Container
-      │
-      ├── Controllers
-      ├── Services
-      ├── Repositories
-      ├── Loggers
-      ├── Cache
-      └── Infrastructure
-```
-
-The Service Container acts as the central dependency management system for the entire framework.
-
----
-
-# Key Takeaways
-
-✔ Manages object creation
-
-✔ Resolves dependencies automatically
-
-✔ Powers dependency injection
-
-✔ Supports bindings and singletons
-
-✔ Improves testability
-
-✔ Reduces coupling
-
-✔ Centralizes service registration
-
-The Service Container is a foundational building block that enables many of Bejibun's most powerful features.
-
----
-
-# What's Next?
-
-Now that you understand the Service Container, continue with:
-
-- Dependency Injection
-- Service Providers
-- Configuration System
-
-These guides explain how dependencies are injected automatically, how services are registered, and how configuration integrates with the container.
+In the next section, you'll learn how Dependency Injection builds upon the Service Container to automatically provide dependencies throughout your application.

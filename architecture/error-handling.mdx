@@ -1,269 +1,352 @@
 ---
-title: Error Handling
-description: Learn how Bejibun detects, reports, transforms, and responds to exceptions throughout the application lifecycle.
+title: "Error Handling"
+description: "Learn how Bejibun handles exceptions, application failures, and unexpected runtime errors."
 ---
 
 # Error Handling
 
-No application is immune to errors.
+Errors are an inevitable part of software development.
 
-Database connections can fail, external APIs may become unavailable, validation can reject user input, and unexpected bugs can occur at runtime.
+Network failures, invalid input, missing resources, database outages, and unexpected bugs can all cause application failures. Bejibun provides a centralized error handling system that allows applications to gracefully handle these situations and return meaningful responses.
 
-Bejibun provides a centralized error handling system that helps applications:
+A consistent error handling strategy improves application reliability, debugging, and user experience.
 
-- Detect failures
-- Report exceptions
-- Generate consistent responses
-- Log critical issues
-- Protect sensitive information
-- Improve debugging and observability
+## Why Error Handling Matters
 
-A robust error handling strategy is essential for building reliable applications.
+Without proper error handling, exceptions can cause applications to crash or expose sensitive information.
 
----
-
-# What Is an Error?
-
-An error is any condition that prevents an operation from completing successfully.
-
-Examples:
-
-```text
-Validation Failure
-
-Database Error
-
-Authentication Failure
-
-Authorization Failure
-
-External API Failure
-
-Application Bug
-
-Configuration Error
-```
-
-Some errors are expected.
-
-Others indicate serious application problems.
-
----
-
-# Error Handling Goals
-
-A good error handling system should:
-
-```text
-Capture Errors
-
-Prevent Application Crashes
-
-Provide Useful Responses
-
-Protect Sensitive Information
-
-Record Diagnostics
-
-Enable Recovery
-```
-
-Error handling is not just about failures—it is about managing failures gracefully.
-
----
-
-# High-Level Lifecycle
-
-When an error occurs:
-
-```text
-Application Error
-        │
-        ▼
-Exception Thrown
-        │
-        ▼
-Exception Handler
-        │
-        ▼
-Logger
-        │
-        ▼
-HTTP Response
-```
-
-This process ensures errors are handled consistently across the application.
-
----
-
-# Exceptions
-
-Most runtime failures are represented as exceptions.
-
-Example:
+Consider the following example:
 
 ```ts
-throw new Error(
-  "Something went wrong"
-);
-```
+const user = await User.find(id);
 
-When an exception is thrown:
-
-```text
-Execution Stops
-       │
-       ▼
-Exception Handler Runs
-```
-
-The framework takes control and generates an appropriate response.
-
----
-
-# Why Exceptions Exist
-
-Without exceptions:
-
-```ts
-if (!result) {
-  //
-}
-
-if (!user) {
-  //
-}
-
-if (!connection) {
-  //
-}
-```
-
-Error checking quickly becomes repetitive.
-
-Exceptions allow failures to propagate automatically until they are handled.
-
----
-
-# The Exception Handler
-
-The Exception Handler is responsible for processing uncaught exceptions.
-
-Responsibilities include:
-
-```text
-Logging Errors
-
-Formatting Responses
-
-Hiding Sensitive Details
-
-Reporting Failures
-
-Transforming Exceptions
-```
-
-Every unhandled exception eventually reaches the handler.
-
----
-
-# Error Flow
-
-Example:
-
-```ts
-await User.findOrFail(id);
+return user.name;
 ```
 
 If the user does not exist:
 
+```ts
+TypeError: Cannot read properties of null
+```
+
+This creates an unhelpful experience for both developers and users.
+
+Instead, errors should be handled intentionally.
+
+```ts
+if (!user) {
+  throw new NotFoundException(
+    "User not found"
+  );
+}
+```
+
+The framework can then generate an appropriate response.
+
+---
+
+## What Is an Exception?
+
+An exception is an object that represents an error condition.
+
+```ts
+throw new Error("Something went wrong");
+```
+
+When an exception is thrown, normal application execution stops and control is passed to the exception handler.
+
 ```text
-User Not Found
+Application
       │
       ▼
-Exception Thrown
+ Exception Thrown
       │
       ▼
 Exception Handler
       │
       ▼
-404 Response
+HTTP Response
 ```
 
-The application remains stable while returning a meaningful response.
+This allows errors to be handled consistently throughout the application.
 
 ---
 
-# Handling Errors Manually
+## The Exception Lifecycle
 
-Sometimes errors should be handled locally.
-
-Example:
-
-```ts
-try {
-  await payment.process();
-} catch (error) {
-  //
-}
-```
-
-Flow:
+When an exception occurs, Bejibun follows a predictable process.
 
 ```text
-Try Block
-    │
-    ▼
-Exception
-    │
-    ▼
-Catch Block
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Exception Thrown
+   │
+   ▼
+Exception Handler
+   │
+   ▼
+Response Generated
+   │
+   ▼
+Client
 ```
 
-This allows specific recovery behavior.
+The framework intercepts uncaught exceptions and converts them into HTTP responses.
 
 ---
 
-# Example Try/Catch
+## Throwing Exceptions
+
+Exceptions may be thrown whenever an operation cannot be completed successfully.
 
 ```ts
-try {
-  await service.execute();
-} catch (error) {
-  Logger.error(
-    error.message
-  );
-}
+throw new Error("Invalid operation");
 ```
 
-This prevents the exception from reaching the global handler.
-
----
-
-# Validation Errors
-
-Validation failures are expected application errors.
-
-Example:
+More specific exceptions are preferred.
 
 ```ts
-await request.validate(
-  CreateUserValidator
+throw new NotFoundException(
+  "User not found"
 );
 ```
 
-Invalid request:
+Specific exceptions communicate intent more clearly than generic errors.
 
-```json
-{
-  "email": ""
-}
+---
+
+## Common Exception Types
+
+Applications commonly encounter the following exception categories.
+
+### Not Found
+
+```ts
+throw new NotFoundException(
+  "Post not found"
+);
+```
+
+Used when a requested resource does not exist.
+
+---
+
+### Validation Errors
+
+```ts
+throw new ValidationException({
+  email: ["The email field is required."],
+});
+```
+
+Used when incoming data fails validation.
+
+---
+
+### Authentication Errors
+
+```ts
+throw new UnauthorizedException();
+```
+
+Used when a user is not authenticated.
+
+---
+
+### Authorization Errors
+
+```ts
+throw new ForbiddenException();
+```
+
+Used when a user lacks permission to perform an action.
+
+---
+
+### Server Errors
+
+```ts
+throw new Error(
+  "Unexpected database failure"
+);
+```
+
+Used for unexpected application failures.
+
+---
+
+## Automatic HTTP Responses
+
+The framework automatically converts exceptions into HTTP responses.
+
+Example:
+
+```ts
+throw new NotFoundException(
+  "User not found"
+);
 ```
 
 Response:
 
 ```json
 {
+  "message": "User not found"
+}
+```
+
+Status code:
+
+```http
+404 Not Found
+```
+
+This behavior keeps controllers clean and consistent.
+
+---
+
+## Handling Exceptions Manually
+
+Sometimes exceptions should be handled directly.
+
+```ts
+try {
+  await paymentService.charge();
+} catch (error) {
+  logger.error(error);
+
+  return res.json({
+    message: "Payment failed",
+  }, 500);
+}
+```
+
+Manual handling is useful when:
+
+- Additional logging is required
+- Alternative behavior is needed
+- Recovery is possible
+
+---
+
+## Try-Catch Blocks
+
+A `try-catch` block allows exceptions to be intercepted locally.
+
+```ts
+try {
+  await processOrder();
+} catch (error) {
+  logger.error(error);
+}
+```
+
+Execution flow:
+
+```text
+Try Block
+    │
+    ▼
+ Exception?
+    │
+ ┌──┴──┐
+ │ Yes │
+ └──┬──┘
+    ▼
+ Catch Block
+```
+
+Use local exception handling only when necessary.
+
+---
+
+## Global Exception Handling
+
+Most exceptions should be handled centrally.
+
+```text
+Application
+      │
+      ▼
+Exception Handler
+      │
+      ▼
+Response
+```
+
+Centralized handling provides:
+
+- Consistent responses
+- Unified logging
+- Reduced duplication
+- Easier maintenance
+
+---
+
+## Custom Exceptions
+
+Applications may define custom exception types.
+
+```ts
+export class InsufficientBalanceException
+  extends Error {
+
+  constructor() {
+    super("Insufficient balance");
+  }
+}
+```
+
+Usage:
+
+```ts
+throw new InsufficientBalanceException();
+```
+
+Custom exceptions make business rules easier to understand and manage.
+
+---
+
+## Domain-Specific Exceptions
+
+Business logic often benefits from dedicated exception classes.
+
+```ts
+export class OrderAlreadyPaidException
+  extends Error {}
+```
+
+```ts
+if (order.isPaid()) {
+  throw new OrderAlreadyPaidException();
+}
+```
+
+This communicates intent more clearly than generic errors.
+
+---
+
+## Validation Exceptions
+
+Validation failures are among the most common exceptions in web applications.
+
+```ts
+throw new ValidationException({
+  email: [
+    "The email field is required.",
+  ],
+});
+```
+
+Response:
+
+```json
+{
+  "message": "Validation failed",
   "errors": {
     "email": [
       "The email field is required."
@@ -272,326 +355,88 @@ Response:
 }
 ```
 
-Validation errors typically return:
-
-```http
-422 Unprocessable Entity
-```
+Structured validation errors improve API usability.
 
 ---
 
-# Authentication Errors
+## Reporting Exceptions
 
-Authentication failures occur when a user is not logged in.
+Not every exception should be displayed to users.
 
-Example:
-
-```text
-Protected Route
-       │
-       ▼
-No Authentication
-       │
-       ▼
-401 Unauthorized
-```
-
-Response:
-
-```json
-{
-  "message": "Unauthorized"
-}
-```
-
----
-
-# Authorization Errors
-
-Authorization failures occur when a user lacks permission.
-
-Example:
-
-```text
-Authenticated User
-        │
-        ▼
-Missing Permission
-        │
-        ▼
-403 Forbidden
-```
-
-Response:
-
-```json
-{
-  "message": "Forbidden"
-}
-```
-
----
-
-# Not Found Errors
-
-Missing resources typically generate a 404 response.
-
-Example:
-
-```http
-GET /users/999
-```
-
-Response:
-
-```json
-{
-  "message": "User not found"
-}
-```
-
-Status:
-
-```http
-404 Not Found
-```
-
----
-
-# Database Errors
-
-Database failures are often unexpected.
-
-Examples:
-
-```text
-Connection Failure
-
-Query Failure
-
-Timeout
-
-Constraint Violation
-```
-
-Flow:
-
-```text
-Database Error
-       │
-       ▼
-Exception
-       │
-       ▼
-Logger
-       │
-       ▼
-500 Response
-```
-
-These errors should generally be logged.
-
----
-
-# External Service Failures
-
-Applications frequently depend on external systems.
-
-Examples:
-
-```text
-Payment Providers
-
-Email Services
-
-Storage Providers
-
-Third-Party APIs
-```
-
-Flow:
-
-```text
-External Service Failure
-          │
-          ▼
-Exception
-          │
-          ▼
-Error Handler
-```
-
-Applications should fail gracefully whenever possible.
-
----
-
-# HTTP Status Codes
-
-Error responses should use meaningful status codes.
-
-Common examples:
-
-| Status | Meaning |
-|----------|----------|
-| 400 | Bad Request |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 409 | Conflict |
-| 422 | Validation Error |
-| 429 | Too Many Requests |
-| 500 | Internal Server Error |
-| 503 | Service Unavailable |
-
-Choosing the correct status code improves API usability.
-
----
-
-# Error Responses
-
-A consistent error structure improves developer experience.
-
-Example:
-
-```json
-{
-  "message": "User not found"
-}
-```
-
-Or:
-
-```json
-{
-  "error": {
-    "message": "User not found"
-  }
-}
-```
-
-Applications should strive for predictable response formats.
-
----
-
-# Structured Errors
-
-Larger applications often include additional metadata.
-
-Example:
-
-```json
-{
-  "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "User not found"
-  }
-}
-```
-
-Benefits:
-
-```text
-Better Client Integration
-
-Machine Readability
-
-Improved Debugging
-```
-
----
-
-# Error Logging
-
-Most unexpected exceptions should be logged.
-
-Example:
+Instead, exceptions should be reported through logging or monitoring systems.
 
 ```ts
-Logger.error(
-  "Database connection failed"
-);
+logger.error(error);
 ```
 
-Typical log information:
+Reporting helps developers:
 
-```text
-Timestamp
-
-Message
-
-Stack Trace
-
-Request ID
-
-Environment
-```
-
-Logging is essential for diagnosing failures.
+- Detect failures
+- Investigate incidents
+- Monitor production systems
 
 ---
 
-# Stack Traces
+## Logging Exceptions
 
-A stack trace shows where an error occurred.
+Exceptions should typically be logged before being reported or rethrown.
 
-Example:
+```ts
+try {
+  await service.execute();
+} catch (error) {
+  logger.error("Service failed", {
+    error,
+  });
 
-```text
-Controller
-   │
-   ▼
-Service
-   │
-   ▼
-Repository
-   │
-   ▼
-Exception
+  throw error;
+}
 ```
 
-Stack traces are extremely useful during debugging.
+This creates an audit trail for troubleshooting.
 
 ---
 
-# Development vs Production
+## Error Responses
 
-Error handling often differs between environments.
+Production applications should provide clear but safe error responses.
+
+Good:
+
+```json
+{
+  "message": "Resource not found"
+}
+```
+
+Bad:
+
+```json
+{
+  "message": "SQL Error",
+  "query": "...",
+  "stack": "..."
+}
+```
+
+Internal implementation details should never be exposed to clients.
 
 ---
 
-## Development
+## Development vs Production
 
-Example:
+Error handling behavior often differs by environment.
 
-```env
-APP_DEBUG=true
+### Development
+
+```json
+{
+  "message": "Database connection failed",
+  "stack": "..."
+}
 ```
 
-Responses may include:
-
-```text
-Stack Traces
-
-Exception Details
-
-Debug Information
-```
-
-This helps developers diagnose issues quickly.
-
----
-
-## Production
-
-Example:
-
-```env
-APP_DEBUG=false
-```
-
-Responses should contain only safe information.
-
-Example:
+### Production
 
 ```json
 {
@@ -599,381 +444,130 @@ Example:
 }
 ```
 
-Sensitive details should never be exposed publicly.
+Detailed debugging information is useful during development but should not be exposed in production.
 
 ---
 
-# Sensitive Information
+## HTTP Status Codes
 
-Never expose:
+Exceptions are commonly mapped to HTTP status codes.
 
-```text
-Database Credentials
+| Exception | Status Code |
+|------------|------------|
+| Validation Exception | 422 |
+| Unauthorized Exception | 401 |
+| Forbidden Exception | 403 |
+| Not Found Exception | 404 |
+| Generic Error | 500 |
 
-API Keys
-
-Access Tokens
-
-Internal Paths
-
-Private Configuration
-```
-
-The exception handler should sanitize responses before sending them to clients.
+This provides predictable API behavior.
 
 ---
 
-# Reporting Errors
+## Error Handling in APIs
 
-Some applications send exceptions to external monitoring platforms.
+API responses should remain consistent.
 
-Flow:
+Recommended format:
 
-```text
-Exception
-     │
-     ▼
-Exception Handler
-     │
-     ▼
-Monitoring Service
-```
-
-Benefits:
-
-```text
-Alerting
-
-Centralized Tracking
-
-Incident Investigation
-```
-
-This is common in production environments.
-
----
-
-# Custom Exceptions
-
-Applications often define domain-specific exceptions.
-
-Example:
-
-```ts
-export class UserNotFoundError
-  extends Error {}
-```
-
-Usage:
-
-```ts
-throw new UserNotFoundError();
-```
-
-Benefits:
-
-```text
-Clear Intent
-
-Better Error Handling
-
-Improved Readability
-```
-
-Custom exceptions improve application design.
-
----
-
-# Exception Mapping
-
-Custom exceptions can be mapped to specific responses.
-
-Example:
-
-```text
-UserNotFoundError
-         │
-         ▼
-404 Response
-```
-
-Or:
-
-```text
-PaymentFailedError
-         │
-         ▼
-402 Response
-```
-
-This creates predictable API behavior.
-
----
-
-# Error Handling in Middleware
-
-Middleware can also throw exceptions.
-
-Example:
-
-```ts
-if (!user) {
-  throw new UnauthorizedError();
+```json
+{
+  "message": "Resource not found"
 }
 ```
 
-Flow:
+Validation example:
 
-```text
-Middleware
-      │
-      ▼
-Exception
-      │
-      ▼
-Handler
-```
-
-The lifecycle remains consistent.
-
----
-
-# Error Handling in Services
-
-Services should throw meaningful exceptions.
-
-Good:
-
-```ts
-throw new UserNotFoundError();
-```
-
-Avoid:
-
-```ts
-throw new Error(
-  "Oops"
-);
-```
-
-Specific exceptions are easier to understand and handle.
-
----
-
-# Error Handling in Queues
-
-Background jobs may fail independently from HTTP requests.
-
-Example:
-
-```text
-Job Executes
-      │
-      ▼
-Exception
-      │
-      ▼
-Retry Logic
-      │
-      ▼
-Failure Handler
-```
-
-Queue failures should be tracked separately.
-
----
-
-# Error Recovery
-
-Not every failure requires terminating execution.
-
-Example:
-
-```ts
-try {
-  await cache.get();
-} catch {
-  return database.get();
+```json
+{
+  "message": "Validation failed",
+  "errors": {
+    "email": [
+      "The email field is required."
+    ]
+  }
 }
 ```
 
-Flow:
-
-```text
-Cache Failure
-      │
-      ▼
-Fallback Logic
-      │
-      ▼
-Continue Processing
-```
-
-Graceful degradation improves reliability.
+Consistency improves developer experience for API consumers.
 
 ---
 
-# Best Practices
+## Best Practices
 
-## Use Meaningful Exceptions
+<CardGroup cols={2}>
+  <Card title="Use Specific Exceptions">
+    Throw exceptions that clearly describe the failure condition.
+  </Card>
 
-Good:
+  <Card title="Handle Errors Centrally">
+    Prefer global exception handling over repetitive try-catch blocks.
+  </Card>
 
-```ts
-UserNotFoundError
-```
+  <Card title="Log Unexpected Failures">
+    Record exceptions for monitoring and troubleshooting.
+  </Card>
 
-Avoid:
-
-```ts
-Error
-```
-
-when a more specific exception exists.
-
----
-
-## Log Unexpected Failures
-
-Critical exceptions should always be logged.
+  <Card title="Protect Sensitive Information">
+    Never expose internal details in production error responses.
+  </Card>
+</CardGroup>
 
 ---
 
-## Hide Sensitive Details
-
-Never expose internal information in production.
-
----
-
-## Use Proper Status Codes
-
-Status codes should accurately describe the failure.
-
----
-
-## Create Consistent Responses
-
-Clients should always know what to expect.
-
----
-
-# Common Mistakes
-
-### Exposing Stack Traces
-
-Avoid showing stack traces in production responses.
-
----
+## Common Mistakes
 
 ### Swallowing Exceptions
 
-Avoid:
+```ts
+try {
+  await process();
+} catch {
+  //
+}
+```
+
+Ignoring exceptions makes debugging extremely difficult.
+
+---
+
+### Exposing Internal Errors
 
 ```ts
-catch {}
+return res.json({
+  error,
+});
 ```
 
-Errors should be handled intentionally.
+Raw exceptions may contain sensitive information.
 
 ---
 
-### Logging Sensitive Data
+### Using Generic Errors Everywhere
 
-Never log credentials or secrets.
-
----
-
-### Generic Error Messages
-
-Prefer meaningful messages whenever possible.
-
----
-
-### Ignoring Monitoring
-
-Untracked failures are difficult to investigate.
-
----
-
-# Typical Error Lifecycle
-
-```text
-Request
-   │
-   ▼
-Middleware
-   │
-   ▼
-Controller
-   │
-   ▼
-Service
-   │
-   ▼
-Exception
-   │
-   ▼
-Exception Handler
-   │
-   ├── Logger
-   │
-   ├── Monitoring
-   │
-   └── HTTP Response
+```ts
+throw new Error("Failed");
 ```
 
-This centralized workflow keeps error handling predictable and maintainable.
+Prefer domain-specific exceptions whenever possible.
 
----
-
-# Visual Summary
-
-```text
-Application Error
-        │
-        ▼
-Exception
-        │
-        ▼
-Exception Handler
-        │
-        ├── Logging
-        ├── Reporting
-        └── Response Generation
+```ts
+throw new UserNotFoundException();
 ```
 
-Error handling transforms unexpected failures into manageable, observable, and user-friendly responses.
-
 ---
 
-# Key Takeaways
+## Summary
 
-✔ Errors are inevitable in every application
+The Error Handling system provides a centralized way to manage application failures and unexpected conditions.
 
-✔ Exceptions provide a structured failure mechanism
+It enables you to:
 
-✔ The Exception Handler centralizes error management
+- Throw and handle exceptions
+- Generate consistent HTTP responses
+- Log and report failures
+- Protect sensitive information
+- Improve API reliability
+- Build resilient applications
 
-✔ Validation, authentication, and authorization errors should return appropriate responses
-
-✔ Unexpected failures should be logged
-
-✔ Sensitive information should never be exposed
-
-✔ Consistent error responses improve developer experience
-
-✔ Monitoring and reporting improve operational visibility
-
-A strong error handling strategy is one of the foundations of building reliable production applications.
-
----
-
-# What's Next?
-
-Now that you understand how Bejibun handles failures and exceptions, continue with:
-
-- Events
-- Queues
-- Scheduling
-
-These guides explain how applications communicate internally, process background work, and automate recurring tasks.
+A robust error handling strategy ensures that failures are handled gracefully and consistently across your entire application.

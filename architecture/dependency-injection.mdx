@@ -1,823 +1,456 @@
 ---
-title: Dependency Injection
-description: Learn how Dependency Injection works in Bejibun and how it helps build flexible, maintainable, and testable applications.
+title: "Dependency Injection"
+description: "Learn how Bejibun automatically provides class dependencies through its Service Container."
 ---
 
 # Dependency Injection
 
-Dependency Injection (DI) is a design pattern used throughout Bejibun to automatically provide the objects and services a class needs to operate.
+Dependency Injection (DI) is a design pattern that allows objects to receive their dependencies from an external source rather than creating them internally.
 
-Instead of creating dependencies manually, Bejibun's Service Container resolves and injects them automatically.
+In Bejibun, Dependency Injection is powered by the Service Container and is used throughout the framework to automatically resolve and provide dependencies when they are needed.
 
-Dependency Injection is one of the key features that enables:
+## Why Dependency Injection?
 
-- Loose coupling
-- Better testability
-- Cleaner code
-- Easier maintenance
-- Improved scalability
-
----
-
-# What Problem Does Dependency Injection Solve?
-
-Consider a service that requires a logger.
-
-Without Dependency Injection:
+Consider the following service:
 
 ```ts
 export class UserService {
-  protected logger =
-    new Logger();
+  private logger = new Logger();
 
-  async create() {
-    this.logger.info(
-      "Creating user"
-    );
+  async create(data: any) {
+    this.logger.info("Creating user");
+
+    // ...
   }
 }
 ```
 
-This approach has several problems:
+This approach tightly couples `UserService` to the `Logger` implementation.
 
-- Tight coupling
+Problems include:
+
 - Difficult testing
-- Hardcoded dependencies
+- Harder maintenance
 - Reduced flexibility
+- Strong coupling between classes
 
-The service decides how dependencies are created.
-
----
-
-# Dependency Injection Approach
-
-Instead of creating dependencies manually:
+Instead, dependencies should be injected.
 
 ```ts
 export class UserService {
   constructor(
-    protected logger:
-      Logger
+    private logger: Logger
   ) {}
 
-  async create() {
-    this.logger.info(
-      "Creating user"
-    );
+  async create(data: any) {
+    this.logger.info("Creating user");
+
+    // ...
   }
 }
 ```
 
-The dependency is provided externally.
-
-The service no longer cares how the logger is created.
+Now the service depends on a contract rather than creating its own dependencies.
 
 ---
 
-# The Core Principle
+## How Dependency Injection Works
 
-A class should declare what it needs.
-
-It should not be responsible for creating those dependencies.
-
-Good:
+When a class is resolved by the Service Container, Bejibun automatically analyzes its constructor and provides any required dependencies.
 
 ```ts
-constructor(
-  protected logger:
-    Logger
-) {}
-```
-
-Avoid:
-
-```ts
-constructor() {
-  this.logger =
-    new Logger();
-}
-```
-
-This simple principle significantly improves application architecture.
-
----
-
-# Dependency Injection Flow
-
-When a class is requested:
-
-```text
-Controller
-     │
-     ▼
-Service Container
-     │
-     ▼
-Resolve Dependencies
-     │
-     ▼
-Create Instance
-```
-
-The container automatically provides all required dependencies.
-
----
-
-# Constructor Injection
-
-Constructor Injection is the most common form of dependency injection in Bejibun.
-
-Example:
-
-```ts
-export class UserService {
+export class UserController {
   constructor(
-    protected logger:
-      Logger
+    private userService: UserService
   ) {}
 }
 ```
 
-When resolved:
-
-```ts
-container.make(
-  UserService
-);
-```
-
-The container:
+When the controller is resolved:
 
 ```text
-Find UserService
-       │
-       ▼
-Inspect Constructor
-       │
-       ▼
-Resolve Logger
-       │
-       ▼
-Create UserService
-```
-
-Everything happens automatically.
-
----
-
-# Multiple Dependencies
-
-A class may require multiple services.
-
-Example:
-
-```ts
-export class UserService {
-  constructor(
-    protected logger:
-      Logger,
-
-    protected cache:
-      Cache,
-
-    protected mailer:
-      Mailer
-  ) {}
-}
-```
-
-Resolution:
-
-```text
+Container
+    │
+    ▼
+UserController
+    │
+    ▼
 UserService
-     │
-     ├── Logger
-     ├── Cache
-     └── Mailer
 ```
 
-The container resolves each dependency before creating the service.
+The framework creates the required objects automatically.
+
+No manual instantiation is necessary.
 
 ---
 
-# Controller Injection
+## Constructor Injection
 
-Controllers frequently receive dependencies through injection.
+Constructor Injection is the most common form of dependency injection.
 
-Example:
+Dependencies are declared as constructor parameters.
 
 ```ts
-export default class UserController {
+export class AuthService {
   constructor(
-    protected users:
-      UserService
+    private users: UserRepository,
+    private logger: Logger
   ) {}
-
-  async index() {
-    return await this.users.all();
-  }
 }
 ```
 
-Route:
+When the service is resolved, both dependencies are injected automatically.
 
-```ts
-Router.get(
-  "/users",
-  [UserController, "index"]
-);
-```
+### Benefits
 
-Lifecycle:
+- Dependencies are explicit
+- Easier unit testing
+- Better maintainability
+- Improved code readability
 
-```text
-Route Matched
-      │
-      ▼
-Resolve Controller
-      │
-      ▼
-Resolve UserService
-      │
-      ▼
-Execute Action
-```
-
-No manual instantiation is required.
+Constructor Injection is the preferred approach throughout Bejibun.
 
 ---
 
-# Service Injection
+## Dependency Resolution Chain
 
-Services can depend on other services.
-
-Example:
+Dependencies can themselves have dependencies.
 
 ```ts
+export class UserController {
+  constructor(
+    private service: UserService
+  ) {}
+}
+
 export class UserService {
   constructor(
-    protected mailer:
-      MailerService
+    private repository: UserRepository
+  ) {}
+}
+
+export class UserRepository {
+  constructor(
+    private database: Database
   ) {}
 }
 ```
 
-Architecture:
+The container resolves the entire chain.
 
 ```text
 UserController
-      │
-      ▼
-UserService
-      │
-      ▼
-MailerService
+       │
+       ▼
+ UserService
+       │
+       ▼
+UserRepository
+       │
+       ▼
+   Database
 ```
 
-This creates a clean and modular design.
+All objects are created automatically.
 
 ---
 
-# Repository Injection
+## Injecting Dependencies into Controllers
 
-Repositories can also be injected.
+Controllers are automatically resolved through the Service Container.
 
-Example:
+```ts
+export class UserController {
+  constructor(
+    private userService: UserService
+  ) {}
+
+  async index(req, res) {
+    return res.json(
+      await this.userService.all()
+    );
+  }
+}
+```
+
+Route definition:
+
+```ts
+router.get("/users", [UserController, "index"]);
+```
+
+When the route executes, Bejibun resolves the controller and injects all required dependencies.
+
+---
+
+## Injecting Dependencies into Middleware
+
+Middleware can also receive dependencies.
+
+```ts
+export class AuthMiddleware {
+  constructor(
+    private auth: AuthService
+  ) {}
+
+  async handle(req, next) {
+    if (!await this.auth.check(req)) {
+      throw new UnauthorizedException();
+    }
+
+    return next();
+  }
+}
+```
+
+The framework resolves middleware using the same dependency injection system.
+
+---
+
+## Injecting Dependencies into Commands
+
+CLI commands can leverage dependency injection as well.
+
+```ts
+export class SyncUsersCommand {
+  constructor(
+    private userService: UserService
+  ) {}
+
+  async handle() {
+    await this.userService.sync();
+  }
+}
+```
+
+This keeps command logic clean and consistent with the rest of the application.
+
+---
+
+## Working with Interfaces and Abstractions
+
+Dependency Injection becomes more powerful when combined with abstractions.
+
+Instead of depending on a concrete implementation:
 
 ```ts
 export class UserService {
   constructor(
-    protected repository:
-      UserRepository
+    private mailer: SmtpMailer
   ) {}
 }
 ```
 
-Flow:
-
-```text
-Controller
-     │
-     ▼
-Service
-     │
-     ▼
-Repository
-     │
-     ▼
-Database
-```
-
-This separation becomes valuable in larger applications.
-
----
-
-# Configuration Injection
-
-Services often require configuration values.
-
-Example:
+Depend on an abstraction:
 
 ```ts
-export class StorageService {
-  constructor(
-    protected config:
-      Config
-  ) {}
-}
-```
-
-This allows services to remain environment agnostic.
-
----
-
-# Interface-Based Injection
-
-One of the biggest advantages of dependency injection is programming against abstractions.
-
-Example:
-
-```ts
-interface Mailer {
-  send(): Promise<void>;
+export abstract class MailService {
+  abstract send(): Promise<void>;
 }
 ```
 
 Implementation:
 
 ```ts
-class SmtpMailer
-  implements Mailer {}
-```
-
-Controller:
-
-```ts
-constructor(
-  protected mailer:
-    Mailer
-) {}
-```
-
-The controller depends on an abstraction rather than a concrete implementation.
-
----
-
-# Swapping Implementations
-
-Production:
-
-```ts
-Mailer
-  │
-  ▼
-SmtpMailer
-```
-
-Testing:
-
-```ts
-Mailer
-  │
-  ▼
-FakeMailer
-```
-
-The consuming code remains unchanged.
-
-This flexibility is one of the primary benefits of dependency injection.
-
----
-
-# Dependency Graph Example
-
-Consider:
-
-```ts
-UserController
-```
-
-depends on:
-
-```ts
-UserService
-```
-
-which depends on:
-
-```ts
-UserRepository
-```
-
-which depends on:
-
-```ts
-Database
-```
-
-Graph:
-
-```text
-UserController
-       │
-       ▼
-UserService
-       │
-       ▼
-UserRepository
-       │
-       ▼
-Database
-```
-
-The container resolves the entire graph automatically.
-
----
-
-# Injection and Testing
-
-Dependency Injection dramatically improves testing.
-
-Without DI:
-
-```ts
-new UserService();
-```
-
-The service controls its own dependencies.
-
-Testing becomes difficult.
-
----
-
-With DI:
-
-```ts
-new UserService(
-  fakeMailer
-);
-```
-
-Dependencies can easily be replaced.
-
-Example:
-
-```ts
-const service =
-  new UserService(
-    new FakeMailer()
-  );
-```
-
-Benefits:
-
-```text
-Fast Tests
-
-Reliable Tests
-
-No External Services
-
-Easy Mocking
-```
-
----
-
-# Mocking Dependencies
-
-Example:
-
-```ts
-class FakeMailer {
+export class SmtpMailService extends MailService {
   async send() {
-    return true;
+    //
   }
 }
 ```
 
-Inject:
+Binding:
 
 ```ts
-new UserService(
-  new FakeMailer()
+container.bind(
+  MailService,
+  SmtpMailService
 );
 ```
 
-The service can now be tested without sending real emails.
-
----
-
-# Dependency Injection vs Service Locator
-
-A common mistake is confusing DI with the Service Locator pattern.
-
-Avoid:
+Usage:
 
 ```ts
-class UserService {
-  async create() {
-    const logger =
-      container.make(
-        Logger
-      );
-  }
-}
-```
-
-This hides dependencies.
-
-Prefer:
-
-```ts
-class UserService {
+export class UserService {
   constructor(
-    protected logger:
-      Logger
+    private mailer: MailService
   ) {}
 }
 ```
 
-Dependencies remain explicit.
+This makes implementations replaceable without modifying consuming classes.
 
 ---
 
-# Explicit Dependencies
+## Testing with Dependency Injection
 
-One of the greatest benefits of constructor injection is visibility.
+One of the greatest advantages of Dependency Injection is testability.
 
-Example:
+Production binding:
 
 ```ts
-constructor(
-  logger: Logger,
-  cache: Cache,
-  mailer: Mailer
-)
+container.bind(
+  MailService,
+  SmtpMailService
+);
 ```
 
-Anyone reading the class immediately knows what it requires.
-
-No hidden dependencies exist.
-
----
-
-# Optional Dependencies
-
-Some dependencies may be optional.
-
-Example:
+Test binding:
 
 ```ts
-constructor(
-  protected logger?:
-    Logger
-) {}
+container.bind(
+  MailService,
+  FakeMailService
+);
 ```
 
-Use optional dependencies carefully.
-
-Too many optional dependencies can indicate design issues.
-
----
-
-# Dependency Injection Lifecycle
-
-Application startup:
-
-```text
-Register Services
-        │
-        ▼
-Build Container
-        │
-        ▼
-Ready
-```
-
-Request execution:
-
-```text
-Controller Needed
-       │
-       ▼
-Resolve Dependencies
-       │
-       ▼
-Create Controller
-       │
-       ▼
-Execute Action
-```
-
-This process occurs automatically.
-
----
-
-# Best Practices
-
-## Prefer Constructor Injection
-
-Good:
+Your application code remains unchanged.
 
 ```ts
-constructor(
-  protected users:
-    UserService
-) {}
+export class UserService {
+  constructor(
+    private mailer: MailService
+  ) {}
+}
 ```
 
-Most dependencies should be injected through constructors.
+This makes unit tests easier to write and maintain.
 
 ---
 
-## Keep Dependencies Small
+## Optional Dependencies
 
-Good:
+Some dependencies may not always be available.
+
+In these cases, consider:
+
+- Providing default implementations
+- Registering fallback services
+- Resolving services conditionally
 
 ```ts
-Logger
-Cache
-Mailer
+export class NotificationService {
+  constructor(
+    private mailer: MailService
+  ) {}
+}
 ```
 
-Avoid services with excessive dependencies.
+Consumers should not need to know which implementation is being used.
 
 ---
 
-## Depend on Abstractions
+## Dependency Injection vs Manual Instantiation
 
-Prefer:
+### Manual Instantiation
 
 ```ts
-Mailer
+export class UserService {
+  private logger = new Logger();
+  private mailer = new SmtpMailService();
+}
 ```
 
-Avoid:
+Problems:
+
+- Tight coupling
+- Hard to test
+- Difficult to replace implementations
+
+### Dependency Injection
 
 ```ts
-SmtpMailer
+export class UserService {
+  constructor(
+    private logger: Logger,
+    private mailer: MailService
+  ) {}
+}
 ```
 
-This improves flexibility.
+Benefits:
+
+- Loose coupling
+- Better testing
+- Easier maintenance
+- More flexible architecture
 
 ---
 
-## One Responsibility Per Service
+## Common Use Cases
 
-Good:
+Dependency Injection is commonly used for:
 
-```text
-UserService
+- Services
+- Repositories
+- Database connections
+- Cache managers
+- Loggers
+- Event dispatchers
+- Storage drivers
+- External API clients
 
-PaymentService
-
-NotificationService
-```
-
-Avoid large services that handle unrelated concerns.
-
----
-
-## Avoid Hidden Dependencies
-
-Dependencies should always be visible.
+Any reusable application component can be injected through the container.
 
 ---
 
-# Common Mistakes
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Prefer Constructor Injection">
+    Declare dependencies in constructors rather than creating them manually.
+  </Card>
+
+  <Card title="Depend on Abstractions">
+    Use interfaces or abstract classes when possible.
+  </Card>
+
+  <Card title="Keep Dependencies Focused">
+    Classes should only receive dependencies they actually use.
+  </Card>
+
+  <Card title="Avoid Service Location">
+    Prefer dependency injection over manually resolving services from the container.
+  </Card>
+</CardGroup>
+
+---
+
+## Common Mistakes
 
 ### Creating Dependencies Manually
 
-Avoid:
+```ts
+export class UserService {
+  private logger = new Logger();
+}
+```
+
+### Resolving Services Everywhere
 
 ```ts
-new Logger();
+const logger = container.make(Logger);
 ```
 
-inside services.
+Repeatedly resolving services inside application code can hide dependencies and make classes harder to understand.
+
+Prefer explicit constructor injection instead.
 
 ---
 
-### Injecting Too Many Services
+## Summary
 
-Example:
+Dependency Injection allows Bejibun to automatically provide dependencies to your classes through the Service Container.
 
-```ts
-constructor(
-  a,
-  b,
-  c,
-  d,
-  e,
-  f,
-  g
-)
-```
+By using Dependency Injection, you gain:
 
-This often indicates a service is doing too much.
+- Loose coupling
+- Better testing
+- Cleaner architecture
+- Improved maintainability
+- Easier dependency management
 
----
+Dependency Injection is used throughout Bejibun in controllers, middleware, commands, services, and packages, making it one of the core architectural principles of the framework.
 
-### Circular Dependencies
-
-Avoid:
-
-```text
-UserService
-      │
-      ▼
-MailerService
-      │
-      ▼
-UserService
-```
-
-Circular dependencies create resolution problems.
-
----
-
-### Service Locator Abuse
-
-Do not use the container everywhere.
-
-Prefer constructor injection whenever possible.
-
----
-
-# Dependency Injection in Bejibun
-
-Dependency Injection is used throughout the framework.
-
-Examples include:
-
-```text
-Controllers
-
-Services
-
-Repositories
-
-Middleware
-
-Event Handlers
-
-WebSocket Handlers
-
-Custom Services
-```
-
-The Service Container automatically resolves these dependencies whenever needed.
-
----
-
-# Visual Summary
-
-```text
-Application
-      │
-      ▼
-Service Container
-      │
-      ▼
-Resolve Dependencies
-      │
-      ▼
-Create Instance
-      │
-      ▼
-Execute Logic
-```
-
-Dependency Injection allows Bejibun applications to remain clean, flexible, and maintainable as they grow.
-
----
-
-# Key Takeaways
-
-✔ Dependencies are provided externally
-
-✔ Constructor Injection is preferred
-
-✔ The Service Container performs resolution
-
-✔ Dependencies remain explicit
-
-✔ Applications become easier to test
-
-✔ Services remain loosely coupled
-
-✔ Implementations can be swapped easily
-
-Dependency Injection is one of the foundational patterns that enables scalable application architecture in Bejibun.
-
----
-
-# What's Next?
-
-Now that you understand Dependency Injection, continue with:
-
-- Service Providers
-- Configuration System
-- Logging
-
-These guides explain how services are registered, how configuration integrates with the framework, and how application events are logged.
+In the next section, you'll learn how Service Providers register and configure services within the application's Service Container.
+```**``**mdx

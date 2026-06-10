@@ -1,771 +1,410 @@
 ---
-title: Request Lifecycle
-description: Understand how an incoming request travels through a Bejibun application, from the moment it arrives until a response is returned.
+title: "Request Lifecycle"
+description: "Understand how an HTTP request flows through a Bejibun application from incoming request to outgoing response."
 ---
 
 # Request Lifecycle
 
-Every request that reaches your application follows a well-defined journey through the framework.
+Understanding the request lifecycle helps you know exactly what happens when a client sends a request to your application.
 
-Understanding the request lifecycle is essential because it helps you determine:
+Every request in Bejibun follows a predictable execution flow, allowing you to intercept, transform, validate, and respond to requests in a consistent manner.
 
-- Where requests enter the application
-- When middleware executes
-- How controllers are resolved
-- When validation occurs
-- How responses are generated
-- Where errors are handled
+## Overview
 
-Once you understand the lifecycle, debugging and designing applications becomes significantly easier.
-
----
-
-# Overview
-
-At a high level, a request flows through the framework like this:
+A typical request passes through several layers before a response is returned.
 
 ```text
-Client
-   │
-   ▼
-HTTP Server
-   │
-   ▼
-Application Bootstrap
-   │
-   ▼
-Global Middleware
-   │
-   ▼
-Route Matching
-   │
-   ▼
-Route Middleware
-   │
-   ▼
-Controller
-   │
-   ▼
-Service Layer
-   │
-   ▼
-Models
-   │
-   ▼
-Database
-   │
-   ▼
-Response
-   │
-   ▼
+Client Request
+       │
+       ▼
+   HTTP Server
+       │
+       ▼
+ Application Boot
+       │
+       ▼
+ Service Providers
+       │
+       ▼
+   Middleware
+       │
+       ▼
+     Router
+       │
+       ▼
+  Controller
+       │
+       ▼
+ Services / Models
+       │
+       ▼
+   Response
+       │
+       ▼
 Client
 ```
 
-Every incoming request follows this general process.
+Each layer has a specific responsibility within the application.
 
 ---
 
-# Step 1: Request Arrives
+## Step 1: Incoming Request
 
-A request begins when a client sends an HTTP request.
-
-Example:
+The lifecycle begins when a client sends an HTTP request.
 
 ```http
 GET /users HTTP/1.1
-Host: example.com
+Host: api.example.com
 ```
 
-The client could be:
+Requests may originate from:
 
-- A browser
-- A mobile application
-- Another API
-- A command-line tool
-- A webhook provider
+* Web browsers
+* Mobile applications
+* Server-to-server communication
+* Third-party integrations
+* API testing tools
 
-The request is received by the Bun HTTP server running your Bejibun application.
+The Bun runtime receives the request and forwards it to the Bejibun application.
 
 ---
 
-# Step 2: Application Bootstrap
+## Step 2: Application Bootstrapping
 
-Before requests can be processed, the application must be initialized.
+Before the request is processed, Bejibun initializes the application.
 
-During startup, Bejibun loads:
+This includes:
 
-```text
-Environment Variables
-
-Configuration Files
-
-Service Providers
-
-Route Definitions
-
-Framework Services
-```
-
-This process typically occurs once during application startup.
-
-```text
-Application Start
-       │
-       ▼
-Load Environment
-       │
-       ▼
-Load Configuration
-       │
-       ▼
-Register Services
-       │
-       ▼
-Load Routes
-       │
-       ▼
-Ready To Accept Requests
-```
-
-After bootstrapping completes, the application begins listening for requests.
-
----
-
-# Step 3: Create Request Context
-
-When a request arrives, Bejibun creates a request context.
-
-The context acts as a container for request-specific data.
-
-Example:
+* Loading configuration
+* Loading environment variables
+* Initializing the service container
+* Registering service providers
+* Preparing application services
 
 ```ts
-{
-  request,
-  response,
-  params,
-  query,
-  headers
-}
+import { Application } from "@bejibun/core";
+
+const app = new Application();
 ```
 
-This context travels through the lifecycle and is available to middleware and controllers.
+The bootstrap process ensures all required services are available before handling requests.
 
 ---
 
-# Step 4: Global Middleware
+## Step 3: Service Provider Registration
 
-Global middleware executes before route matching.
+Service Providers are responsible for registering services within the container.
 
-Example flow:
-
-```text
-Request
-   │
-   ▼
-Global Middleware
-   │
-   ▼
-Route Matching
-```
-
-Typical responsibilities:
-
-- Logging
-- Security headers
-- Request tracking
-- Request normalization
-- Performance monitoring
-
-Example middleware:
+During application startup, Bejibun loads and registers all configured providers.
 
 ```ts
-export default class LoggerMiddleware {
-  async handle(ctx, next) {
-    console.log(ctx.request.url);
-
-    await next();
+export class AppServiceProvider {
+  register() {
+    //
   }
-}
-```
 
-Global middleware runs for every request.
-
----
-
-# Step 5: Route Matching
-
-The router attempts to find a matching route.
-
-Example route:
-
-```ts
-Router.get(
-  "/users/:id",
-  [UserController, "show"]
-);
-```
-
-Incoming request:
-
-```http
-GET /users/1
-```
-
-Result:
-
-```text
-Route Matched
-```
-
-Route parameters are extracted:
-
-```ts
-{
-  id: "1"
-}
-```
-
-If no route is found:
-
-```text
-404 Not Found
-```
-
-is returned.
-
----
-
-# Step 6: Route Middleware
-
-After a route is matched, route-specific middleware executes.
-
-Example:
-
-```ts
-Router.get(
-  "/users",
-  [UserController, "index"]
-).middleware([
-  "auth"
-]);
-```
-
-Lifecycle:
-
-```text
-Request
-   │
-   ▼
-Route Matched
-   │
-   ▼
-Auth Middleware
-   │
-   ▼
-Controller
-```
-
-Common route middleware:
-
-- Authentication
-- Authorization
-- Rate limiting
-- Permission checks
-
-Middleware may stop the request before it reaches the controller.
-
-Example:
-
-```text
-Unauthenticated
-      │
-      ▼
-401 Response
-```
-
----
-
-# Step 7: Dependency Resolution
-
-Before executing the controller, Bejibun resolves dependencies using the Service Container.
-
-Controller:
-
-```ts
-export default class UserController {
-  constructor(
-    protected users:
-      UserService
-  ) {}
-}
-```
-
-Lifecycle:
-
-```text
-Controller Needed
-       │
-       ▼
-Container Resolves Dependencies
-       │
-       ▼
-Controller Created
-```
-
-This process enables automatic dependency injection.
-
----
-
-# Step 8: Controller Execution
-
-The matched controller method is executed.
-
-Example:
-
-```ts
-export default class UserController {
-  async show({ params }) {
+  boot() {
     //
   }
 }
 ```
 
-At this stage the request has successfully passed through routing and middleware.
+Providers may register:
 
-Controllers coordinate application logic.
+* Database connections
+* Cache drivers
+* Storage services
+* Event listeners
+* Custom application services
+
+This process usually happens once during application initialization.
 
 ---
 
-# Step 9: Validation
+## Step 4: Route Resolution
 
-Controllers frequently validate incoming data.
-
-Example:
+After bootstrapping, the router attempts to match the incoming request to a registered route.
 
 ```ts
-const data =
-  await request.validate(
-    CreateUserValidator
-  );
+router.get("/users", [UserController, "index"]);
 ```
 
-Lifecycle:
+For a request such as:
 
-```text
-Request Data
-      │
-      ▼
-Validator
-      │
-      ▼
-Valid Data
+```http
+GET /users
 ```
 
-If validation fails:
+The router locates the corresponding route definition and determines which controller action should handle the request.
 
-```text
-422 Unprocessable Entity
+If no route matches, Bejibun returns a `404 Not Found` response.
+
+---
+
+## Step 5: Middleware Execution
+
+Before reaching the controller, the request passes through middleware.
+
+Middleware can inspect, modify, or reject requests.
+
+```ts
+router.get("/users", [UserController, "index"])
+  .middleware(["auth"]);
 ```
 
-may be returned.
+Common middleware responsibilities include:
 
-Example response:
+* Authentication
+* Authorization
+* Rate limiting
+* Request logging
+* Request transformation
+* Security checks
 
-```json
-{
-  "errors": {
-    "email": [
-      "The email field is required."
-    ]
+### Example
+
+```ts
+export class AuthMiddleware {
+  async handle(req, next) {
+    if (!req.user()) {
+      throw new UnauthorizedException();
+    }
+
+    return next();
   }
 }
 ```
 
-Validation prevents invalid data from reaching business logic.
-
----
-
-# Step 10: Service Layer
-
-For complex applications, controllers often delegate work to services.
-
-Example:
-
-```ts
-await this.userService
-  .create(data);
-```
-
-Lifecycle:
+Middleware executes in the order it is registered.
 
 ```text
-Controller
-     │
-     ▼
-Service
-     │
-     ▼
-Model
-```
-
-Services typically contain:
-
-- Business rules
-- Domain logic
-- Workflow orchestration
-
-This keeps controllers lightweight.
-
----
-
-# Step 11: Database Interaction
-
-Models communicate with the database.
-
-Example:
-
-```ts
-await User.create(data);
-```
-
-Lifecycle:
-
-```text
-Controller
-     │
-     ▼
-Model
-     │
-     ▼
-Database
-```
-
-Typical operations:
-
-```text
-SELECT
-
-INSERT
-
-UPDATE
-
-DELETE
-```
-
-The model layer abstracts database access.
-
----
-
-# Step 12: Generate Response
-
-After processing completes, a response is generated.
-
-Example:
-
-```ts
-return {
-  success: true
-};
-```
-
-The framework converts the result into an HTTP response.
-
-Response:
-
-```json
-{
-  "success": true
-}
-```
-
-Most API applications return JSON responses.
-
----
-
-# Step 13: Response Middleware
-
-Some middleware may execute after the controller.
-
-Example responsibilities:
-
-- Logging response times
-- Modifying headers
-- Performance metrics
-- Response compression
-
-Lifecycle:
-
-```text
-Controller
-     │
-     ▼
-Response Middleware
-     │
-     ▼
-Client
-```
-
----
-
-# Step 14: Response Sent
-
-The final response is returned to the client.
-
-Example:
-
-```http
-HTTP/1.1 200 OK
-```
-
-```json
-{
-  "success": true
-}
-```
-
-The request lifecycle is complete.
-
----
-
-# Exception Handling
-
-Errors can occur at any stage.
-
-Example:
-
-```text
-Middleware
-
-Validation
-
-Controller
-
-Service
-
-Database
-```
-
-When an exception occurs:
-
-```text
-Exception
-    │
-    ▼
-Exception Handler
-    │
-    ▼
-Logger
-    │
-    ▼
-Response
-```
-
-The framework catches the error and generates an appropriate response.
-
----
-
-# Example Error Flow
-
-Controller:
-
-```ts
-throw new Error(
-  "User not found"
-);
-```
-
-Lifecycle:
-
-```text
-Controller
-    │
-    ▼
-Exception Handler
-    │
-    ▼
-404 / 500 Response
-```
-
-Response:
-
-```json
-{
-  "message": "User not found"
-}
-```
-
-The client receives a consistent error structure.
-
----
-
-# Complete Lifecycle Example
-
-Consider this route:
-
-```ts
-Router.post(
-  "/users",
-  [UserController, "store"]
-).middleware([
-  "auth"
-]);
-```
-
-Request:
-
-```http
-POST /users
-```
-
-Lifecycle:
-
-```text
-Client
-   │
-   ▼
-HTTP Server
-   │
-   ▼
-Global Middleware
-   │
-   ▼
-Route Matching
+Request
    │
    ▼
 Auth Middleware
    │
    ▼
+Rate Limit Middleware
+   │
+   ▼
 Controller
-   │
-   ▼
-Validation
-   │
-   ▼
-Service
-   │
-   ▼
-Model
-   │
-   ▼
-Database
-   │
-   ▼
-JSON Response
-   │
-   ▼
+```
+
+---
+
+## Step 6: Dependency Resolution
+
+Before invoking a controller, Bejibun resolves dependencies through the Service Container.
+
+```ts
+export class UserController {
+  constructor(
+    private userService: UserService
+  ) {}
+}
+```
+
+The container automatically creates and injects required dependencies.
+
+```text
+Controller
+    │
+    ▼
+Service Container
+    │
+    ▼
+Resolved Services
+```
+
+This allows controllers to remain focused on handling requests rather than creating dependencies.
+
+---
+
+## Step 7: Controller Execution
+
+Once all middleware and dependencies have been processed, the controller action is executed.
+
+```ts
+export class UserController {
+  async index(req, res) {
+    return res.json(
+      await this.userService.all()
+    );
+  }
+}
+```
+
+Controllers typically:
+
+* Receive request data
+* Call services
+* Interact with models
+* Return responses
+
+Controllers should avoid containing complex business logic.
+
+---
+
+## Step 8: Business Logic and Data Access
+
+Most application logic is handled by services and models.
+
+```ts
+const users = await this.userService.all();
+```
+
+Services may:
+
+* Validate business rules
+* Coordinate multiple models
+* Trigger events
+* Execute background jobs
+* Integrate external APIs
+
+Models interact directly with the database.
+
+```ts
+const users = await User.query().get();
+```
+
+This layer contains the core behavior of your application.
+
+---
+
+## Step 9: Response Generation
+
+After processing is complete, a response is generated.
+
+```ts
+return res.json(users);
+```
+
+Bejibun supports multiple response types:
+
+```ts
+return res.json(data);
+return res.text("Hello");
+return res.html(html);
+return res.redirect("/dashboard");
+```
+
+The framework converts the response into a valid HTTP response before sending it back to the client.
+
+---
+
+## Step 10: Response Middleware
+
+Certain middleware may execute additional logic after the controller has returned a response.
+
+Examples include:
+
+* Logging response data
+* Measuring execution time
+* Adding headers
+* Tracking analytics
+
+```text
+Controller
+    │
+    ▼
+Response Middleware
+    │
+    ▼
 Client
 ```
 
-This represents a typical application request.
+This allows cross-cutting concerns to remain outside application logic.
 
 ---
 
-# Request vs Application Lifecycle
+## Exception Handling
 
-It is important to distinguish between two lifecycles.
+Exceptions can occur at any stage of the request lifecycle.
 
----
-
-## Application Lifecycle
-
-Occurs once when the application starts.
-
-```text
-Load Environment
-
-Load Configuration
-
-Register Services
-
-Load Routes
-
-Start Server
+```ts
+throw new NotFoundException();
 ```
 
----
+Bejibun catches uncaught exceptions and converts them into HTTP responses.
 
-## Request Lifecycle
-
-Occurs for every incoming request.
-
-```text
-Receive Request
-
-Run Middleware
-
-Execute Controller
-
-Generate Response
+```json
+{
+  "message": "Resource not found"
+}
 ```
 
-Understanding the difference helps avoid performance issues.
+Depending on configuration, exception handling may include:
+
+* Structured JSON responses
+* Detailed development errors
+* Stack traces
+* Logging
+* Error reporting integrations
 
 ---
 
-# Lifecycle Visualization
+## Lifecycle Example
 
-```text
-Application Startup
-       │
-       ▼
-Ready
-       │
-       ▼
-───────────────────────
-Request 1
-───────────────────────
-Middleware
-Controller
-Response
+Consider the following request:
 
-───────────────────────
-Request 2
-───────────────────────
-Middleware
-Controller
-Response
-
-───────────────────────
-Request 3
-───────────────────────
-Middleware
-Controller
-Response
+```http
+GET /users
 ```
 
-The application boots once but processes many requests.
+Execution flow:
+
+```text
+1. Request arrives
+2. Application boots
+3. Providers are loaded
+4. Route is matched
+5. Middleware executes
+6. Dependencies are resolved
+7. Controller runs
+8. Models query database
+9. Response is generated
+10. Response sent to client
+```
+
+This predictable flow makes applications easier to debug and maintain.
 
 ---
 
-# Key Takeaways
+## Best Practices
 
-✔ The application boots before serving requests
+<CardGroup cols={2}>
+  <Card title="Keep Middleware Focused">
+    Middleware should perform one specific task and remain reusable.
+  </Card>
 
-✔ Middleware executes before controllers
+  <Card title="Use Dependency Injection">
+    Let the service container resolve dependencies automatically.
+  </Card>
 
-✔ Routes determine which controller runs
+  <Card title="Keep Controllers Thin">
+    Move business logic into dedicated services.
+  </Card>
 
-✔ Validation protects application logic
-
-✔ Services contain business rules
-
-✔ Models interact with databases
-
-✔ Exception handlers generate consistent error responses
-
-✔ Responses are automatically returned to clients
-
-Understanding the request lifecycle is fundamental to building, debugging, and scaling Bejibun applications.
+  <Card title="Handle Exceptions Centrally">
+    Use the framework's exception handling system instead of repeating error logic.
+  </Card>
+</CardGroup>
 
 ---
 
-# What's Next?
+## Summary
 
-Now that you understand how requests move through the framework, continue with:
+Every request in Bejibun follows a structured lifecycle:
 
-- Service Container
-- Dependency Injection
-- Configuration System
+1. Request arrives
+2. Application initializes
+3. Routes are resolved
+4. Middleware executes
+5. Dependencies are injected
+6. Controllers run
+7. Services and models perform work
+8. Responses are generated
+9. Exceptions are handled
+10. The response is returned to the client
 
-These guides explain how Bejibun resolves classes, manages dependencies, and provides services throughout the application.
+Understanding this lifecycle will help you build middleware, services, controllers, and packages that integrate naturally with the framework.
