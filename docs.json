@@ -16,70 +16,112 @@
           {
             "group": "Introduction",
             "pages": [
-              "introduction/what-is-bejibun",
-              "introduction/why-bejibun",
-              "introduction/framework-philosophy",
-              "introduction/feature-overview",
-              "introduction/release-cycle",
-              "introduction/roadmap"
+              "guides/introduction/what-is-bejibun",
+              "guides/introduction/why-bejibun",
+              "guides/introduction/framework-philosophy",
+              "guides/introduction/feature-overview",
+              "guides/introduction/release-cycle"
             ]
           },
           {
             "group": "Getting Started",
             "pages": [
-              "getting-started/installation",
-              "getting-started/creating-your-first-application",
-              "getting-started/project-structure",
-              "getting-started/configuration",
-              "getting-started/environment-variables",
-              "getting-started/deployment-overview"
+              "guides/getting-started/installation",
+              "guides/getting-started/creating-your-first-application",
+              "guides/getting-started/project-structure",
+              "guides/getting-started/configuration",
+              "guides/getting-started/environment-variables",
+              "guides/getting-started/deployment-overview"
             ]
           },
           {
-            "group": "Architecture",
+            "group": "Core Concepts",
             "pages": [
-              "architecture/mvc-pattern",
-              "architecture/request-lifecycle",
-              "architecture/service-container",
-              "architecture/dependency-injection",
-              "architecture/service-providers",
-              "architecture/configuration-system",
-              "architecture/logging",
-              "architecture/error-handling"
+              "guides/core-concepts/request-lifecycle",
+              "guides/core-concepts/configuration-system",
+              "guides/core-concepts/logging",
+              "guides/core-concepts/error-handling"
             ]
           },
           {
-            "group": "HTTP",
+            "group": "HTTP Layer",
             "pages": [
-              "http/routing",
-              "http/controllers",
-              "http/requests",
-              "http/responses",
-              "http/validation",
-              "http/api-resources"
+              "guides/http-layer/routing",
+              "guides/http-layer/route-parameters",
+              "guides/http-layer/route-groups",
+              "guides/http-layer/route-model-binding",
+              "guides/http-layer/controllers",
+              "guides/http-layer/middleware",
+              "guides/http-layer/request-object",
+              "guides/http-layer/response-object",
+              "guides/http-layer/cookies",
+              "guides/http-layer/file-uploads"
             ]
           },
           {
-            "group": "Database",
+            "group": "Validation",
             "pages": [
-              "database/introduction",
-              "database/models",
-              "database/query-builder",
-              "database/migrations",
-              "database/seeders",
-              "database/relationships",
-              "database/scopes",
-              "database/soft-deletes",
-              "database/transactions"
+              "guides/validation/introduction",
+              "guides/validation/creating-validators",
+              "guides/validation/available-rules",
+              "guides/validation/request-validation"
             ]
           },
           {
-            "group": "Cache & Storage",
+            "group": "Database & ORM",
             "pages": [
-              "cache-and-storage/cache",
-              "cache-and-storage/redis",
-              "cache-and-storage/storage",
-              "cache-and-storage/file-uploads"
+              "guides/database/models",
+              "guides/database/crud-operations",
+              "guides/database/soft-deletes",
+              "guides/database/migrations",
+              "guides/database/seeders"
+            ]
+          },
+          {
+            "group": "Caching",
+            "pages": [
+              "guides/caching/cache",
+              "guides/caching/redis"
+            ]
+          },
+          {
+            "group": "Storage",
+            "pages": [
+              "guides/storage/file-storage"
+            ]
+          },
+          {
+            "group": "Background Processing",
+            "pages": [
+              "guides/background/queues",
+              "guides/background/scheduler"
+            ]
+          },
+          {
+            "group": "Realtime",
+            "pages": [
+              "guides/realtime/websockets"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "guides/security/cors",
+              "guides/security/rate-limiting"
+            ]
+          },
+          {
+            "group": "API Development",
+            "pages": [
+              "guides/api-development/openapi",
+              "guides/api-development/x402-payments"
+            ]
+          },
+          {
+            "group": "CLI & Helpers",
+            "pages": [
+              "guides/cli/ace",
+              "guides/packages/utils"
             ]
           }
         ]
@@ -114,7 +156,7 @@
         },
         {
           "anchor": "Blog",
-          "href": "https://bejibun.com/blog",
+          "href": "/blog",
           "icon": "newspaper"
         }
       ]

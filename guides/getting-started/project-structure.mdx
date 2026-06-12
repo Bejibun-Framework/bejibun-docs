@@ -1,0 +1,739 @@
+---
+title: Project Structure
+description: Understand how a Bejibun application is organized and learn the purpose of each directory and file.
+---
+
+# Project Structure
+
+Bejibun applications follow a structured and convention-driven architecture.
+
+A predictable project structure makes applications easier to navigate, maintain, and scale as they grow.
+
+Whether you're working alone or collaborating with a large team, knowing where code belongs helps keep your application organized.
+
+---
+
+# Overview
+
+A newly created Bejibun application may look similar to:
+
+```text
+my-app/
+├── app/
+├── bootstrap/
+├── config/
+├── database/
+├── public/
+├── routes/
+├── storage/
+├── tests/
+├── .env
+├── package.json
+├── tsconfig.json
+└── bunfig.toml
+```
+
+Each directory has a specific responsibility.
+
+---
+
+# The app Directory
+
+The `app` directory contains your application's core business logic.
+
+```text
+app/
+├── controllers/
+├── exceptions/
+├── jobs/
+├── middlewares/
+├── models/
+├── validators/
+└── websockets/
+```
+
+Most of your day-to-day development will happen here.
+
+---
+
+## Controllers
+
+```text
+app/controllers/
+```
+
+Controllers handle incoming requests and return responses.
+
+Example:
+
+```ts
+export default class UserController {
+  async index() {
+    //
+  }
+}
+```
+
+Responsibilities:
+
+- Process requests
+- Call services and models
+- Return responses
+
+Controllers should remain focused on request handling rather than complex business logic.
+
+---
+
+## Models
+
+```text
+app/models/
+```
+
+Models represent application data and database records.
+
+Example:
+
+```ts
+export default class User {
+  //
+}
+```
+
+Responsibilities:
+
+- Database interaction
+- Relationships
+- Querying
+- Data representation
+
+Models act as the bridge between your application and the database.
+
+---
+
+## Validators
+
+```text
+app/validators/
+```
+
+Validators define rules for incoming data.
+
+Example:
+
+```ts
+export default class CreateUserValidator {
+  //
+}
+```
+
+Responsibilities:
+
+- Input validation
+- Data sanitization
+- Request verification
+
+Validation should occur before business logic executes.
+
+---
+
+## Middlewares
+
+```text
+app/middlewares/
+```
+
+Middleware intercepts requests before they reach controllers.
+
+Example:
+
+```ts
+export default class AuthMiddleware {
+  async handle(ctx, next) {
+    await next();
+  }
+}
+```
+
+Common use cases:
+
+- Authentication
+- Authorization
+- Logging
+- Rate limiting
+- Request transformation
+
+---
+
+## Jobs
+
+```text
+app/jobs/
+```
+
+Jobs represent tasks that execute in the background.
+
+Examples:
+
+```text
+SendEmailJob
+
+GenerateReportJob
+
+ProcessPaymentJob
+```
+
+Background jobs help keep HTTP requests fast and responsive.
+
+---
+
+## Exceptions
+
+```text
+app/exceptions/
+```
+
+This directory contains custom exceptions and exception handlers.
+
+Example:
+
+```ts
+export class UserNotFoundException
+  extends Error {}
+```
+
+Responsibilities:
+
+- Error transformation
+- Custom exception handling
+- Domain-specific exceptions
+
+---
+
+## WebSockets
+
+```text
+app/websockets/
+```
+
+Contains realtime communication handlers.
+
+Example:
+
+```text
+ChatSocket.ts
+NotificationSocket.ts
+```
+
+These handlers manage WebSocket connections and events.
+
+---
+
+# The bootstrap Directory
+
+```text
+bootstrap/
+```
+
+The bootstrap directory is responsible for starting the application.
+
+Typical responsibilities include:
+
+- Application initialization
+- Service registration
+- Framework bootstrapping
+- Runtime setup
+
+Most applications rarely need to modify bootstrap files.
+
+---
+
+# The config Directory
+
+```text
+config/
+```
+
+The configuration directory contains application settings.
+
+Example:
+
+```text
+config/
+├── cache/
+├── command/
+├── cors/
+├── database/
+├── disk/
+├── limiter/
+├── performance/
+├── redis/
+├── route/
+├── websocket/
+└── x402/
+```
+
+Configuration files control framework behavior without changing application code.
+
+---
+
+## Database Configuration
+
+```text
+config/database.ts
+```
+
+Defines database connections and ORM behavior.
+
+Example:
+
+```ts
+export default {
+  default: "sqlite"
+};
+```
+
+---
+
+## Cache Configuration
+
+```text
+config/cache/
+```
+
+Configures cache drivers and cache behavior.
+
+---
+
+## Redis Configuration
+
+```text
+config/redis/
+```
+
+Defines Redis connection settings.
+
+---
+
+## CORS Configuration
+
+```text
+config/cors/
+```
+
+Controls cross-origin resource sharing behavior.
+
+---
+
+## Rate Limiter Configuration
+
+```text
+config/limiter/
+```
+
+Defines request throttling and rate-limiting rules.
+
+---
+
+## WebSocket Configuration
+
+```text
+config/websocket/
+```
+
+Configures realtime communication settings.
+
+---
+
+# The database Directory
+
+```text
+database/
+```
+
+Contains database-related resources.
+
+```text
+database/
+├── migrations/
+└── seeders/
+```
+
+---
+
+## Migrations
+
+```text
+database/migrations/
+```
+
+Migrations define database schema changes.
+
+Example:
+
+```text
+create_users_table.ts
+```
+
+Responsibilities:
+
+- Create tables
+- Modify columns
+- Add indexes
+- Manage schema evolution
+
+---
+
+## Seeders
+
+```text
+database/seeders/
+```
+
+Seeders populate the database with initial data.
+
+Example:
+
+```text
+UserSeeder.ts
+```
+
+Common uses:
+
+- Development data
+- Test data
+- Initial application setup
+
+---
+
+# The routes Directory
+
+```text
+routes/
+```
+
+The routes directory defines how incoming requests are handled.
+
+Example:
+
+```text
+routes/
+├── api/
+├── web/
+└── websocket/
+```
+
+---
+
+## API Routes
+
+```text
+routes/api/
+```
+
+Contains API endpoints.
+
+Example:
+
+```ts
+Router.get("/users");
+```
+
+Typically used for:
+
+- REST APIs
+- Mobile backends
+- Third-party integrations
+
+---
+
+## Web Routes
+
+```text
+routes/web/
+```
+
+Contains traditional web application routes.
+
+Example:
+
+```ts
+Router.get("/");
+```
+
+---
+
+## WebSocket Routes
+
+```text
+routes/websocket/
+```
+
+Registers realtime communication endpoints.
+
+Example:
+
+```ts
+WebSocket.channel("chat");
+```
+
+---
+
+# The public Directory
+
+```text
+public/
+```
+
+Contains publicly accessible assets.
+
+Example:
+
+```text
+public/
+├── apis.html
+└── apis.json
+```
+
+Common contents include:
+
+- OpenAPI documentation
+- Static assets
+- Public files
+
+Everything inside this directory can be served directly to clients.
+
+---
+
+# The storage Directory
+
+```text
+storage/
+```
+
+Stores application-generated files.
+
+Example:
+
+```text
+storage/
+├── logs/
+├── cache/
+└── uploads/
+```
+
+Typical contents:
+
+- Log files
+- Cache files
+- Uploaded files
+- Generated exports
+
+Files in storage are generally not publicly accessible.
+
+---
+
+# The tests Directory
+
+```text
+tests/
+```
+
+Contains automated tests.
+
+Example:
+
+```text
+tests/
+├── feature/
+└── unit/
+```
+
+Responsibilities:
+
+- Feature testing
+- Unit testing
+- Integration testing
+
+A well-structured test suite improves application reliability.
+
+---
+
+# Environment Files
+
+## .env
+
+```text
+.env
+```
+
+Contains environment-specific configuration.
+
+Example:
+
+```env
+APP_NAME=Bejibun
+APP_ENV=development
+APP_DEBUG=true
+```
+
+Sensitive values should always be stored in environment files rather than committed to source code.
+
+---
+
+# package.json
+
+```text
+package.json
+```
+
+Defines project metadata, scripts, and dependencies.
+
+Example:
+
+```json
+{
+  "name": "my-app"
+}
+```
+
+Common responsibilities:
+
+- Dependency management
+- Script definitions
+- Package metadata
+
+---
+
+# tsconfig.json
+
+```text
+tsconfig.json
+```
+
+Configures TypeScript compilation behavior.
+
+Example:
+
+```json
+{
+  "compilerOptions": {}
+}
+```
+
+This file controls:
+
+- Type checking
+- Module resolution
+- Path aliases
+- Build settings
+
+---
+
+# bunfig.toml
+
+```text
+bunfig.toml
+```
+
+Configures Bun-specific behavior.
+
+Example:
+
+```toml
+[test]
+preload = ["./tests/setup.ts"]
+```
+
+Used for:
+
+- Runtime configuration
+- Testing configuration
+- Bun-specific settings
+
+---
+
+# How Everything Works Together
+
+A typical request flows through multiple directories:
+
+```text
+Request
+   │
+   ▼
+routes/
+   │
+   ▼
+app/controllers/
+   │
+   ▼
+app/validators/
+   │
+   ▼
+app/models/
+   │
+   ▼
+database/
+   │
+   ▼
+Response
+```
+
+Each component has a focused responsibility.
+
+---
+
+# Recommended Organization
+
+As your application grows, keep code organized by responsibility.
+
+Good:
+
+```text
+app/
+├── controllers/
+├── middlewares/
+├── models/
+├── validators/
+└── jobs/
+```
+
+Avoid placing unrelated code into the same directory.
+
+Clear organization improves maintainability.
+
+---
+
+# Visual Summary
+
+```text
+Application
+│
+├── app/            → Business Logic
+├── bootstrap/      → Application Startup
+├── config/         → Configuration
+├── database/       → Migrations & Seeders
+├── routes/         → Route Definitions
+├── public/         → Public Assets
+├── storage/        → Generated Files
+├── tests/          → Automated Tests
+│
+├── .env
+├── package.json
+├── tsconfig.json
+└── bunfig.toml
+```
+
+Understanding the project structure is the first step toward building maintainable Bejibun applications.
+
+---
+
+# What's Next?
+
+Now that you're familiar with the application structure, continue with:
+
+- Configuration
+- Environment Variables
+- MVC Pattern
+
+These guides explain how applications are configured and how the framework's architecture is organized.

@@ -1,0 +1,68 @@
+---
+title: "Rate Limiting"
+description: "Throttle requests globally and per action to protect your API."
+icon: "gauge-high"
+---
+
+Bejibun throttles traffic with a built-in rate limiter applied per client IP, plus a `RateLimiter` facade for limiting specific actions.
+
+## Global rate limiting
+
+The `RateLimiterMiddleware` is applied to all routes when enabled in `config/performance.ts`:
+
+```ts config/performance.ts
+const config = {
+    middlewares: {
+        limiter: true,
+        maintenance: true
+    }
+};
+
+export default config;
+```
+
+Tune the threshold in `config/limiter.ts`:
+
+```ts config/limiter.ts
+const config = {
+    limit: 30,
+    duration: 60 // seconds
+};
+
+export default config;
+```
+
+A client exceeding the limit receives a `RateLimiterException` response (too many requests). Limits are keyed per client IP and backed by the [cache](/guides/caching/cache) layer.
+
+## Limiting specific actions
+
+Use the `RateLimiter` facade to throttle a particular operation — for example, OTP sends or login attempts:
+
+```ts
+import RateLimiter from "@bejibun/core/facades/RateLimiter";
+
+// run the callback only if under the limit
+await RateLimiter.attempt("send-otp:user-1", 5, async () => {
+    await sendOtp();
+}, 60);
+
+// check without consuming an attempt
+const blocked = await RateLimiter.tooManyAttempts("send-otp:user-1", 5);
+
+// reset the counter
+await RateLimiter.clear("send-otp:user-1");
+```
+
+| Method | Description |
+| --- | --- |
+| `attempt(key, limit, callback, duration?)` | Run `callback` if under the limit |
+| `tooManyAttempts(key, limit, duration?)` | Whether the limit is exceeded |
+| `clear(key)` | Reset the counter for a key |
+
+<Note>
+When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.
+</Note>
+
+<Tip>
+Choose a key that identifies the actor and action together (for example `login:{email}`), so limits are scoped precisely.
+</Tip>

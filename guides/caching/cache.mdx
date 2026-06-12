@@ -1,0 +1,86 @@
+---
+title: "Cache"
+description: "Cache values with a local or Redis driver using @bejibun/cache."
+icon: "bolt"
+---
+
+`@bejibun/cache` provides a simple, driver-based cache with a Laravel-style API. It supports a **local** (file-based) driver and a **Redis** driver.
+
+## Installation
+
+```bash
+bun ace install @bejibun/cache
+```
+
+This installs the package and drops `config/cache.ts`.
+
+## Configuration
+
+```ts config/cache.ts
+import App from "@bejibun/app";
+import CacheDriverEnum from "@bejibun/cache/enums/CacheDriverEnum";
+
+const config = {
+    default: "redis",
+    connections: {
+        local: {
+            driver: CacheDriverEnum.Local,
+            path: App.Path.storagePath("cache")
+        },
+        redis: {
+            driver: CacheDriverEnum.Redis,
+            host: Bun.env.REDIS_HOST,
+            port: Bun.env.REDIS_PORT,
+            password: Bun.env.REDIS_PASSWORD,
+            database: Bun.env.REDIS_DATABASE
+        }
+    }
+};
+
+export default config;
+```
+
+| Driver | Backing store |
+| --- | --- |
+| `Local` | Files under `storage/cache` |
+| `Redis` | A Redis server (see [Redis](/guides/caching/redis)) |
+
+## Usage
+
+```ts
+import Cache from "@bejibun/cache";
+
+// fetch from cache or compute and store
+const user = await Cache.remember("user:1", () => UserModel.findOrFail(1), 300);
+
+await Cache.put("hits", 0);          // store with optional TTL
+await Cache.increment("hits");        // bump a counter
+const value = await Cache.get("hits");
+await Cache.forget("hits");           // delete
+```
+
+## API reference
+
+| Method | Description |
+| --- | --- |
+| `remember(key, callback, ttl?)` | Return cached value, or compute + store it |
+| `get(key)` | Retrieve a value |
+| `has(key)` | Whether the key exists |
+| `add(key, value, ttl?)` | Store only if absent |
+| `put(key, value, ttl?)` | Store / overwrite with TTL |
+| `forget(key)` | Delete a key |
+| `increment(key, ttl?)` / `decrement(key, ttl?)` | Adjust a counter by 1 |
+| `incrementBy(key, n, ttl?)` / `decrementBy(key, n, ttl?)` | Adjust a counter by `n` |
+| `connection(name)` | Use a non-default connection |
+
+```ts
+await Cache.connection("local").put("tmp", "value", 60);
+```
+
+<Note>
+TTL values are in **seconds**. The default connection is `redis`, which requires the Redis environment variables to be set.
+</Note>
+
+## Planned
+
+A **Memcached** driver, and **cache tags** / tag-based invalidation, are on the roadmap. Today, invalidate entries individually with `forget(key)`.
