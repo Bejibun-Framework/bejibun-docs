@@ -1,0 +1,77 @@
+---
+title: "Logging"
+description: "Write structured, color-coded logs with the Bejibun logger."
+icon: "scroll"
+---
+
+Bejibun ships with `@bejibun/logger` — a lightweight, color-coded logger used throughout the framework and available to your application code.
+
+## Basic logging
+
+Import the logger and call a level method:
+
+```ts
+import Logger from "@bejibun/logger";
+
+Logger.debug("This is a DEBUG message.");
+Logger.info("This is an INFO message.");
+Logger.warn("This is a WARN message.");
+Logger.error("This is an ERROR message.");
+```
+
+Each line is timestamped and labelled with its level:
+
+```text
+2025-10-16 16:00:00.000 [DEBUG]: This is a DEBUG message.
+2025-10-16 16:00:00.000 [INFO]: This is an INFO message.
+2025-10-16 16:00:00.000 [WARN]: This is a WARN message.
+2025-10-16 16:00:00.000 [ERROR]: This is an ERROR message.
+```
+
+## Log levels
+
+| Method | Use for |
+| --- | --- |
+| `Logger.debug(message)` | Verbose diagnostics during development |
+| `Logger.info(message)` | Normal, expected events |
+| `Logger.warn(message)` | Unexpected but recoverable situations |
+| `Logger.error(message)` | Failures and exceptions |
+
+## Adding context
+
+Use `setContext()` to replace the level label with a custom tag — useful for identifying the subsystem that produced a log:
+
+```ts
+Logger.setContext("Payment").info("Charge succeeded.");
+// 2025-10-16 16:00:00.000 [Payment]: Charge succeeded.
+```
+
+This is the same mechanism the framework uses internally (`[Router]`, `[WebSocket]`, `[APP]`, …).
+
+## Logging errors with a stack trace
+
+`trace()` logs an error together with its stack — the idiom for caught exceptions:
+
+```ts
+try {
+    await riskyOperation();
+} catch (error) {
+    Logger.setContext("Worker").error("Job failed").trace(error);
+}
+```
+
+## Formatting helpers
+
+| Method | Effect |
+| --- | --- |
+| `Logger.empty()` | Prints a blank line |
+| `Logger.separator()` | Prints a dashed line across the terminal width |
+
+```ts
+Logger.info("Starting migration");
+Logger.separator();
+```
+
+<Tip>
+`@bejibun/logger` is a standalone package — you can use it in scripts and other Bun projects, not just inside a Bejibun app.
+</Tip>

@@ -1,0 +1,128 @@
+---
+title: "Controllers"
+description: "Handle requests with controller classes built on BaseController."
+icon: "gears"
+---
+
+Controllers group related request-handling logic into classes. Every Bejibun controller extends **`BaseController`**, which provides request parsing, validation, and the response builder.
+
+## Creating a controller
+
+Generate one with the `ace` CLI:
+
+```bash
+bun ace make:controller HelloController
+```
+
+This creates `app/controllers/HelloController.ts`. A minimal controller method receives the request and returns a `Response`:
+
+```ts app/controllers/HelloController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class HelloController extends BaseController {
+    public async hello(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData({
+            message: "Hello, world!",
+            method: request.method
+        }).send();
+    }
+}
+```
+
+Register the method in a route:
+
+```ts
+Router.get("hello", "HelloController@hello");
+```
+
+## What `BaseController` gives you
+
+`BaseController` exposes three members:
+
+<CardGroup cols={3}>
+  <Card title="super.parse(request)" icon="inbox">
+    Unified parser for body, route params, query string, and uploaded files.
+  </Card>
+  <Card title="super.validate(...)" icon="circle-check">
+    Run a Vine validator against the parsed input.
+  </Card>
+  <Card title="super.response" icon="paper-plane">
+    The fluent response builder (`setData`, `setMessage`, `setStatus`, `send`).
+  </Card>
+</CardGroup>
+
+## A complete request flow
+
+The typical controller method parses input, validates it, performs work, and returns a response:
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+import TestValidator from "@/app/validators/TestValidator";
+
+export default class TestController extends BaseController {
+    public async add(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(TestValidator.add, body);
+
+        const test = await TestModel.create({
+            name: body.name as string
+        });
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+- **`parse`** merges the request body, route parameters, query string, and uploaded files into one object. See [The Request](/http-layer/request-object).
+- **`validate`** throws a `ValidatorException` on failure (returned as a structured error). See the validation guide.
+- **`response`** builds the standard JSON envelope. See [The Response](/http-layer/response-object).
+
+## Resource controllers
+
+Controllers created with `make:controller` include the five resource actions, ready to pair with [`Router.resource`](/http-layer/route-groups):
+
+```ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class TemplateController extends BaseController {
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData().send();
+    }
+    public async store(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData().send();
+    }
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData().send();
+    }
+    public async update(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData().send();
+    }
+    public async destroy(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData().send();
+    }
+}
+```
+
+## Documenting endpoints
+
+Annotate a controller method with the global `@ApiDoc` decorator to enrich the generated OpenAPI spec:
+
+```ts
+@ApiDoc({
+    description: "Create a test record",
+    request: {
+        params: [
+            { name: "name", in: "query", required: true, schema: { type: "string" } }
+        ]
+    }
+})
+public async add(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+    await super.validate(TestValidator.add, body);
+
+    return super.response.setData({ name: body.name }).send();
+}
+```
+
+The spec is written to `public/apis.json` and served at `/apis`.

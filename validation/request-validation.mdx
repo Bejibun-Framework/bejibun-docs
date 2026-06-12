@@ -1,0 +1,72 @@
+---
+title: "Request Validation"
+description: "Run validators against incoming requests inside your controllers."
+icon: "arrow-right-to-bracket"
+---
+
+Once you've defined a [validator](/validation/creating-validators), run it inside a controller with `super.validate()`.
+
+## Validating a request
+
+Parse the request, validate it, then proceed:
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+import TestValidator from "@/app/validators/TestValidator";
+
+export default class TestController extends BaseController {
+    public async add(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(TestValidator.add, body);
+
+        const test = await TestModel.create({
+            name: body.name as string
+        });
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+<Note>
+`validate()` returns the validated data and throws a `ValidatorException` on failure — there's no need to check a result flag. Execution stops and the [exception handler](/core-concepts/error-handling) formats the error response.
+</Note>
+
+## Validating route parameters
+
+Route parameters land in the same parsed object, so they validate like any other field. This pairs perfectly with the `exists` rule:
+
+```ts app/validators/TestValidator.ts
+public static get detail(): ValidatorType {
+    return super.validator.create({
+        id: super.validator.number().min(1).exists(TestModel, "id")
+    });
+}
+```
+
+```ts app/controllers/TestController.ts
+public async detail(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+    await super.validate(TestValidator.detail, body);
+
+    const test = await TestModel.findOrFail(body.id as number | string);
+
+    return super.response.setData(test).send();
+}
+```
+
+## Typical CRUD validators
+
+Each controller action references its matching schema:
+
+| Action | Validator | Typical rules |
+| --- | --- | --- |
+| `store` / `add` | `Validator.add` | required fields |
+| `show` / `detail` | `Validator.detail` | `id` + `exists` |
+| `update` / `edit` | `Validator.edit` | `id` + `exists`, fields |
+| `destroy` / `delete` | `Validator.delete` | `id` + `exists` |
+
+<Tip>
+Validate **before** touching the database. Combined with `exists`, you get a clean validation error instead of a deeper failure when a referenced record is missing.
+</Tip>

@@ -1,0 +1,80 @@
+---
+title: "Route Model Binding"
+description: "Resolve a model instance from a route parameter using findOrFail and the exists rule."
+icon: "link"
+---
+
+A common pattern is to resolve a model directly from a route parameter. Bejibun does **not** perform implicit (automatic) model binding the way some frameworks do — instead you resolve the model explicitly inside your controller. This keeps resolution predictable and type-safe.
+
+<Note>
+Automatic route–model binding is **not yet available**. The recommended pattern below uses the verified `findOrFail` and validator `exists` APIs.
+</Note>
+
+## Resolving a model with `findOrFail`
+
+Declare a route parameter, then load the record with `findOrFail`. If no record matches, a `ModelNotFoundException` is thrown and converted into a `404`-style JSON response by the [exception handler](/core-concepts/error-handling).
+
+```ts routes/api/test.ts
+Router.get("detail/:id", "TestController@detail");
+```
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+
+export default class TestController extends BaseController {
+    public async detail(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+
+        // resolves the model or throws ModelNotFoundException
+        const test = await TestModel.findOrFail(body.id as number | string);
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+## Validating existence first
+
+To validate the parameter before querying — and return a clean validation error instead of a not-found error — use the `exists` rule in a validator:
+
+```ts app/validators/TestValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
+import TestModel from "@/app/models/TestModel";
+
+export default class TestValidator extends BaseValidator {
+    public static get detail(): ValidatorType {
+        return super.validator.create({
+            id: super.validator.number().min(1).exists(TestModel, "id")
+        });
+    }
+}
+```
+
+```ts app/controllers/TestController.ts
+public async detail(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+    await super.validate(TestValidator.detail, body);
+
+    const test = await TestModel.findOrFail(body.id as number | string);
+
+    return super.response.setData(test).send();
+}
+```
+
+## Binding soft-deleted records
+
+To resolve records that have been soft-deleted (for example, a `restore` endpoint), include trashed rows:
+
+```ts
+// validator: allow trashed rows to pass the exists check
+id: super.validator.number().min(1).exists(TestModel, "id", true)
+```
+
+```ts
+// controller: load including trashed, then restore
+await TestModel.find(body.id as number | string).restore();
+```
+
+See [Models & ORM](/) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).

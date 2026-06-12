@@ -75,7 +75,7 @@ For basic applications, Redis is optional.
 Create a new Bejibun project using the framework installer.
 
 ```bash
-bun create bejibun my-app
+bunx @bejibun/cli my-app
 ```
 
 Replace `my-app` with your preferred project name.
@@ -254,7 +254,9 @@ bun dev
 Or:
 
 ```bash
-bun start
+🚀 Server running at http://127.0.0.1:3000
+
+Local: http://localhost:3000
 ```
 
 depending on your project configuration.
@@ -308,7 +310,7 @@ bun dev
 ## Run Migrations
 
 ```bash
-bun ace migrate
+bun ace
 ```
 
 ---
@@ -318,6 +320,34 @@ bun ace migrate
 ```bash
 bun ace migrate:rollback
 ```
+
+Generated file:
+
+```text
+app/controllers/HomeController.ts
+```
+
+Example:
+
+```ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class HomeController extends BaseController {
+  public async index(request: Bun.BunRequest): Promise<Response> {
+    return super.response.setData({
+      message: "Welcome to Bejibun"
+    }).send();
+  }
+}
+```
+
+Register the route:
+
+```ts
+Router.get("/", "HomeController@index");
+```
+
+Visit your application to see the response.
 
 ---
 
@@ -342,6 +372,20 @@ bun ace make:controller UserController
 ```bash
 bun ace make:model User
 ```
+
+Generated file:
+
+```text
+app/models/User.ts
+```
+
+Example:
+
+```ts
+export default class User extends BaseModel {}
+```
+
+Models provide a convenient way to interact with database records.
 
 ---
 
