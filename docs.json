@@ -38,8 +38,6 @@
             "group": "Core Concepts",
             "pages": [
               "core-concepts/request-lifecycle",
-              "core-concepts/service-container",
-              "core-concepts/dependency-injection",
               "core-concepts/configuration-system",
               "core-concepts/logging",
               "core-concepts/error-handling"
@@ -58,6 +56,72 @@
               "http-layer/response-object",
               "http-layer/cookies",
               "http-layer/file-uploads"
+            ]
+          },
+          {
+            "group": "Validation",
+            "pages": [
+              "validation/introduction",
+              "validation/creating-validators",
+              "validation/available-rules",
+              "validation/request-validation"
+            ]
+          },
+          {
+            "group": "Database & ORM",
+            "pages": [
+              "database/models",
+              "database/crud-operations",
+              "database/soft-deletes",
+              "database/migrations",
+              "database/seeders"
+            ]
+          },
+          {
+            "group": "Caching",
+            "pages": [
+              "caching/cache",
+              "caching/redis"
+            ]
+          },
+          {
+            "group": "Storage",
+            "pages": [
+              "storage/file-storage"
+            ]
+          },
+          {
+            "group": "Background Processing",
+            "pages": [
+              "background/queues",
+              "background/scheduler"
+            ]
+          },
+          {
+            "group": "Realtime",
+            "pages": [
+              "realtime/websockets"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "security/cors",
+              "security/rate-limiting"
+            ]
+          },
+          {
+            "group": "API Development",
+            "pages": [
+              "api-development/openapi",
+              "api-development/x402-payments"
+            ]
+          },
+          {
+            "group": "CLI & Helpers",
+            "pages": [
+              "cli/ace",
+              "packages/utils"
             ]
           }
         ]
@@ -92,7 +156,7 @@
         },
         {
           "anchor": "Blog",
-          "href": "https://bejibun.com/blog",
+          "href": "/blog",
           "icon": "newspaper"
         }
       ]

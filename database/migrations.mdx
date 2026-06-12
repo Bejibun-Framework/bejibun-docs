@@ -1,0 +1,105 @@
+---
+title: "Migrations"
+description: "Version your database schema with Knex-powered migrations."
+icon: "layer-group"
+---
+
+Migrations are version control for your database schema. Bejibun uses [Knex.js](https://knexjs.org) migrations, managed through the `ace` CLI.
+
+## Configuration
+
+The database connection lives in `config/database.ts`. PostgreSQL is the default client:
+
+```ts config/database.ts
+import type {Knex} from "knex";
+
+const config: Knex.Config = {
+    client: "pg",
+    connection: {
+        host: Bun.env.DB_HOST,
+        port: Bun.env.DB_PORT,
+        user: Bun.env.DB_USER,
+        password: Bun.env.DB_PASSWORD,
+        database: Bun.env.DB_DATABASE
+    },
+    migrations: {
+        extension: "ts",
+        directory: "./database/migrations",
+        schemaName: "public",
+        tableName: "migrations"
+    },
+    pool: { min: 0, max: 10 },
+    seeds: { extension: "ts", directory: "./database/seeders" }
+};
+
+export default config;
+```
+
+<Note>
+The database layer is provided by `@bejibun/database`. Install it with `bun ace install @bejibun/database` if it isn't already present.
+</Note>
+
+## Creating a migration
+
+```bash
+bun ace make:migration create_tests_table
+```
+
+This creates a timestamped file in `database/migrations/` with `up` and `down` functions:
+
+```ts database/migrations/20250929_000001_tests.ts
+import type {Knex} from "knex";
+import TestModel from "@/app/models/TestModel";
+
+export function up(knex: Knex): void {
+    return knex.schema.createTable(TestModel.table, (table: Knex.TableBuilder) => {
+        table.bigIncrements("id");
+        table.string("name");
+        table.timestamps(true, true);   // created_at + updated_at
+        table.timestamp("deleted_at");   // for soft deletes
+    });
+}
+
+export function down(knex: Knex): void {
+    return knex.schema.dropTable(TestModel.table);
+}
+```
+
+## Running migrations
+
+<CodeGroup>
+```bash Apply pending
+bun ace migrate:latest
+```
+
+```bash Rollback latest batch
+bun ace migrate:rollback
+```
+
+```bash Drop all + re-run
+bun ace migrate:fresh
+```
+
+```bash Show status
+bun ace migrate:status
+```
+</CodeGroup>
+
+Example output:
+
+```text
+✔ Batch 1 finished
+✔ 20250929_000001_tests.ts
+```
+
+<Warning>
+`migrate:fresh` and `migrate:rollback` prompt for confirmation because they're destructive. `migrate:fresh` drops **all** tables before re-running every migration — never run it against production data.
+</Warning>
+
+## Column types
+
+Use the full Knex schema builder inside `up` — `bigIncrements`, `string`, `integer`, `boolean`, `timestamp`, `json`, `index`, `foreign`, and more. See the [Knex schema docs](https://knexjs.org/guide/schema-builder.html) for the complete API.
+
+## Planned
+
+First-class **database transactions**, and **MySQL** / **MongoDB** support, are on the roadmap. Today the default and only configured client is PostgreSQL (`pg`).

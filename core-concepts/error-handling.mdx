@@ -1,575 +1,86 @@
 ---
-title: Configuration
-description: Learn how to configure your Bejibun application, manage environment-specific settings, and create maintainable configuration files.
+title: "Error Handling"
+description: "How Bejibun catches exceptions and turns them into consistent JSON responses."
+icon: "triangle-exclamation"
 ---
 
-# Configuration
+Bejibun routes every uncaught error through a central **exception handler**, which converts framework exceptions into consistent JSON responses and logs them automatically.
 
-Configuration is the foundation of every application.
+## The exception handler
 
-From database connections and authentication providers to cache drivers and external services, nearly every part of your application relies on configuration values.
+Each application has `app/exceptions/handler.ts`, extending the framework's `ExceptionHandler`:
 
-Bejibun provides a centralized configuration system that allows you to:
+```ts app/exceptions/handler.ts
+import ExceptionHandler from "@bejibun/core/exceptions/ExceptionHandler";
 
-- Organize application settings
-- Separate configuration from business logic
-- Manage environment-specific values
-- Access settings consistently throughout your application
-- Keep sensitive information out of source code
-
-This guide explains how configuration works and how to structure it effectively.
-
----
-
-# Configuration Philosophy
-
-Configuration should be predictable, maintainable, and environment-aware.
-
-A common mistake is hardcoding values directly into application code.
-
-Avoid:
-
-```ts
-const apiUrl =
-  "https://api.example.com";
-
-const apiKey =
-  "secret-key";
-```
-
-Instead:
-
-```ts
-const apiUrl =
-  Config.get("services.api.url");
-
-const apiKey =
-  Config.get("services.api.key");
-```
-
-This makes applications easier to maintain and deploy across different environments.
-
----
-
-# The Config Directory
-
-All application configuration files are stored inside the `config` directory.
-
-Example:
-
-```text
-config/
-├── app.ts
-├── database.ts
-├── auth.ts
-├── cache.ts
-├── storage.ts
-└── services.ts
-```
-
-Each file should be responsible for a single area of configuration.
-
----
-
-# Creating Configuration Files
-
-A configuration file exports a configuration object.
-
-Example:
-
-```ts
-export default {
-  name: "My Application",
-
-  env: "development",
-
-  debug: true
-};
-```
-
-File:
-
-```text
-config/app.ts
-```
-
-This configuration can then be accessed anywhere in the application.
-
----
-
-# Accessing Configuration Values
-
-Use the Config service to retrieve values.
-
-```ts
-Config.get("app.name");
-```
-
-Result:
-
-```text
-My Application
-```
-
-Nested values can also be accessed.
-
-Example:
-
-```ts
-Config.get(
-  "database.connections.mysql.host"
-);
-```
-
-This allows configuration to remain organized even in large applications.
-
----
-
-# Configuration Structure
-
-A typical configuration file might look like:
-
-```ts
-export default {
-  name: "Bejibun",
-
-  debug: true,
-
-  timezone: "UTC",
-
-  locale: "en"
-};
-```
-
-Access values using dot notation:
-
-```ts
-Config.get("app.timezone");
-```
-
----
-
-# Environment Variables
-
-Configuration files often depend on environment variables.
-
-Example:
-
-```ts
-export default {
-  port: Env.get("PORT", 3000),
-
-  host: Env.get("HOST", "0.0.0.0")
-};
-```
-
-Environment variables allow applications to behave differently depending on where they are running.
-
-Examples:
-
-| Environment | Purpose |
-|-------------|----------|
-| Development | Local development |
-| Testing | Automated tests |
-| Staging | Pre-production validation |
-| Production | Live applications |
-
----
-
-# Default Values
-
-Always provide sensible defaults when appropriate.
-
-Example:
-
-```ts
-Env.get("PORT", 3000);
-```
-
-If the environment variable does not exist:
-
-```text
-3000
-```
-
-is returned.
-
-This improves developer experience and reduces setup friction.
-
----
-
-# Application Configuration
-
-The application configuration file contains general settings.
-
-Example:
-
-```ts
-export default {
-  name: Env.get(
-    "APP_NAME",
-    "Bejibun"
-  ),
-
-  env: Env.get(
-    "APP_ENV",
-    "development"
-  ),
-
-  debug: Env.get(
-    "APP_DEBUG",
-    true
-  )
-};
-```
-
-Common settings include:
-
-- Application name
-- Environment
-- Debug mode
-- Timezone
-- Locale
-
----
-
-# Database Configuration
-
-Database connections are typically defined inside `config/database.ts`.
-
-Example:
-
-```ts
-export default {
-  default: "mysql",
-
-  connections: {
-    mysql: {
-      host: Env.get("DB_HOST"),
-
-      port: Env.get("DB_PORT"),
-
-      database: Env.get("DB_DATABASE"),
-
-      username: Env.get("DB_USERNAME"),
-
-      password: Env.get("DB_PASSWORD")
+export default class Handler extends ExceptionHandler {
+    public handle(error: any): globalThis.Response {
+        // add custom handling here, then fall back to the default
+        return super.handle(error);
     }
-  }
-};
-```
-
-This separates connection details from application code.
-
----
-
-# Authentication Configuration
-
-Authentication settings belong in a dedicated configuration file.
-
-Example:
-
-```ts
-export default {
-  default: "jwt",
-
-  guards: {
-    jwt: {
-      driver: "jwt"
-    }
-  }
-};
-```
-
-Keeping authentication settings centralized simplifies maintenance and auditing.
-
----
-
-# Cache Configuration
-
-Cache drivers and related settings can be configured separately.
-
-Example:
-
-```ts
-export default {
-  default: "redis",
-
-  stores: {
-    redis: {
-      host: Env.get("REDIS_HOST")
-    }
-  }
-};
-```
-
-This allows cache implementations to change without affecting application logic.
-
----
-
-# Storage Configuration
-
-Storage configuration defines where files are stored.
-
-Example:
-
-```ts
-export default {
-  default: "local",
-
-  disks: {
-    local: {
-      root: "./storage"
-    }
-  }
-};
-```
-
-Future environments may switch to cloud storage without changing application code.
-
----
-
-# Service Configuration
-
-External integrations should have their own configuration file.
-
-Example:
-
-```ts
-export default {
-  stripe: {
-    key: Env.get(
-      "STRIPE_KEY"
-    )
-  },
-
-  mail: {
-    apiKey: Env.get(
-      "MAIL_API_KEY"
-    )
-  }
-};
-```
-
-This pattern keeps third-party service settings organized.
-
----
-
-# Environment-Based Configuration
-
-Different environments often require different values.
-
-Development:
-
-```env
-APP_ENV=development
-
-APP_DEBUG=true
-```
-
-Production:
-
-```env
-APP_ENV=production
-
-APP_DEBUG=false
-```
-
-Configuration files can adapt automatically based on the current environment.
-
-Example:
-
-```ts
-const isProduction =
-  Env.get("APP_ENV")
-  === "production";
-```
-
----
-
-# Typed Configuration
-
-One of the advantages of TypeScript is the ability to create strongly typed configuration.
-
-Example:
-
-```ts
-export interface AppConfig {
-  name: string;
-
-  env: string;
-
-  debug: boolean;
 }
 ```
 
-Typed configuration provides:
+<Warning>
+This file is required — the server throws on startup if `app/exceptions/handler.ts` is missing.
+</Warning>
 
-- Autocomplete
-- Compile-time validation
-- Better editor support
-- Safer refactoring
+## How errors are mapped
 
-Whenever possible, configuration should remain type-safe.
+When an error reaches the handler, it is logged (`Logger.setContext("APP").error(message).trace(stack)`) and converted to a response:
 
----
+| Error | Response status |
+| --- | --- |
+| `ModelNotFoundException` | its `.code` (not found) |
+| `ValidatorException` | its `.code` (validation failed) |
+| `RouterException` | its `.code` |
+| `RateLimiterException` | its `.code` (too many requests) |
+| `RuntimeException` | its `.code` |
+| Objection `ValidationError` | its `.statusCode` |
+| Any other error | `500` — `"Internal server error."` |
 
-# Organizing Large Applications
+Every error response uses the standard envelope:
 
-As applications grow, configuration files can become extensive.
-
-Instead of:
-
-```text
-config/
-└── app.ts
-```
-
-Use:
-
-```text
-config/
-├── app.ts
-├── auth.ts
-├── cache.ts
-├── database.ts
-├── mail.ts
-├── queue.ts
-├── services.ts
-└── storage.ts
-```
-
-Each file should focus on a single concern.
-
----
-
-# Avoiding Common Mistakes
-
-## Hardcoding Secrets
-
-Avoid:
-
-```ts
-const apiKey =
-  "my-secret-key";
-```
-
-Use:
-
-```ts
-Env.get("API_KEY");
-```
-
-Secrets should never be committed to version control.
-
----
-
-## Accessing Environment Variables Everywhere
-
-Avoid:
-
-```ts
-Env.get("DB_HOST");
-
-Env.get("DB_PORT");
-
-Env.get("DB_DATABASE");
-```
-
-throughout your application.
-
-Instead:
-
-```ts
-Config.get(
-  "database.connections.mysql"
-);
-```
-
-Environment variables should typically be consumed by configuration files, not business logic.
-
----
-
-## Mixing Business Logic and Configuration
-
-Avoid:
-
-```ts
-if (Env.get("APP_ENV") === "production") {
-  // application logic
+```json
+{
+  "data": null,
+  "message": "No query results for model [TestModel] [42].",
+  "status": 404
 }
 ```
 
-Business logic should remain separate from configuration concerns whenever possible.
+## Common framework exceptions
 
----
+<AccordionGroup>
+  <Accordion title="ModelNotFoundException" icon="magnifying-glass">
+    Thrown by `Model.findOrFail(id)` when no record matches. Use it to get a clean not-found response without manual checks.
 
-# Configuration Caching
+    ```ts
+    const test = await TestModel.findOrFail(id); // throws if missing
+    ```
+  </Accordion>
+  <Accordion title="ValidatorException" icon="circle-xmark">
+    Thrown by `super.validate(...)` when input fails validation. The message is the first failing rule's message.
+  </Accordion>
+  <Accordion title="RateLimiterException" icon="gauge-high">
+    Thrown when a client exceeds the configured rate limit (see [Middleware](/http-layer/middleware)).
+  </Accordion>
+</AccordionGroup>
 
-As applications grow, repeatedly loading configuration can become inefficient.
+## Throwing your own errors
 
-Future framework versions may provide configuration caching.
+Throw a framework exception (or any `Error`) from anywhere in a request; the handler will catch it:
 
-Example:
+```ts
+import RuntimeException from "@bejibun/core/exceptions/RuntimeException";
 
-```bash
-bun ace config:cache
+if (!allowed) {
+    throw new RuntimeException("You are not allowed to do that.");
+}
 ```
 
-Benefits include:
+To customize behavior — for example, to report errors to an external service — add logic in `Handler.handle()` before calling `super.handle(error)`.
 
-- Faster startup
-- Reduced file access
-- Improved production performance
+## Serving static files & 404s
 
-If available, configuration caches should be regenerated after configuration changes.
-
----
-
-# Recommended Practices
-
-Follow these guidelines when working with configuration:
-
-- Keep configuration centralized
-- Use environment variables for secrets
-- Provide sensible defaults
-- Create dedicated configuration files
-- Prefer type-safe configuration
-- Avoid hardcoded values
-- Separate configuration from business logic
-
-These practices improve maintainability and reduce deployment issues.
-
----
-
-# Example Configuration Flow
-
-The following diagram illustrates how configuration values are loaded.
-
-```text
-.env
-  │
-  ▼
-config/*.ts
-  │
-  ▼
-Config Service
-  │
-  ▼
-Application Code
-```
-
-This layered approach keeps applications organized and easy to maintain.
-
----
-
-# What's Next?
-
-Now that you understand how configuration works, the next step is learning how environment variables are loaded and managed.
-
-Continue to:
-
-- Environment Variables
-- Request Lifecycle
-
-In the next chapter, you'll learn how Bejibun loads environment values, validates them, and uses them throughout the application.
+Requests that don't match a route fall through to the handler's `publicRoute`, which serves matching files from `public/` or returns a `404` (or `204` for `OPTIONS`).

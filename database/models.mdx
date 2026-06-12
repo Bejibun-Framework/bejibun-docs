@@ -1,0 +1,68 @@
+---
+title: "Models"
+description: "Define database models with BaseModel, powered by Objection.js."
+icon: "table"
+---
+
+Models are the heart of Bejibun's data layer. Each model maps to a database table and extends `BaseModel`, which builds on [Objection.js](https://vincit.github.io/objection.js) and adds soft deletes and automatic timestamps.
+
+## Defining a model
+
+```bash
+bun ace make:model TestModel
+```
+
+```ts app/models/TestModel.ts
+import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+
+export default class TestModel extends BaseModel {
+    public static tableName: string = "tests";
+    public static idColumn: string = "id";
+
+    declare id: bigint;
+    declare name: string;
+    declare created_at: Timestamp;
+    declare updated_at: Timestamp;
+    declare deleted_at: NullableTimestamp;
+}
+```
+
+## Conventions
+
+| Static property | Default | Purpose |
+| --- | --- | --- |
+| `tableName` | — | The table this model maps to (required) |
+| `idColumn` | — | Primary key column (typically `"id"`) |
+| `createdColumn` | `"created_at"` | Created-at timestamp column |
+| `updatedColumn` | `"updated_at"` | Updated-at timestamp column |
+| `deletedColumn` | `"deleted_at"` | Soft-delete timestamp column |
+
+The `Timestamp` type is `Luxon.DateTime | Date | string`; `NullableTimestamp` adds `null`.
+
+## Automatic timestamps
+
+`BaseModel` fills timestamps for you:
+
+- On **insert**, `created_at` and `updated_at` are set to the current time.
+- On **update**, `updated_at` is refreshed.
+
+You don't need to set these columns manually.
+
+## Querying
+
+Use the static helpers (covered in [CRUD Operations](/database/crud-operations)) or drop down to the underlying Objection query builder for anything more advanced:
+
+```ts
+const active = await TestModel.query()
+    .where("name", "like", "A%")
+    .orderBy("created_at", "desc");
+```
+
+<Note>
+`Model.query()` returns a full Objection query builder, so the entire Objection/Knex query API is available.
+</Note>
+
+## Planned
+
+Model **relationships**, **eager loading**, **scopes**, **mutators**, and **model events** are on the roadmap (relations targeted for Q3 2026) and are not yet exposed by the framework.

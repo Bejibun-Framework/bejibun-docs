@@ -1,0 +1,91 @@
+---
+title: "Redis"
+description: "Talk to Redis directly with @bejibun/redis — keys, counters, pipelines, and pub/sub."
+icon: "layer-group"
+---
+
+`@bejibun/redis` wraps Bun's native Redis client with a convenient facade. It powers the Redis cache driver and is also available directly for keys, counters, pipelines, and pub/sub.
+
+## Installation
+
+```bash
+bun ace install @bejibun/redis
+```
+
+This installs the package and drops `config/redis.ts`. Connection details come from the environment:
+
+```env
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_MAX_RETRIES=10
+REDIS_CONNECTION=local
+```
+
+## Keys and values
+
+```ts
+import Redis from "@bejibun/redis";
+
+await Redis.set("session:1", token, 3600);   // value with TTL (seconds)
+const value = await Redis.get("session:1");
+await Redis.del("session:1");
+
+const exists = await Redis.exists("session:1");
+const keys = await Redis.keys("session:*");
+```
+
+## Counters
+
+```ts
+await Redis.incr("page:views");
+await Redis.incrBy("page:views", 10);
+await Redis.decr("stock:42");
+await Redis.expire("page:views", 86400);
+```
+
+## Pipelines
+
+Batch multiple commands in one round trip:
+
+```ts
+await Redis.pipeline((pipe) => {
+    pipe.set("a", 1);
+    pipe.set("b", 2);
+});
+```
+
+## Pub/Sub
+
+```ts
+await Redis.subscribe("orders", (message) => {
+    // handle incoming message
+});
+
+await Redis.publish("orders", JSON.stringify(order));
+```
+
+## Multiple connections
+
+Target a named connection defined in `config/redis.ts`:
+
+```ts
+await Redis.connection("analytics").incr("events");
+```
+
+## API reference
+
+| Method | Purpose |
+| --- | --- |
+| `set` / `get` / `del` / `exists` / `keys` | Key operations |
+| `incr` / `decr` / `incrBy` / `decrBy` | Counters |
+| `ttl` / `expire` | Expiry |
+| `publish` / `subscribe` | Pub/Sub |
+| `pipeline(fn)` | Batched commands |
+| `connect` / `disconnect` | Connection lifecycle |
+| `on(event, fn)` / `off(event, fn)` | `"connect"`, `"disconnect"`, `"error"` events |
+
+<Tip>
+Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off operations on a specific connection.
+</Tip>

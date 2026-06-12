@@ -1,0 +1,69 @@
+---
+title: "Available Rules"
+description: "Vine.js validation rules plus the framework's exists and unique database rules."
+icon: "list-check"
+---
+
+Validators use the full set of [Vine.js](https://vinejs.dev) rules, and Bejibun adds two database-aware rules: `exists` and `unique`.
+
+## Vine.js rules
+
+Common building blocks (see the [Vine.js docs](https://vinejs.dev) for the complete reference):
+
+```ts
+super.validator.string()                      // string
+super.validator.number().min(1)               // number ≥ 1
+super.validator.boolean()
+super.validator.string().email()
+super.validator.string().minLength(8)
+super.validator.string().nullable().optional()
+super.validator.enum(["draft", "published"])
+```
+
+## `exists` — the value must exist in a table
+
+Confirms a value matches a row in the database before you query it. Registered on both string and number fields.
+
+```ts
+id: super.validator.number().min(1).exists(TestModel, "id")
+```
+
+Signature:
+
+```ts
+.exists(Model, column?, withTrashed?, nullable?)
+// or, as an options object:
+.exists({ table, column?, withTrashed?, nullable? })
+```
+
+| Argument | Default | Description |
+| --- | --- | --- |
+| `Model` | — | The model to query |
+| `column` | the field name | Column to match against |
+| `withTrashed` | `false` | Include soft-deleted rows |
+| `nullable` | `false` | Skip the check when the value is null |
+
+Default message: `The <field> field doesn't exists`.
+
+```ts
+// include soft-deleted rows (e.g. for a restore endpoint)
+id: super.validator.number().min(1).exists(TestModel, "id", true)
+```
+
+## `unique` — the value must not already exist
+
+The inverse of `exists` — used for sign-up emails, slugs, and other one-of-a-kind values. Same signature as `exists`.
+
+```ts
+email: super.validator.string().email().unique(UserModel, "email")
+```
+
+Default message: `The <field> field is already exists`.
+
+<Note>
+Both rules query the model with `Model.query().where(column, value).first()` (or `withTrashed()` first). Pass `nullable: true` to skip the check entirely for empty values.
+</Note>
+
+## Planned
+
+Field-level **custom validation messages** are not yet surfaced by the framework — `validate()` returns only the first failing rule's message. Author custom rules with Vine's `vine.createRule` (the same mechanism `exists`/`unique` use).

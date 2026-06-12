@@ -1,478 +1,77 @@
 ---
-title: Installation
-description: Install Bejibun, create your first application, and prepare your development environment.
+title: "Logging"
+description: "Write structured, color-coded logs with the Bejibun logger."
+icon: "scroll"
 ---
 
-# Installation
+Bejibun ships with `@bejibun/logger` — a lightweight, color-coded logger used throughout the framework and available to your application code.
 
-This guide will walk you through installing Bejibun and creating your first application.
+## Basic logging
 
-Before you begin, ensure your system meets the minimum requirements.
-
----
-
-# Requirements
-
-Bejibun is built specifically for Bun and requires a modern development environment.
-
-## Runtime Requirements
-
-| Software | Version |
-|-----------|-----------|
-| Bun | Latest Stable |
-| TypeScript | Included |
-| Node.js | Not Required |
-| Git | Recommended |
-
-To verify your Bun installation:
-
-```bash
-bun --version
-```
-
-Example output:
-
-```bash
-1.x.x
-```
-
-If Bun is not installed, follow the instructions below.
-
----
-
-# Installing Bun
-
-Bejibun relies on Bun as its runtime, package manager, and development toolchain.
-
-## Linux & macOS
-
-Install Bun using the official installation script:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-After installation, restart your terminal and verify:
-
-```bash
-bun --version
-```
-
----
-
-## Windows
-
-Install Bun using PowerShell:
-
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
-```
-
-Verify the installation:
-
-```powershell
-bun --version
-```
-
----
-
-## Updating Bun
-
-To update Bun to the latest version:
-
-```bash
-bun upgrade
-```
-
-Keeping Bun updated ensures you receive performance improvements, bug fixes, and security updates.
-
----
-
-# Creating a New Application
-
-The fastest way to start a new project is with the Bejibun CLI.
-
-Run:
-
-```bash
-bunx @bejibun/cli create my-app
-```
-
-Or:
-
-```bash
-bunx @bejibun/cli my-app
-```
-
-The CLI will generate a new project structure and install the required dependencies.
-
-Example:
-
-```bash
-Creating project...
-
-✔ Generating application files
-✔ Installing dependencies
-✔ Creating environment configuration
-✔ Preparing project structure
-
-Application created successfully.
-```
-
----
-
-# Navigate to the Project
-
-Move into your newly created application:
-
-```bash
-cd my-app
-```
-
-Your project directory should look similar to:
-
-```text
-my-app/
-├── app/
-├── config/
-├── database/
-├── public/
-├── routes/
-├── storage/
-├── tests/
-├── .env
-├── bunfig.toml
-└── package.json
-```
-
-The exact structure may vary depending on the framework version and installed packages.
-
----
-
-# Environment Configuration
-
-Most applications require environment-specific configuration.
-
-Bejibun stores environment variables inside the `.env` file.
-
-Example:
-
-```env
-APP_NAME=Bejibun
-APP_ENV=development
-APP_URL=http://localhost:3000
-
-PORT=3000
-```
-
-You can customize these values as needed.
-
-For larger applications, environment variables are commonly used to configure:
-
-- Databases
-- Cache systems
-- Storage providers
-- Authentication services
-- External APIs
-
----
-
-# Starting the Development Server
-
-Once the project is created, start the development server:
-
-```bash
-bun dev
-```
-
-Example output:
-
-```bash
-Bejibun v1.x.x
-
-Server started successfully.
-
-Local: http://localhost:3000
-```
-
-Open your browser and visit:
-
-```text
-http://localhost:3000
-```
-
-You should see your application running.
-
----
-
-# Development Workflow
-
-During development, Bejibun automatically reloads when source files change.
-
-```bash
-bun dev
-```
-
-This allows you to edit code and see changes immediately without manually restarting the server.
-
-Typical workflow:
-
-```text
-Edit File
-     ↓
-Save
-     ↓
-Framework Reloads
-     ↓
-Refresh Browser
-```
-
----
-
-# Verifying the Installation
-
-To confirm that everything is working correctly:
-
-Create a simple route.
+Import the logger and call a level method:
 
 ```ts
-Router.get("/", async () => {
-  return {
-    framework: "Bejibun",
-    status: "running"
-  };
-});
+import Logger from "@bejibun/logger";
+
+Logger.debug("This is a DEBUG message.");
+Logger.info("This is an INFO message.");
+Logger.warn("This is a WARN message.");
+Logger.error("This is an ERROR message.");
 ```
 
-Visit:
+Each line is timestamped and labelled with its level:
 
 ```text
-http://localhost:3000
+2025-10-16 16:00:00.000 [DEBUG]: This is a DEBUG message.
+2025-10-16 16:00:00.000 [INFO]: This is an INFO message.
+2025-10-16 16:00:00.000 [WARN]: This is a WARN message.
+2025-10-16 16:00:00.000 [ERROR]: This is an ERROR message.
 ```
 
-Expected response:
+## Log levels
 
-```json
-{
-  "framework": "Bejibun",
-  "status": "running"
+| Method | Use for |
+| --- | --- |
+| `Logger.debug(message)` | Verbose diagnostics during development |
+| `Logger.info(message)` | Normal, expected events |
+| `Logger.warn(message)` | Unexpected but recoverable situations |
+| `Logger.error(message)` | Failures and exceptions |
+
+## Adding context
+
+Use `setContext()` to replace the level label with a custom tag — useful for identifying the subsystem that produced a log:
+
+```ts
+Logger.setContext("Payment").info("Charge succeeded.");
+// 2025-10-16 16:00:00.000 [Payment]: Charge succeeded.
+```
+
+This is the same mechanism the framework uses internally (`[Router]`, `[WebSocket]`, `[APP]`, …).
+
+## Logging errors with a stack trace
+
+`trace()` logs an error together with its stack — the idiom for caught exceptions:
+
+```ts
+try {
+    await riskyOperation();
+} catch (error) {
+    Logger.setContext("Worker").error("Job failed").trace(error);
 }
 ```
 
-If you see this response, your installation is working correctly.
+## Formatting helpers
 
----
-
-# Using the CLI
-
-The Bejibun CLI provides generators and development utilities.
-
-Display available commands:
-
-```bash
-bun ace list
-```
-
-Example:
-
-```text
-make:controller
-make:model
-make:migration
-make:seeder
-make:validator
-route:list
-migrate:latest
-migrate:rollback
-```
-
-These commands help automate common development tasks.
-
----
-
-# Creating Your First Controller
-
-Generate a controller:
-
-```bash
-bun ace make:controller HomeController
-```
-
-Generated file:
-
-```text
-app/Controllers/HomeController.ts
-```
-
-Example:
+| Method | Effect |
+| --- | --- |
+| `Logger.empty()` | Prints a blank line |
+| `Logger.separator()` | Prints a dashed line across the terminal width |
 
 ```ts
-export default class HomeController {
-  async index() {
-    return {
-      message: "Welcome to Bejibun"
-    };
-  }
-}
+Logger.info("Starting migration");
+Logger.separator();
 ```
 
-Register the route:
-
-```ts
-Router.get("/", "HomeController@index");
-```
-
-Visit your application to see the response.
-
----
-
-# Creating Your First Model
-
-Generate a model:
-
-```bash
-bun ace make:model User
-```
-
-Generated file:
-
-```text
-app/Models/User.ts
-```
-
-Example:
-
-```ts
-export default class User extends BaseModel {}
-```
-
-Models provide a convenient way to interact with database records.
-
----
-
-# Running Database Migrations
-
-If your application uses a database, run migrations after configuration.
-
-Generate a migration:
-
-```bash
-bun ace make:migration create_users_table
-```
-
-Execute migrations:
-
-```bash
-bun ace migrate:latest
-```
-
-Successful output:
-
-```bash
-✔ Migration completed
-```
-
-Your database schema is now up to date.
-
----
-
-# Production Installation
-
-For production deployments:
-
-Install dependencies:
-
-```bash
-bun install --production
-```
-
-Build the application if required:
-
-```bash
-bun run build
-```
-
-Start the server:
-
-```bash
-bun start
-```
-
-Production environments should also configure:
-
-- Reverse proxies
-- HTTPS
-- Environment variables
-- Monitoring
-- Logging
-
-Deployment topics are covered in a later section of the documentation.
-
----
-
-# Troubleshooting
-
-## Bun Command Not Found
-
-If you receive:
-
-```bash
-bun: command not found
-```
-
-Ensure Bun is installed correctly and available in your system PATH.
-
-Verify:
-
-```bash
-bun --version
-```
-
----
-
-## Port Already in Use
-
-If the configured port is unavailable:
-
-```bash
-EADDRINUSE
-```
-
-Change the port in your environment configuration:
-
-```env
-PORT=4000
-```
-
-Restart the development server afterward.
-
----
-
-## Dependency Installation Fails
-
-Clear the dependency cache and reinstall:
-
-```bash
-rm -rf node_modules
-rm bun.lock
-
-bun install
-```
-
-Then start the application again.
-
----
-
-# Next Steps
-
-Congratulations! Your Bejibun environment is now ready.
-
-Continue with:
-
-- Creating Your First Application
-- Project Structure
-- Configuration
-- Environment Variables
-- Request Lifecycle
-
-In the next guide, you'll build a complete application and learn how the framework components work together.
+<Tip>
+`@bejibun/logger` is a standalone package — you can use it in scripts and other Bun projects, not just inside a Bejibun app.
+</Tip>

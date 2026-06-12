@@ -1,0 +1,53 @@
+---
+title: "Validation"
+description: "Validate incoming request data with type-safe validators built on Vine.js."
+icon: "circle-check"
+---
+
+Bejibun validates request data with **Vine.js**, exposed through `BaseValidator`. Validators are reusable, type-safe schemas you run against the parsed request body inside a controller.
+
+## How validation fits together
+
+<Steps>
+  <Step title="Define a validator">
+    A class extending `BaseValidator` with one schema per action.
+  </Step>
+  <Step title="Parse the request">
+    `super.parse(request)` collects body, params, and query into one object.
+  </Step>
+  <Step title="Validate">
+    `super.validate(schema, body)` checks the input and throws on failure.
+  </Step>
+</Steps>
+
+```ts app/controllers/TestController.ts
+const body = await super.parse(request);
+await super.validate(TestValidator.add, body);
+// body is now safe to use
+```
+
+## What happens on failure
+
+If validation fails, `validate()` throws a `ValidatorException` carrying the first failing rule's message. The [exception handler](/core-concepts/error-handling) turns it into a structured error response:
+
+```json
+{
+  "data": null,
+  "message": "The name field must be defined",
+  "status": 422
+}
+```
+
+## Next steps
+
+<CardGroup cols={3}>
+  <Card title="Creating Validators" icon="pen-to-square" href="/validation/creating-validators">
+    Author validator classes.
+  </Card>
+  <Card title="Available Rules" icon="list-check" href="/validation/available-rules">
+    Vine rules plus `exists` and `unique`.
+  </Card>
+  <Card title="Request Validation" icon="arrow-right-to-bracket" href="/validation/request-validation">
+    Wire validators into controllers.
+  </Card>
+</CardGroup>

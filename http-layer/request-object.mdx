@@ -1,96 +1,75 @@
 ---
-title: "Windsurf setup"
-description: "Configure Windsurf for your documentation workflow"
-icon: "water"
+title: "The Request"
+description: "Read input from the Bun request with super.parse()."
+icon: "inbox"
 ---
 
-Configure Windsurf's Cascade AI assistant to help you write and maintain documentation. This guide shows how to set up Windsurf specifically for your Mintlify documentation workflow.
+Bejibun controllers receive Bun's native `Bun.BunRequest`. Rather than wrapping it in a custom class, Bejibun gives you `super.parse(request)` — a single method that collects **all** request input into one object.
 
-## Prerequisites
+## Reading input
 
-- Windsurf editor installed
-- Access to your documentation repository
+Call `super.parse(request)` inside any controller method:
 
-## Workspace rules
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
 
-Create workspace rules that provide Windsurf with context about your documentation project and standards.
+export default class TestController extends BaseController {
+    public async add(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
 
-Create `.windsurf/rules.md` in your project root:
-
-````markdown
-# Mintlify technical writing rule
-
-## Project context
-
-- This is a documentation project on the Mintlify platform
-- We use MDX files with YAML frontmatter  
-- Navigation is configured in `docs.json`
-- We follow technical writing best practices
-
-## Writing standards
-
-- Use second person ("you") for instructions
-- Write in active voice and present tense
-- Start procedures with prerequisites
-- Include expected outcomes for major steps
-- Use descriptive, keyword-rich headings
-- Keep sentences concise but informative
-
-## Required page structure
-
-Every page must start with frontmatter:
-
-```yaml
----
-title: "Clear, specific title"
-description: "Concise description for SEO and navigation"
----
+        // body.name, body.id, body.search ... all available here
+        return super.response.setData(body).send();
+    }
+}
 ```
 
-## Mintlify components
+## What `parse()` collects
 
-### Callouts
+`parse()` merges several sources into one object, in this order:
 
-- `<Note>` for helpful supplementary information
-- `<Warning>` for important cautions and breaking changes
-- `<Tip>` for best practices and expert advice  
-- `<Info>` for neutral contextual information
-- `<Check>` for success confirmations
+<Steps>
+  <Step title="JSON body">
+    For `application/json` requests, the parsed and serialized JSON body.
+  </Step>
+  <Step title="Route parameters">
+    Dynamic segments like `:id` (see [Route Parameters](/http-layer/route-parameters)).
+  </Step>
+  <Step title="Query string">
+    Values from the URL's `?key=value` parameters.
+  </Step>
+  <Step title="Form data">
+    Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including uploaded files.
+  </Step>
+  <Step title="Raw text">
+    A non-empty raw text body is available under the `text` key.
+  </Step>
+</Steps>
 
-### Code examples
+<Note>
+`parse()` never throws — malformed input is silently skipped. Use a [validator](/http-layer/controllers) to enforce the shape you expect.
+</Note>
 
-- When appropriate, include complete, runnable examples
-- Use `<CodeGroup>` for multiple language examples
-- Specify language tags on all code blocks
-- Include realistic data, not placeholders
-- Use `<RequestExample>` and `<ResponseExample>` for API docs
+## Accessing the raw request
 
-### Procedures
+The native `Bun.BunRequest` is always available in your handler, so standard Web APIs work directly:
 
-- Use `<Steps>` component for sequential instructions
-- Include verification steps with `<Check>` components when relevant
-- Break complex procedures into smaller steps
+```ts
+public async show(request: Bun.BunRequest): Promise<Response> {
+    const method = request.method;             // "GET"
+    const url = new URL(request.url);          // URL object
+    const auth = request.headers.get("authorization");
 
-### Content organization
+    return super.response.setData({ method, path: url.pathname }).send();
+}
+```
 
-- Use `<Tabs>` for platform-specific content
-- Use `<Accordion>` for progressive disclosure
-- Use `<Card>` and `<CardGroup>` for highlighting content
-- Wrap images in `<Frame>` components with descriptive alt text
+## Validating input
 
-## API documentation requirements
+Pair `parse()` with `validate()` to guarantee input integrity before using it:
 
-- Document all parameters with `<ParamField>` 
-- Show response structure with `<ResponseField>`
-- Include both success and error examples
-- Use `<Expandable>` for nested object properties
-- Always include authentication examples
+```ts
+const body = await super.parse(request);
+await super.validate(TestValidator.add, body);
+```
 
-## Quality standards
-
-- Test all code examples before publishing
-- Use relative paths for internal links
-- Include alt text for all images
-- Ensure proper heading hierarchy (start with h2)
-- Check existing patterns for consistency
-````
+A failed validation throws a `ValidatorException` and short-circuits into an error response. See the validation guide for authoring validators.

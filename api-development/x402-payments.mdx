@@ -1,0 +1,80 @@
+---
+title: "x402 Payments"
+description: "Gate API resources behind HTTP-native crypto payments with @bejibun/x402."
+icon: "money-bill-transfer"
+---
+
+`@bejibun/x402` implements the **x402** protocol — HTTP-native payments built on the `402 Payment Required` status code. Clients submit a crypto payment (verified by a facilitator) before they can access a protected resource. It supports EVM and Solana networks.
+
+## Installation
+
+```bash
+bun ace install @bejibun/x402
+```
+
+This installs the package and drops `config/x402.ts`.
+
+## Configuration
+
+```ts config/x402.ts
+const config: Record<string, any> = {
+    version: 1,
+    network: "solana-devnet",
+    address: "YOUR_PAYOUT_ADDRESS",
+    price: "$0.01",
+    timeout: 60,
+    forceJson: false,
+    testnet: true
+};
+
+export default config;
+```
+
+| Option | Description |
+| --- | --- |
+| `network` | Payment network (e.g. `solana-devnet`, `base-sepolia`) |
+| `address` | Payout address that receives payment |
+| `price` | Amount required, e.g. `"$0.01"` |
+| `timeout` | Payment window in seconds |
+| `testnet` | Use test networks |
+
+## Gating a route group
+
+Chain `Router.x402()` onto a route group to require payment for everything inside it:
+
+```ts routes/api/premium.ts
+import Router from "@bejibun/core/facades/Router";
+
+export default Router.prefix("premium")
+    .x402()
+    .group([
+        Router.get("report", "ReportController@paid")
+    ]);
+```
+
+<Note>
+`Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.
+</Note>
+
+## Programmatic usage
+
+For finer control, use the `X402` facade directly inside a handler:
+
+```ts
+import type {TX402Config} from "@bejibun/x402";
+import type {FacilitatorConfig, PaywallConfig} from "x402/types";
+import X402 from "@bejibun/x402";
+
+return X402
+    .setConfig()         // optional overrides (description, paywall HTML, schemas…)
+    .setFacilitator()    // optional facilitator config
+    .setPaywall()        // optional paywall config
+    .setRequest(request) // required — provides the request headers
+    .middleware(() => {
+        // your paid resource here
+    });
+```
+
+<Warning>
+The default config targets a **test network** (`testnet: true`). Before going live, switch `network`/`testnet` to production values and set a real payout `address` — and never commit production payout addresses or facilitator secrets to source control.
+</Warning>

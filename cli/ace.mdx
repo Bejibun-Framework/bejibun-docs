@@ -1,0 +1,82 @@
+---
+title: "The Ace CLI"
+description: "Generate code, manage the database, and run framework tasks with bun ace."
+icon: "terminal"
+---
+
+`ace` is Bejibun's command-line companion. It scaffolds code, runs migrations and seeders, processes queues, and toggles maintenance mode.
+
+## Discovering commands
+
+```bash
+bun ace                  # list all commands
+bun ace help <command>   # detailed help for one command
+bun ace --version        # framework version
+```
+
+## Generators
+
+Scaffold application components:
+
+| Command | Creates |
+| --- | --- |
+| `make:controller <name>` | A controller in `app/controllers/` |
+| `make:model <name>` | A model in `app/models/` |
+| `make:validator <name>` | A validator in `app/validators/` |
+| `make:middleware <name>` | A middleware in `app/middlewares/` |
+| `make:job <name>` | A job in `app/jobs/` |
+| `make:command <name>` | A command in `commands/` |
+| `make:migration <name>` | A migration in `database/migrations/` |
+| `make:seeder <name>` | A seeder in `database/seeders/` |
+
+## Database
+
+| Command | Description |
+| --- | --- |
+| `migrate:latest` | Run pending migrations |
+| `migrate:rollback` | Roll back the latest batch |
+| `migrate:fresh` | Drop all tables and re-run migrations |
+| `migrate:status` | Show migration status |
+| `db:seed` | Run seeders |
+
+## Queues & scheduling
+
+| Command | Description |
+| --- | --- |
+| `queue:work` | Process queued jobs as a daemon |
+| `queue:retry` | Retry a failed job |
+| `queue:flush` | Flush all failed jobs |
+| `schedule:work` | Run the task scheduler |
+
+## Maintenance & packages
+
+| Command | Description |
+| --- | --- |
+| `maintenance:down` | Put the app into maintenance mode |
+| `maintenance:up` | Bring the app back online |
+| `install <packages...>` | Install and configure Bejibun packages |
+| `package:configure` | Configure a package after installation |
+| `route:list` | List routes / build the OpenAPI spec |
+
+## Writing your own command
+
+Generate one with `make:command`, then fill in the signature and `handle` method:
+
+```ts commands/SyncUsersCommand.ts
+export default class SyncUsersCommand {
+    protected $signature: string = "users:sync";
+    protected $description: string = "Sync users from the upstream service";
+    protected $options: Array<Array<any>> = [];
+    protected $arguments: Array<Array<any>> = [];
+
+    public async handle(options: any, args: any): Promise<void> {
+        // command logic
+    }
+}
+```
+
+Commands are auto-discovered from `commands/` — once the file exists with a `$signature` and `handle()`, it appears in `bun ace`.
+
+<Tip>
+Schedule any command to run automatically by referencing its `$signature` in `commands/Kernel.ts`. See [Task Scheduling](/background/scheduler).
+</Tip>

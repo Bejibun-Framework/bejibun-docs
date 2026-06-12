@@ -95,7 +95,7 @@ The fastest way to start a new project is with the Bejibun CLI.
 Run:
 
 ```bash
-bunx @bejibun/cli create my-app
+bunx @bejibun/cli my-app
 ```
 
 Or:
@@ -188,9 +188,7 @@ bun dev
 Example output:
 
 ```bash
-Bejibun v1.x.x
-
-Server started successfully.
+🚀 Server running at http://127.0.0.1:3000
 
 Local: http://localhost:3000
 ```
@@ -270,7 +268,7 @@ The Bejibun CLI provides generators and development utilities.
 Display available commands:
 
 ```bash
-bun ace list
+bun ace
 ```
 
 Example:
@@ -301,17 +299,19 @@ bun ace make:controller HomeController
 Generated file:
 
 ```text
-app/Controllers/HomeController.ts
+app/controllers/HomeController.ts
 ```
 
 Example:
 
 ```ts
-export default class HomeController {
-  async index() {
-    return {
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class HomeController extends BaseController {
+  public async index(request: Bun.BunRequest): Promise<Response> {
+    return super.response.setData({
       message: "Welcome to Bejibun"
-    };
+    }).send();
   }
 }
 ```
@@ -337,7 +337,7 @@ bun ace make:model User
 Generated file:
 
 ```text
-app/Models/User.ts
+app/models/User.ts
 ```
 
 Example:

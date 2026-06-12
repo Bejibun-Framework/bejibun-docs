@@ -1,76 +1,120 @@
 ---
-title: "Claude Code setup"
-description: "Configure Claude Code for your documentation workflow"
-icon: "asterisk"
+title: "Routing"
+description: "Define HTTP routes with the Router facade and map them to controllers."
+icon: "route"
 ---
 
-Claude Code is Anthropic's official CLI tool. This guide will help you set up Claude Code to help you write and maintain your documentation.
+Bejibun routes are defined with the **`Router` facade** and registered from the files in your `routes/` directory. Every incoming request is matched against these routes and dispatched to a controller method (or an inline handler).
 
-## Prerequisites
+## The routes directory
 
-- Active Claude subscription (Pro, Max, or API access)
-
-## Setup
-
-1. Install Claude Code globally:
-
-  ```bash
-  npm install -g @anthropic-ai/claude-code
+```text
+routes/
+├── api.ts          # root API group (required)
+├── api/            # feature route files
+│   ├── hello.ts
+│   └── test.ts
+├── web.ts          # web routes (required)
+├── websocket.ts    # websocket routes (required)
+└── websocket/
+    └── chat.ts
 ```
 
-2. Navigate to your docs directory.
-3. (Optional) Add the `CLAUDE.md` file below to your project.
-4. Run `claude` to start.
+`routes/api.ts` is the entry point for your API. It groups the feature files under a shared `api` prefix:
 
-## Create `CLAUDE.md`
+```ts routes/api.ts
+import Router from "@bejibun/core/facades/Router";
+import hello from "@/routes/api/hello";
+import test from "@/routes/api/test";
 
-Create a `CLAUDE.md` file at the root of your documentation repository to train Claude Code on your specific documentation standards:
+export default Router.prefix("api").group([
+    hello,
+    test
+]);
+```
 
-````markdown
-# Mintlify documentation
+<Note>
+`routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist — the server throws on startup if any is missing.
+</Note>
 
-## Working relationship
-- You can push back on ideas-this can lead to better documentation. Cite sources and explain your reasoning when you do so
-- ALWAYS ask for clarification rather than making assumptions
-- NEVER lie, guess, or make up information
+## Defining routes
 
-## Project context
-- Format: MDX files with YAML frontmatter
-- Config: docs.json for navigation, theme, settings
-- Components: Mintlify components
+Import the `Router` facade and call a verb method. Each takes a **path** and a **handler**:
 
-## Content strategy
-- Document just enough for user success - not too much, not too little
-- Prioritize accuracy and usability of information
-- Make content evergreen when possible
-- Search for existing information before adding new content. Avoid duplication unless it is done for a strategic reason
-- Check existing patterns for consistency
-- Start by making the smallest reasonable changes
+```ts routes/api/test.ts
+import Router from "@bejibun/core/facades/Router";
 
-## Frontmatter requirements for pages
-- title: Clear, descriptive page title
-- description: Concise summary for SEO/navigation
+export default Router.prefix("test").group([
+    Router.get("get", "TestController@get"),
+    Router.get("detail/:id", "TestController@detail"),
+    Router.post("add", "TestController@add"),
+    Router.post("edit", "TestController@edit"),
+    Router.delete("delete/:id", "TestController@delete")
+]);
+```
 
-## Writing standards
-- Second-person voice ("you")
-- Prerequisites at start of procedural content
-- Test all code examples before publishing
-- Match style and formatting of existing pages
-- Include both basic and advanced use cases
-- Language tags on all code blocks
-- Alt text on all images
-- Relative paths for internal links
+### Available HTTP verbs
 
-## Git workflow
-- NEVER use --no-verify when committing
-- Ask how to handle uncommitted changes before starting
-- Create a new branch when no clear branch exists for changes
-- Commit frequently throughout development
-- NEVER skip or disable pre-commit hooks
+| Method | Signature |
+| --- | --- |
+| `Router.get(path, handler)` | `GET` |
+| `Router.post(path, handler)` | `POST` |
+| `Router.put(path, handler)` | `PUT` |
+| `Router.patch(path, handler)` | `PATCH` |
+| `Router.delete(path, handler)` | `DELETE` |
+| `Router.head(path, handler)` | `HEAD` |
+| `Router.options(path, handler)` | `OPTIONS` |
+| `Router.connect(path, handler)` | `CONNECT` |
+| `Router.trace(path, handler)` | `TRACE` |
 
-## Do not
-- Skip frontmatter on any MDX file
-- Use absolute URLs for internal links
-- Include untested code examples
-- Make assumptions - always ask for clarification
-````
+Two helpers register several verbs at once:
+
+```ts
+// respond to a specific set of methods
+Router.match([HttpMethodEnum.Get, HttpMethodEnum.Post], "search", "SearchController@run");
+
+// respond to every HTTP method
+Router.any("health", "HealthController@check");
+```
+
+`HttpMethodEnum` is exported from `@bejibun/utils/enums/HttpMethodEnum`.
+
+## Handlers
+
+A handler can be a **controller reference string** or an **inline function**.
+
+<CodeGroup>
+```ts Controller reference
+// "ControllerName@method" — resolved from app/controllers/
+Router.get("users", "UserController@index");
+```
+
+```ts Inline handler
+import type {HandlerType} from "@bejibun/core/types";
+
+const handler: HandlerType = async (request) => {
+    return Response.json({ framework: "Bejibun", status: "running" });
+};
+
+Router.get("/", handler);
+```
+</CodeGroup>
+
+The string form is `"Controller@method"`. Bejibun resolves the controller from the group's namespace (default `app/controllers`) and binds the method. An invalid `Controller@method` reference throws a `RouterException`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Route Parameters" icon="brackets-curly" href="/http-layer/route-parameters">
+    Capture dynamic segments like `:id`.
+  </Card>
+  <Card title="Route Groups" icon="layer-group" href="/http-layer/route-groups">
+    Share a prefix, middleware, and resource routes.
+  </Card>
+  <Card title="Controllers" icon="gears" href="/http-layer/controllers">
+    Handle requests with controller classes.
+  </Card>
+  <Card title="Middleware" icon="filter" href="/http-layer/middleware">
+    Intercept requests before they hit a controller.
+  </Card>
+</CardGroup>

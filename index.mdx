@@ -1,135 +1,86 @@
-Validation
-├── Introduction
-├── Creating Validators
-├── Custom Rules
-├── Validation Messages
-└── Request Validation
+---
+title: "Bejibun"
+description: "A batteries-included TypeScript framework for building scalable APIs, Web3 platforms, and backend services — powered by Bun."
+icon: "house"
+---
 
-Database
-├── Introduction
-├── Connections
-├── Query Builder
-├── Transactions
-├── Raw Queries
-├── Pagination
-└── Multiple Databases
+**Bejibun** brings Laravel-style developer experience to the Bun runtime. It's a batteries-included, MVC, TypeScript-first framework with everything you need to build production APIs — routing, controllers, validation, an ORM with soft deletes, migrations, queues, scheduling, WebSockets, caching, storage, and an `ace` CLI — without assembling a dozen libraries yourself.
 
-ORM
-├── Models
-├── CRUD Operations
-├── Relationships
-├── Eager Loading
-├── Scopes
-├── Mutators
-├── Serialization
-├── Soft Deletes
-└── Model Events
+<CardGroup cols={2}>
+  <Card title="What is Bejibun?" icon="circle-question" href="/introduction/what-is-bejibun">
+    Understand the framework, its philosophy, and where it fits.
+  </Card>
+  <Card title="Installation" icon="download" href="/getting-started/installation">
+    Install Bun, scaffold a project, and run your first server.
+  </Card>
+  <Card title="Routing" icon="route" href="/http-layer/routing">
+    Define routes and map them to controllers.
+  </Card>
+  <Card title="Models & ORM" icon="table" href="/database/models">
+    Work with the database using Objection-powered models.
+  </Card>
+</CardGroup>
 
-Schema Builder
-├── Migrations
-├── Column Types
-├── Indexes
-├── Foreign Keys
-└── Rollbacks
+## Quickstart
 
-Database Seeding
-├── Seeders
-├── Factories
-└── Testing Data
+<Steps>
+  <Step title="Install Bun">
+    ```bash
+    curl -fsSL https://bun.sh/install | bash
+    ```
+  </Step>
+  <Step title="Create a project">
+    ```bash
+    bunx @bejibun/cli my-app
+    ```
+  </Step>
+  <Step title="Run the dev server">
+    ```bash
+    cd my-app
+    bun dev
+    ```
+    Your app is now running at `http://127.0.0.1:3000`.
+  </Step>
+</Steps>
 
-Authentication
-├── Overview
-├── Session Authentication
-├── JWT Authentication
-├── API Tokens
-├── Guards
-└── Password Hashing
+## Explore the framework
 
-Authorization
-├── Gates
-├── Policies
-└── Route Protection
+<CardGroup cols={3}>
+  <Card title="Validation" icon="circle-check" href="/validation/introduction">
+    Type-safe request validation with Vine.js.
+  </Card>
+  <Card title="Database & ORM" icon="database" href="/database/models">
+    Models, CRUD, soft deletes, migrations, seeders.
+  </Card>
+  <Card title="Caching" icon="bolt" href="/caching/cache">
+    Local and Redis cache drivers.
+  </Card>
+  <Card title="File Storage" icon="folder-open" href="/storage/file-storage">
+    Local and S3 disks behind one API.
+  </Card>
+  <Card title="Queues & Jobs" icon="list-ol" href="/background/queues">
+    Defer work to background workers.
+  </Card>
+  <Card title="Task Scheduling" icon="clock" href="/background/scheduler">
+    Cron-style scheduled commands.
+  </Card>
+  <Card title="WebSockets" icon="tower-broadcast" href="/realtime/websockets">
+    Realtime features on Bun's native server.
+  </Card>
+  <Card title="OpenAPI & Swagger" icon="book-open" href="/api-development/openapi">
+    Auto-generated API docs from your routes.
+  </Card>
+  <Card title="x402 Payments" icon="money-bill-transfer" href="/api-development/x402-payments">
+    HTTP-native crypto payments.
+  </Card>
+</CardGroup>
 
-Caching
-├── Cache Drivers
-├── Redis
-├── Tags
-└── Cache Invalidation
+## Built on a modern stack
 
-Storage
-├── Local Storage
-├── S3 Storage
-├── File Uploads
-└── Signed URLs
-
-Queues
-├── Introduction
-├── Drivers
-├── Jobs
-├── Failed Jobs
-└── Queue Monitoring
-
-Scheduling
-├── Task Scheduler
-├── Cron Expressions
-└── Scheduled Commands
-
-Realtime
-├── WebSockets
-├── Channels
-├── Broadcasting
-└── Presence Channels
-
-API Development
-├── REST APIs
-├── API Resources
-├── Versioning
-├── Rate Limiting
-├── OpenAPI
-├── Swagger UI
-└── x402 Payments
-
-Testing
-├── Unit Testing
-├── HTTP Testing
-├── Database Testing
-├── Mocking
-└── CI Integration
-
-Security
-├── CSRF Protection
-├── CORS
-├── Security Headers
-├── Rate Limiting
-└── Encryption
-
-CLI
-├── Ace CLI Overview
-├── Generators
-├── Database Commands
-├── Maintenance Commands
-├── Cache Commands
-└── Custom Commands
-
-Advanced
-├── Events
-├── Listeners
-├── Dependency Injection
-├── Package Development
-├── Multi-Tenancy
-└── Performance Optimization
-
-Deployment
-├── Bun Runtime
-├── Docker
-├── PM2
-├── Nginx
-├── Reverse Proxy
-└── Production Checklist
-
-Reference
-├── Configuration Reference
-├── Environment Variables
-├── CLI Commands
-├── Error Codes
-└── Upgrade Guides
+| Layer | Technology |
+| --- | --- |
+| Runtime, package manager, bundler | [Bun](https://bun.com) |
+| ORM & query layer | [Objection.js](https://vincit.github.io/objection.js) |
+| Migrations & seeders | [Knex.js](https://knexjs.org) |
+| Validation | [Vine.js](https://vinejs.dev) |
+| Date & time | [Luxon](https://moment.github.io/luxon) |

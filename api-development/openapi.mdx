@@ -1,0 +1,88 @@
+---
+title: "OpenAPI & Swagger"
+description: "Generate interactive API documentation from your routes with the @ApiDoc decorator."
+icon: "book-open"
+---
+
+Bejibun generates an OpenAPI specification from your API routes at startup. Annotate controller methods with the global `@ApiDoc` decorator to enrich the output, then explore it through the built-in API viewer.
+
+## The `@ApiDoc` decorator
+
+`@ApiDoc` is available globally — no import needed. Add it above a controller method to describe the endpoint:
+
+```ts app/controllers/HelloController.ts
+@ApiDoc({
+    description: "Hello with Name",
+    request: {
+        params: [
+            { name: "name", in: "path", required: true, schema: { type: "string" } }
+        ]
+    }
+})
+public async helloName(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+    await super.validate(HelloValidator.helloName, body);
+
+    return super.response.setData({
+        message: `Hello, ${body.name}!`
+    }).send();
+}
+```
+
+### Configuration shape
+
+```ts
+type ApiDocConfig = {
+    description?: string;
+    deprecated?: boolean;
+    tags?: Array<string>;
+    request?: {
+        params?: Array<{
+            name: string;
+            in: "header" | "path" | "query";
+            required: boolean;
+            schema: { type: "string" };
+        }>;
+    };
+    response?: {
+        [statusCode: number]: Array<{
+            description: string;
+            content: { [contentType: string]: { example: any } };
+        }>;
+    };
+};
+```
+
+## How generation works
+
+On startup, the server walks every API route and its `@ApiDoc` metadata, rewrites `:param` path segments to `{param}`, and writes the merged spec to `public/apis.json`. Routes without `@ApiDoc` still appear, with a default `200` success response.
+
+## Viewing the docs
+
+| Route | Serves |
+| --- | --- |
+| `/apis` | The interactive API viewer |
+| `public/apis.json` | The generated OpenAPI spec |
+
+You can also (re)inspect routes from the CLI:
+
+```bash
+bun ace route:list
+```
+
+## The OpenAPI template
+
+The base document — title, servers, security schemes, tags — comes from `config/route.ts`. It pre-defines API-key and bearer security schemes:
+
+```ts config/route.ts
+securitySchemes: {
+    ApiKeyAuth: { type: "apiKey", in: "header", name: "x-api-key" },
+    BearerAuth: { type: "http", scheme: "bearer" }
+}
+```
+
+Adjust the `info`, `servers`, and `tags` in that file to match your API.
+
+<Tip>
+Keep `@ApiDoc` annotations next to the logic they describe — the spec stays accurate because it's generated from the same code that handles requests.
+</Tip>

@@ -1,96 +1,77 @@
 ---
-title: "Windsurf setup"
-description: "Configure Windsurf for your documentation workflow"
-icon: "water"
+title: "File Uploads"
+description: "Receive uploaded files via parse() and persist them with the Storage facade."
+icon: "upload"
 ---
 
-Configure Windsurf's Cascade AI assistant to help you write and maintain documentation. This guide shows how to set up Windsurf specifically for your Mintlify documentation workflow.
+File uploads flow through the same `super.parse(request)` you use for any other input. Uploaded files arrive as native `File` objects, which you then persist with the [`Storage`](/) facade.
 
-## Prerequisites
+## Receiving an upload
 
-- Windsurf editor installed
-- Access to your documentation repository
+For a `multipart/form-data` request, `parse()` includes uploaded files alongside regular fields:
 
-## Workspace rules
+```ts app/controllers/UploadController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import Storage from "@bejibun/core/facades/Storage";
 
-Create workspace rules that provide Windsurf with context about your documentation project and standards.
+export default class UploadController extends BaseController {
+    public async store(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
 
-Create `.windsurf/rules.md` in your project root:
+        const file = body.avatar as File;       // the uploaded file
+        const content = await file.arrayBuffer();
 
-````markdown
-# Mintlify technical writing rule
+        await Storage.disk("public").put(`avatars/${file.name}`, content);
 
-## Project context
-
-- This is a documentation project on the Mintlify platform
-- We use MDX files with YAML frontmatter  
-- Navigation is configured in `docs.json`
-- We follow technical writing best practices
-
-## Writing standards
-
-- Use second person ("you") for instructions
-- Write in active voice and present tense
-- Start procedures with prerequisites
-- Include expected outcomes for major steps
-- Use descriptive, keyword-rich headings
-- Keep sentences concise but informative
-
-## Required page structure
-
-Every page must start with frontmatter:
-
-```yaml
----
-title: "Clear, specific title"
-description: "Concise description for SEO and navigation"
----
+        return super.response
+            .setMessage("Uploaded")
+            .setData({ name: file.name, size: file.size })
+            .send();
+    }
+}
 ```
 
-## Mintlify components
+## Storing files
 
-### Callouts
+The `Storage` facade writes to the disks configured in `config/disk.ts` (a `local` and a `public` disk ship by default):
 
-- `<Note>` for helpful supplementary information
-- `<Warning>` for important cautions and breaking changes
-- `<Tip>` for best practices and expert advice  
-- `<Info>` for neutral contextual information
-- `<Check>` for success confirmations
+<CodeGroup>
+```ts Default disk
+await Storage.put("uploads/report.pdf", content);
+```
 
-### Code examples
+```ts Specific disk
+await Storage.disk("public").put("avatars/photo.png", content);
+```
 
-- When appropriate, include complete, runnable examples
-- Use `<CodeGroup>` for multiple language examples
-- Specify language tags on all code blocks
-- Include realistic data, not placeholders
-- Use `<RequestExample>` and `<ResponseExample>` for API docs
+```ts Ad-hoc disk
+import App from "@bejibun/app";
 
-### Procedures
+await Storage.build({
+    driver: "local",
+    root: App.Path.storagePath("custom")
+}).put("file.txt", content);
+```
+</CodeGroup>
 
-- Use `<Steps>` component for sequential instructions
-- Include verification steps with `<Check>` components when relevant
-- Break complex procedures into smaller steps
+The `public` disk is rooted at `storage/app/public` and exposes a public URL via `APP_URL/storage/public`.
 
-### Content organization
+## Validating uploads
 
-- Use `<Tabs>` for platform-specific content
-- Use `<Accordion>` for progressive disclosure
-- Use `<Card>` and `<CardGroup>` for highlighting content
-- Wrap images in `<Frame>` components with descriptive alt text
+Validate the rest of the form payload as usual before storing:
 
-## API documentation requirements
+```ts
+const body = await super.parse(request);
+await super.validate(UploadValidator.store, body);
 
-- Document all parameters with `<ParamField>` 
-- Show response structure with `<ResponseField>`
-- Include both success and error examples
-- Use `<Expandable>` for nested object properties
-- Always include authentication examples
+const file = body.avatar as File;
+await Storage.disk("public").put(`avatars/${file.name}`, await file.arrayBuffer());
+```
 
-## Quality standards
+<Tip>
+For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then call `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
+</Tip>
 
-- Test all code examples before publishing
-- Use relative paths for internal links
-- Include alt text for all images
-- Ensure proper heading hierarchy (start with h2)
-- Check existing patterns for consistency
-````
+<Warning>
+Never trust the client-supplied filename directly. Sanitize or generate your own name (and validate the content type / size) before writing to disk.
+</Warning>
