@@ -1,0 +1,607 @@
+---
+title: Roadmap
+description: Explore the future direction of Bejibun and discover the features planned for upcoming releases.
+---
+
+# Roadmap
+
+Bejibun is continuously evolving to provide a modern, productive, and scalable development experience for TypeScript applications running on Bun.
+
+This roadmap highlights the major areas of investment and the features planned for future releases.
+
+The roadmap serves as a guide rather than a strict commitment. Priorities may change based on community feedback, ecosystem developments, and real-world adoption.
+
+---
+
+# Vision
+
+The long-term goal of Bejibun is to become a complete application framework for Bun.
+
+The framework aims to provide:
+
+```text
+Developer Experience
+        +
+Type Safety
+        +
+Performance
+        +
+Scalability
+        +
+Extensibility
+```
+
+while maintaining a consistent and intuitive developer experience.
+
+---
+
+# Current Status
+
+Bejibun already provides a strong foundation for application development.
+
+Current capabilities include:
+
+```text
+✔ Routing
+✔ Controllers
+✔ Middleware
+✔ Validation
+✔ ORM
+✔ Migrations
+✔ Seeders
+✔ Cache
+✔ Redis
+✔ WebSockets
+✔ Logging
+✔ Error Handling
+✔ OpenAPI
+✔ Storage
+✔ Jobs
+✔ x402
+```
+
+The roadmap focuses on expanding and refining this ecosystem.
+
+---
+
+# Near-Term Goals
+
+The following features are currently high-priority areas of development.
+
+---
+
+## Authentication
+
+A first-class authentication system is planned to simplify user management and access control.
+
+Potential features include:
+
+```text
+Session Authentication
+
+Token Authentication
+
+API Authentication
+
+Password Hashing
+
+Password Reset
+
+Email Verification
+```
+
+Goal:
+
+```text
+Simple Authentication
+Without Additional Packages
+```
+
+---
+
+## Authorization
+
+Authentication identifies users.
+
+Authorization determines what users are allowed to do.
+
+Planned capabilities:
+
+```text
+Roles
+
+Permissions
+
+Policies
+
+Guards
+
+Resource Authorization
+```
+
+This will provide a complete access-control solution.
+
+---
+
+## Scheduler
+
+Applications often need recurring tasks.
+
+Examples:
+
+- Cleanup jobs
+- Reports
+- Data synchronization
+- Notification delivery
+
+Planned syntax:
+
+```ts
+Scheduler.command(
+  "report:generate"
+).daily();
+```
+
+Goal:
+
+```text
+Cron-Like Scheduling
+Using Framework APIs
+```
+
+---
+
+## Mail System
+
+Email remains a core requirement for many applications.
+
+Planned features:
+
+```text
+SMTP Support
+
+Templates
+
+Queue Integration
+
+Email Verification
+
+Password Reset Emails
+```
+
+Goal:
+
+```text
+Simple Transactional Email Delivery
+```
+
+---
+
+## HTTP Client
+
+Applications frequently communicate with external APIs.
+
+Planned capabilities:
+
+```ts
+await Http.get(url);
+
+await Http.post(url, data);
+```
+
+Features under consideration:
+
+```text
+Retries
+
+Timeouts
+
+Interceptors
+
+Authentication
+
+Request Hooks
+```
+
+---
+
+## Testing Utilities
+
+Testing support is a key part of the framework's future.
+
+Potential features:
+
+```text
+HTTP Testing
+
+Database Testing
+
+Mocking
+
+Factories
+
+Assertions
+
+Test Helpers
+```
+
+Goal:
+
+```text
+Production Confidence
+Through Automated Testing
+```
+
+---
+
+# Ecosystem Expansion
+
+Several ecosystem packages are planned to extend the framework.
+
+---
+
+## Authentication Package
+
+```text
+@bejibun/auth
+```
+
+Potential capabilities:
+
+- Authentication workflows
+- Session management
+- Token management
+- User security features
+
+---
+
+## Mail Package
+
+```text
+@bejibun/mail
+```
+
+Potential capabilities:
+
+- SMTP drivers
+- Template rendering
+- Queue integration
+
+---
+
+## HTTP Client Package
+
+```text
+@bejibun/http
+```
+
+Potential capabilities:
+
+- API consumption
+- Retry support
+- Request abstraction
+
+---
+
+## Testing Package
+
+```text
+@bejibun/testing
+```
+
+Potential capabilities:
+
+- Framework-aware testing helpers
+- Assertions
+- Mocking utilities
+
+---
+
+# ORM Enhancements
+
+The ORM will continue to evolve with additional developer-friendly features.
+
+Potential improvements:
+
+```text
+Advanced Relationships
+
+Query Optimization
+
+Model Factories
+
+Database Transactions
+
+Query Profiling
+
+Database Observers
+```
+
+The goal is to provide a powerful data layer while maintaining simplicity.
+
+---
+
+# Queue Improvements
+
+Background processing is an important part of modern applications.
+
+Future enhancements may include:
+
+```text
+Delayed Jobs
+
+Retry Policies
+
+Failed Job Dashboard
+
+Queue Priorities
+
+Multiple Queue Drivers
+
+Monitoring Tools
+```
+
+These features will improve reliability and operational visibility.
+
+---
+
+# Realtime Improvements
+
+WebSockets are already supported, but additional realtime capabilities are planned.
+
+Potential enhancements:
+
+```text
+Channels
+
+Presence Tracking
+
+Broadcasting
+
+Private Channels
+
+Event Streaming
+```
+
+Goal:
+
+```text
+First-Class Realtime Applications
+```
+
+---
+
+# Developer Experience Improvements
+
+Developer productivity remains a core focus.
+
+Future enhancements may include:
+
+```text
+Improved CLI Tools
+
+Code Generators
+
+Project Templates
+
+Scaffolding
+
+Better Error Messages
+
+Enhanced Documentation
+```
+
+Every release aims to reduce friction and improve workflow efficiency.
+
+---
+
+# OpenAPI Enhancements
+
+API documentation is a major part of the developer experience.
+
+Potential improvements:
+
+```text
+Automatic Schema Generation
+
+Response Documentation
+
+Authentication Documentation
+
+Example Generation
+
+Improved Explorer UI
+```
+
+Goal:
+
+```text
+Documentation By Default
+```
+
+---
+
+# Performance Initiatives
+
+Performance remains a continuous effort.
+
+Areas of investment include:
+
+```text
+Startup Optimization
+
+Routing Performance
+
+Database Efficiency
+
+Cache Improvements
+
+Memory Usage Reduction
+```
+
+By leveraging Bun's capabilities, Bejibun aims to provide excellent performance without sacrificing usability.
+
+---
+
+# Cloud & Deployment
+
+Future improvements may simplify deployment workflows.
+
+Potential features:
+
+```text
+Docker Templates
+
+Production Presets
+
+Cloud Deployment Guides
+
+Container Optimization
+
+Monitoring Integrations
+```
+
+Goal:
+
+```text
+From Development
+To Production
+With Minimal Friction
+```
+
+---
+
+# Package Development Experience
+
+Building reusable packages should feel natural.
+
+Future improvements may include:
+
+```text
+Package Scaffolding
+
+Package Discovery
+
+Extension APIs
+
+Plugin Registration
+
+Package Documentation
+```
+
+This will encourage ecosystem growth and community contributions.
+
+---
+
+# Community Priorities
+
+The roadmap is heavily influenced by real-world usage.
+
+Community feedback helps determine:
+
+- Feature priorities
+- API improvements
+- Documentation enhancements
+- Ecosystem investments
+
+The most valuable roadmap insights often come from developers actively building applications with Bejibun.
+
+---
+
+# Long-Term Vision
+
+The long-term vision is a complete framework ecosystem that enables developers to build:
+
+```text
+REST APIs
+
+Realtime Applications
+
+SaaS Platforms
+
+Enterprise Systems
+
+AI Services
+
+Developer Tools
+
+Internal Platforms
+```
+
+using a single, cohesive framework experience.
+
+---
+
+# Status Legend
+
+As the framework evolves, roadmap items may be categorized using the following statuses.
+
+| Status | Meaning |
+|----------|----------|
+| Planned | Intended for future development |
+| In Progress | Currently under active development |
+| Experimental | Available but subject to change |
+| Stable | Recommended for production use |
+| Completed | Fully implemented |
+
+---
+
+# Roadmap Principles
+
+Every roadmap decision is guided by the framework's core philosophy:
+
+```text
+Developer Experience First
+
+TypeScript First
+
+Built for Bun
+
+Convention Over Configuration
+
+Batteries Included
+
+Extensible by Design
+
+Production Ready
+```
+
+These principles help ensure that future features remain aligned with the goals of the framework.
+
+---
+
+# Contributing to the Roadmap
+
+The roadmap is not created in isolation.
+
+Developers are encouraged to:
+
+- Submit feature requests
+- Report pain points
+- Share production experiences
+- Contribute ideas
+- Participate in discussions
+
+Community feedback plays a critical role in shaping future releases.
+
+---
+
+# Looking Ahead
+
+Bejibun is still growing, but the mission remains clear:
+
+> Build a modern, productive, and scalable TypeScript framework that fully embraces the power of Bun.
+
+Each release moves the framework closer to that vision.
+
+---
+
+# Next Steps
+
+Now that you understand the direction of the framework, continue with:
+
+- Installation
+- Creating Your First Application
+- Project Structure
+
+These guides will help you start building with Bejibun today while keeping an eye on what's coming next.

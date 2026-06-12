@@ -1,0 +1,811 @@
+---
+title: Scopes
+description: Learn how Bejibun Scopes encapsulate reusable query logic, improve readability, and help maintain consistent data access patterns throughout your application.
+---
+
+# Scopes
+
+As applications grow, certain query patterns begin appearing repeatedly throughout the codebase.
+
+Consider the following query:
+
+```ts
+User.query()
+  .where("active", true);
+```
+
+Soon the same query appears in:
+
+- Controllers
+- Services
+- Jobs
+- Commands
+- API Endpoints
+
+This duplication leads to maintenance challenges and inconsistent behavior.
+
+Scopes solve this problem by allowing commonly used query logic to be defined once and reused everywhere.
+
+---
+
+# What Is A Scope?
+
+A scope is a reusable query definition attached to a model.
+
+Instead of repeatedly writing:
+
+```ts
+User.query()
+  .where("active", true);
+```
+
+you can write:
+
+```ts
+User.active();
+```
+
+The underlying query remains the same, but the intent becomes clearer.
+
+---
+
+# Why Scopes Exist
+
+Without scopes:
+
+```text
+Controller A
+    │
+    ▼
+.where("active", true)
+
+Controller B
+    │
+    ▼
+.where("active", true)
+
+Service C
+    │
+    ▼
+.where("active", true)
+```
+
+The same logic is duplicated throughout the application.
+
+Problems:
+
+```text
+Code Duplication
+
+Maintenance Overhead
+
+Inconsistent Queries
+
+Reduced Readability
+```
+
+Scopes centralize this logic.
+
+---
+
+# Scope Philosophy
+
+A scope should describe **what** is being queried rather than **how** it is queried.
+
+Good:
+
+```ts
+User.active()
+```
+
+Bad:
+
+```ts
+User.query()
+  .where("active", true);
+```
+
+everywhere.
+
+The first example communicates intent immediately.
+
+---
+
+# Scope Lifecycle
+
+A typical scope flow:
+
+```text
+Model
+  │
+  ▼
+Scope
+  │
+  ▼
+Query Builder
+  │
+  ▼
+Database
+```
+
+Scopes build on top of the Query Builder.
+
+---
+
+# Defining A Scope
+
+Scopes are typically defined directly on models.
+
+Example:
+
+```ts
+export default class User extends Model {
+  static active(query) {
+    return query.where(
+      "active",
+      true
+    );
+  }
+}
+```
+
+The scope receives a query and applies constraints.
+
+---
+
+# Using A Scope
+
+Once defined:
+
+```ts
+await User.active();
+```
+
+Instead of:
+
+```ts
+await User.query()
+  .where("active", true);
+```
+
+This creates cleaner and more expressive code.
+
+---
+
+# Simple Scope Example
+
+Without scope:
+
+```ts
+await User.query()
+  .where(
+    "verified",
+    true
+  );
+```
+
+With scope:
+
+```ts
+await User.verified();
+```
+
+The query becomes self-documenting.
+
+---
+
+# Scope Naming
+
+Scope names should describe business meaning.
+
+Good examples:
+
+```text
+active
+
+verified
+
+published
+
+featured
+
+recent
+```
+
+Avoid names that expose implementation details.
+
+Bad examples:
+
+```text
+whereStatusOne
+
+activeUsersQuery
+
+filterOne
+```
+
+---
+
+# Reusable Query Logic
+
+A scope acts as a reusable building block.
+
+Example:
+
+```text
+Active Users
+```
+
+Used by:
+
+```text
+Dashboard
+
+Reports
+
+API Endpoints
+
+Background Jobs
+```
+
+Every component shares the same query definition.
+
+---
+
+# Query Consistency
+
+Scopes ensure queries remain consistent.
+
+Without scopes:
+
+```text
+Controller A:
+active = true
+
+Controller B:
+status = active
+
+Controller C:
+enabled = true
+```
+
+Potential inconsistencies emerge.
+
+With scopes:
+
+```ts
+User.active();
+```
+
+Everywhere.
+
+---
+
+# Parameterized Scopes
+
+Scopes may accept parameters.
+
+Example:
+
+```ts
+User.byRole("admin");
+```
+
+Internally:
+
+```text
+Filter Users
+By Role
+```
+
+Parameterized scopes make query logic highly reusable.
+
+---
+
+# Filtering By Status
+
+Example:
+
+```ts
+Post.status(
+  "published"
+);
+```
+
+Flow:
+
+```text
+Scope
+   │
+   ▼
+Apply Filter
+   │
+   ▼
+Published Posts
+```
+
+The caller does not need to know query details.
+
+---
+
+# Date-Based Scopes
+
+Common examples:
+
+```ts
+Post.recent();
+
+Order.today();
+
+Invoice.overdue();
+```
+
+These names communicate intent clearly.
+
+---
+
+# Scope Composition
+
+Scopes can be combined together.
+
+Example:
+
+```ts
+User.active()
+  .verified();
+```
+
+Flow:
+
+```text
+Active Users
+      │
+      ▼
+Verified Users
+```
+
+Scopes remain composable because they build on the Query Builder.
+
+---
+
+# Chaining Scopes
+
+Example:
+
+```ts
+Post.published()
+  .featured()
+  .recent();
+```
+
+Benefits:
+
+```text
+Readability
+
+Reusability
+
+Expressiveness
+```
+
+Complex queries become easier to understand.
+
+---
+
+# Business-Oriented Queries
+
+Scopes allow queries to reflect domain concepts.
+
+Example:
+
+```ts
+Order.pending();
+```
+
+Instead of:
+
+```ts
+Order.query()
+  .where(
+    "status",
+    "pending"
+  );
+```
+
+The scope communicates business intent directly.
+
+---
+
+# Global Scopes
+
+Some constraints should apply automatically to all queries.
+
+Example:
+
+```text
+Exclude Soft Deleted Records
+```
+
+Flow:
+
+```text
+Query
+  │
+  ▼
+Global Scope
+  │
+  ▼
+Database
+```
+
+Global scopes enforce application-wide query rules.
+
+---
+
+# Global Scope Example
+
+Automatically filter:
+
+```text
+deleted_at IS NULL
+```
+
+Result:
+
+```text
+Only Active Records
+```
+
+No additional query logic is required.
+
+---
+
+# Local Scopes
+
+Most scopes are local scopes.
+
+They are applied only when explicitly called.
+
+Example:
+
+```ts
+User.active();
+```
+
+The developer chooses when the scope should be used.
+
+---
+
+# Scope Reusability
+
+A single scope may be used hundreds of times.
+
+Example:
+
+```ts
+Post.published();
+```
+
+Used by:
+
+```text
+Homepage
+
+Search
+
+RSS Feed
+
+API
+```
+
+Changing the scope updates all usages automatically.
+
+---
+
+# Scope Testing
+
+Scopes should be tested like any other application logic.
+
+Example:
+
+```text
+Published Scope
+      │
+      ▼
+Returns Published Posts Only
+```
+
+Testing ensures query behavior remains predictable.
+
+---
+
+# Scopes And Models
+
+Scopes belong to models.
+
+Flow:
+
+```text
+Model
+  │
+  ▼
+Scope
+  │
+  ▼
+Query
+```
+
+The model becomes the natural home for reusable query definitions.
+
+---
+
+# Scopes And Query Builder
+
+Scopes are built on top of the Query Builder.
+
+Example:
+
+```text
+Scope
+  │
+  ▼
+Query Builder
+  │
+  ▼
+Database
+```
+
+All Query Builder features remain available.
+
+---
+
+# Scopes And Relationships
+
+Scopes can often be applied to relationship queries.
+
+Example:
+
+```ts
+user.posts()
+  .published();
+```
+
+Benefits:
+
+```text
+Consistency
+
+Reuse
+
+Readability
+```
+
+Relationship queries and scopes work together naturally.
+
+---
+
+# Scopes And Services
+
+Services frequently rely on scopes.
+
+Example:
+
+```ts
+User.active();
+```
+
+instead of rebuilding queries repeatedly.
+
+This keeps services focused on business logic.
+
+---
+
+# Scopes And Controllers
+
+Controllers should remain lightweight.
+
+Good:
+
+```ts
+await User.active();
+```
+
+Avoid:
+
+```ts
+await User.query()
+  .where("active", true)
+  .where("verified", true)
+  .whereNull("deleted_at");
+```
+
+inside every controller.
+
+---
+
+# Scopes And Performance
+
+Scopes do not inherently improve performance.
+
+However, they help:
+
+```text
+Centralize Query Logic
+
+Reduce Mistakes
+
+Encourage Consistency
+```
+
+Which often leads to more optimized queries over time.
+
+---
+
+# Scope Organization
+
+As applications grow:
+
+```text
+User
+ ├── active
+ ├── verified
+ ├── admin
+ └── recent
+```
+
+Well-organized scopes improve discoverability and maintainability.
+
+---
+
+# Best Practices
+
+## Use Business-Oriented Names
+
+Good:
+
+```ts
+User.active();
+```
+
+Avoid:
+
+```ts
+User.whereActive();
+```
+
+when the business meaning is obvious.
+
+---
+
+## Keep Scopes Focused
+
+A scope should solve one query concern.
+
+---
+
+## Reuse Existing Scopes
+
+Avoid duplicating query logic.
+
+---
+
+## Prefer Composition
+
+Combine small scopes rather than creating large monolithic ones.
+
+---
+
+## Test Important Scopes
+
+Reusable query logic should be verified.
+
+---
+
+# Common Mistakes
+
+### Putting Business Logic In Scopes
+
+Scopes should define queries.
+
+Services should define workflows.
+
+---
+
+### Creating Overly Complex Scopes
+
+Complex behavior becomes difficult to understand and maintain.
+
+---
+
+### Duplicating Existing Scopes
+
+Reuse rather than reimplement.
+
+---
+
+### Misleading Scope Names
+
+Names should describe what is returned.
+
+---
+
+### Ignoring Query Builder Features
+
+Scopes should complement the Query Builder, not replace it.
+
+---
+
+# Typical Scope Flow
+
+```text
+Controller
+     │
+     ▼
+Model Scope
+     │
+     ▼
+Query Builder
+     │
+     ▼
+Database
+     │
+     ▼
+Results
+```
+
+Scopes provide reusable and expressive query building blocks.
+
+---
+
+# Visual Summary
+
+```text
+Scopes
+   │
+   ├── Active
+   ├── Verified
+   ├── Published
+   ├── Featured
+   └── Recent
+   │
+   ▼
+Reusable Queries
+```
+
+Scopes transform repetitive query definitions into meaningful, reusable model APIs.
+
+---
+
+# Key Takeaways
+
+✔ Scopes encapsulate reusable query logic
+
+✔ Scopes improve readability and maintainability
+
+✔ Local scopes are applied explicitly
+
+✔ Global scopes apply automatically
+
+✔ Scopes build on top of the Query Builder
+
+✔ Scopes can accept parameters
+
+✔ Scopes can be composed and chained
+
+✔ Scopes help models express domain-specific queries
+
+Scopes are a powerful feature of the Bejibun ORM because they allow commonly used queries to become reusable, expressive, and easy to maintain throughout the application.
+
+---
+
+# What's Next?
+
+Now that you understand scopes, continue with:
+
+- Factories
+- Serialization
+- Transactions
+- Pagination
+- Database Testing
+
+These guides explain how records are generated, transformed, managed safely, and verified through automated testing.

@@ -1,0 +1,447 @@
+---
+title: "Configuration System"
+description: "Learn how Bejibun manages application configuration, environment-specific settings, and runtime options."
+---
+
+# Configuration System
+
+Configuration is the foundation of every application.
+
+Bejibun provides a centralized configuration system that allows you to define application settings, manage environment-specific values, and customize framework behavior without modifying your source code.
+
+Whether you're configuring database connections, cache drivers, storage providers, or third-party integrations, all application settings should be managed through the configuration system.
+
+## Why Configuration Matters
+
+Hardcoding values directly into your application creates several problems.
+
+```ts
+const db = new Database({
+  host: "localhost",
+  port: 5432,
+  username: "root",
+  password: "secret",
+});
+```
+
+This approach:
+
+- Exposes sensitive information
+- Makes deployments difficult
+- Prevents environment-specific configuration
+- Requires code changes for simple updates
+
+Instead, configuration should be centralized and environment-aware.
+
+```ts
+const db = new Database({
+  host: config.get("database.host"),
+});
+```
+
+This makes applications easier to maintain and deploy.
+
+---
+
+## Configuration Directory
+
+By convention, application configuration files are stored in the `config` directory.
+
+```text
+config/
+├── app.ts
+├── database.ts
+├── cache.ts
+├── storage.ts
+├── queue.ts
+└── auth.ts
+```
+
+Each file should focus on a specific area of the application.
+
+---
+
+## Configuration Files
+
+Configuration files export structured configuration objects.
+
+Example:
+
+```ts
+export default {
+  name: "Bejibun",
+  env: env("APP_ENV", "production"),
+  debug: env("APP_DEBUG", false),
+};
+```
+
+This configuration can later be accessed throughout the application.
+
+```ts
+config.get("app.name");
+```
+
+---
+
+## Accessing Configuration Values
+
+The `config` service provides access to application settings.
+
+```ts
+const appName = config.get("app.name");
+```
+
+Nested values may be accessed using dot notation.
+
+```ts
+const driver = config.get("cache.driver");
+```
+
+Example:
+
+```ts
+config.get("database.connections.mysql.host");
+```
+
+This provides a consistent API for reading configuration values.
+
+---
+
+## Default Values
+
+You may provide fallback values when retrieving configuration.
+
+```ts
+const locale = config.get(
+  "app.locale",
+  "en"
+);
+```
+
+If the configuration key does not exist, the default value is returned.
+
+This helps prevent runtime errors caused by missing configuration.
+
+---
+
+## Environment Variables
+
+Most configuration values should originate from environment variables.
+
+```env
+APP_NAME=Bejibun
+APP_ENV=production
+APP_DEBUG=false
+```
+
+Configuration file:
+
+```ts
+export default {
+  name: env("APP_NAME", "Bejibun"),
+  env: env("APP_ENV", "production"),
+  debug: env("APP_DEBUG", false),
+};
+```
+
+This allows configuration to change between environments without modifying application code.
+
+---
+
+## Environment-Specific Configuration
+
+Applications typically run in multiple environments.
+
+Examples include:
+
+- Local development
+- Testing
+- Staging
+- Production
+
+```text
+Development
+     │
+     ▼
+Configuration
+     ▲
+     │
+Production
+```
+
+Environment variables allow the same application codebase to behave differently depending on where it is deployed.
+
+---
+
+## Configuration Example
+
+Database configuration:
+
+```ts
+export default {
+  default: env("DB_CONNECTION", "postgres"),
+
+  connections: {
+    postgres: {
+      host: env("DB_HOST", "127.0.0.1"),
+      port: env("DB_PORT", 5432),
+      database: env("DB_DATABASE"),
+      username: env("DB_USERNAME"),
+      password: env("DB_PASSWORD"),
+    },
+  },
+};
+```
+
+Usage:
+
+```ts
+const host = config.get(
+  "database.connections.postgres.host"
+);
+```
+
+This keeps sensitive information outside the source code.
+
+---
+
+## Organizing Configuration
+
+As applications grow, configuration files should remain focused and modular.
+
+Good:
+
+```text
+config/
+├── app.ts
+├── auth.ts
+├── cache.ts
+├── database.ts
+├── mail.ts
+└── queue.ts
+```
+
+Avoid:
+
+```text
+config/
+└── settings.ts
+```
+
+Large monolithic configuration files become difficult to maintain.
+
+---
+
+## Package Configuration
+
+Framework packages may expose their own configuration files.
+
+```text
+config/
+├── redis.ts
+├── storage.ts
+├── swagger.ts
+└── x402.ts
+```
+
+This allows package behavior to be customized without modifying package source code.
+
+Example:
+
+```ts
+export default {
+  prefix: "/docs",
+  enabled: true,
+};
+```
+
+Packages should read configuration through the same configuration system used by the application.
+
+---
+
+## Runtime Configuration
+
+Configuration values may be read anywhere within the application.
+
+```ts
+const driver = config.get("cache.driver");
+```
+
+Examples:
+
+```ts
+const appName = config.get("app.name");
+
+const queueDriver = config.get("queue.driver");
+
+const storageDriver = config.get("storage.driver");
+```
+
+Configuration should be treated as read-only during runtime.
+
+---
+
+## Configuration and Service Providers
+
+Service Providers commonly use configuration values during application bootstrapping.
+
+```ts
+export class CacheServiceProvider {
+  register() {
+    const driver = config.get(
+      "cache.driver"
+    );
+
+    //
+  }
+}
+```
+
+This allows framework services to be configured dynamically.
+
+---
+
+## Configuration Caching
+
+In production environments, configuration may be cached to improve performance.
+
+```text
+Configuration Files
+         │
+         ▼
+ Configuration Cache
+         │
+         ▼
+ Runtime Access
+```
+
+Benefits include:
+
+- Faster application startup
+- Reduced file system access
+- Improved runtime performance
+
+> Configuration should be considered immutable once cached.
+
+---
+
+## Sensitive Data
+
+Sensitive values should always be stored in environment variables.
+
+Good:
+
+```env
+DB_PASSWORD=super-secret
+API_KEY=xxxxxxxx
+```
+
+Bad:
+
+```ts
+export default {
+  password: "super-secret",
+};
+```
+
+Never commit secrets directly into source control.
+
+---
+
+## Common Configuration Categories
+
+Most applications maintain configuration for:
+
+- Application settings
+- Database connections
+- Cache drivers
+- Storage providers
+- Authentication
+- Queues
+- Logging
+- Third-party services
+
+Keeping configuration organized makes applications easier to maintain.
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Environment Variables">
+    Store environment-specific and sensitive values outside source code.
+  </Card>
+
+  <Card title="Keep Configuration Modular">
+    Create separate configuration files for different concerns.
+  </Card>
+
+  <Card title="Use the Config Service">
+    Access configuration through the configuration system rather than importing files directly.
+  </Card>
+
+  <Card title="Avoid Hardcoded Values">
+    Application behavior should be configurable whenever possible.
+  </Card>
+</CardGroup>
+
+---
+
+## Common Mistakes
+
+### Hardcoding Configuration
+
+```ts
+const host = "localhost";
+```
+
+Prefer:
+
+```ts
+const host = config.get(
+  "database.host"
+);
+```
+
+### Storing Secrets in Source Code
+
+```ts
+export default {
+  apiKey: "secret-key",
+};
+```
+
+Use environment variables instead.
+
+### Directly Importing Config Files
+
+```ts
+import appConfig from "../../config/app";
+```
+
+Prefer:
+
+```ts
+config.get("app.name");
+```
+
+This provides a consistent abstraction layer and improves maintainability.
+
+---
+
+## Summary
+
+The Configuration System provides a centralized way to manage application settings and environment-specific behavior.
+
+It enables you to:
+
+- Organize application settings
+- Access configuration consistently
+- Manage multiple environments
+- Secure sensitive values
+- Configure framework packages
+- Improve deployment flexibility
+
+A well-structured configuration system helps keep applications portable, maintainable, and production-ready.
+
+In the next section, you'll learn how Bejibun's Logging system records application activity, errors, and operational events.

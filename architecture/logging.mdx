@@ -1,0 +1,512 @@
+---
+title: "Logging"
+description: "Learn how Bejibun records application events, errors, and operational information through its logging system."
+---
+
+# Logging
+
+Logging is an essential part of building and maintaining production applications.
+
+Bejibun provides a flexible logging system that helps you monitor application behavior, diagnose problems, track errors, and gain visibility into what is happening inside your application.
+
+A well-configured logging strategy makes debugging easier and provides valuable insights into application health and performance.
+
+## Why Logging Matters
+
+Without logging, diagnosing issues can be difficult.
+
+Consider an API request that unexpectedly fails.
+
+```ts
+try {
+  await paymentService.charge();
+} catch (error) {
+  //
+}
+```
+
+Without logging, the failure may go unnoticed.
+
+With logging:
+
+```ts
+try {
+  await paymentService.charge();
+} catch (error) {
+  logger.error(error);
+}
+```
+
+You now have visibility into what happened and when it occurred.
+
+---
+
+## Logging Levels
+
+Different events require different levels of severity.
+
+Bejibun supports common logging levels.
+
+| Level | Purpose |
+|---------|---------|
+| `debug` | Detailed debugging information |
+| `info` | General application events |
+| `notice` | Significant but expected events |
+| `warning` | Potential issues |
+| `error` | Application errors |
+| `critical` | Critical failures |
+| `alert` | Immediate attention required |
+| `emergency` | System-wide failures |
+
+Example:
+
+```ts
+logger.info("User registered");
+logger.warning("Rate limit exceeded");
+logger.error("Database connection failed");
+```
+
+Choosing the appropriate level helps filter and analyze logs effectively.
+
+---
+
+## Writing Logs
+
+The logger can be used anywhere in your application.
+
+```ts
+logger.info("Application started");
+```
+
+With additional context:
+
+```ts
+logger.info("User logged in", {
+  userId: user.id,
+});
+```
+
+Structured metadata makes logs more useful for debugging and monitoring.
+
+---
+
+## Debug Logs
+
+Debug logs provide detailed information during development.
+
+```ts
+logger.debug("Query executed", {
+  sql: query,
+});
+```
+
+These logs are useful when investigating application behavior but are often disabled in production.
+
+---
+
+## Informational Logs
+
+Informational logs record normal application activity.
+
+```ts
+logger.info("User created", {
+  userId: user.id,
+});
+```
+
+Examples include:
+
+- User registrations
+- Authentication events
+- Job processing
+- Scheduled tasks
+
+These logs help track application usage.
+
+---
+
+## Warning Logs
+
+Warnings indicate unexpected situations that do not stop application execution.
+
+```ts
+logger.warning("Storage quota nearing limit");
+```
+
+Examples include:
+
+- Deprecated API usage
+- Approaching limits
+- Missing optional resources
+
+Warnings can help identify future problems before they become critical.
+
+---
+
+## Error Logs
+
+Error logs record failures that prevent an operation from completing successfully.
+
+```ts
+try {
+  await database.connect();
+} catch (error) {
+  logger.error("Database connection failed", {
+    error,
+  });
+}
+```
+
+Errors should provide enough information to diagnose the problem.
+
+---
+
+## Critical Logs
+
+Critical logs represent severe failures affecting major functionality.
+
+```ts
+logger.critical("Primary database unavailable");
+```
+
+These events often require immediate investigation.
+
+Examples include:
+
+- Database outages
+- Queue failures
+- Authentication service failures
+
+---
+
+## Structured Logging
+
+Structured logs include contextual information alongside the message.
+
+```ts
+logger.info("Order created", {
+  orderId: order.id,
+  customerId: customer.id,
+  total: order.total,
+});
+```
+
+Output:
+
+```json
+{
+  "level": "info",
+  "message": "Order created",
+  "orderId": 123,
+  "customerId": 45,
+  "total": 99.99
+}
+```
+
+Structured logging improves filtering, searching, and analytics.
+
+---
+
+## Logging Exceptions
+
+Exceptions should typically be logged before being reported or rethrown.
+
+```ts
+try {
+  await service.execute();
+} catch (error) {
+  logger.error("Service execution failed", {
+    error,
+  });
+
+  throw error;
+}
+```
+
+Captured exception logs help identify recurring problems.
+
+---
+
+## Configuration
+
+Logging behavior is configured through the application's configuration system.
+
+```ts
+export default {
+  default: env("LOG_CHANNEL", "file"),
+
+  level: env("LOG_LEVEL", "info"),
+};
+```
+
+Environment variables:
+
+```env
+LOG_CHANNEL=file
+LOG_LEVEL=info
+```
+
+This allows logging behavior to change between environments.
+
+---
+
+## Log Channels
+
+A channel determines where log entries are written.
+
+Examples include:
+
+- File storage
+- Console output
+- Remote logging services
+- Monitoring platforms
+
+```text
+Application
+      │
+      ▼
+    Logger
+      │
+      ▼
+   Channel
+      │
+      ▼
+ Destination
+```
+
+Different channels may be used for different environments.
+
+---
+
+## File Logging
+
+File logging stores entries on disk.
+
+```text
+storage/
+└── logs/
+    └── application.log
+```
+
+Example entry:
+
+```text
+[2026-06-10 12:00:00] INFO User registered
+```
+
+File logging is a common default choice for production environments.
+
+---
+
+## Console Logging
+
+Console logging outputs logs directly to the terminal.
+
+```ts
+logger.info("Server started");
+```
+
+Output:
+
+```text
+INFO Server started
+```
+
+This is particularly useful during local development and containerized deployments.
+
+---
+
+## Logging in Services
+
+Services often generate important operational logs.
+
+```ts
+export class PaymentService {
+  async charge() {
+    logger.info("Processing payment");
+
+    //
+  }
+}
+```
+
+Logging business events provides valuable operational insight.
+
+---
+
+## Logging in Middleware
+
+Middleware is a common place to record request activity.
+
+```ts
+export class RequestLoggerMiddleware {
+  async handle(req, next) {
+    logger.info("Incoming request", {
+      method: req.method(),
+      path: req.path(),
+    });
+
+    return next();
+  }
+}
+```
+
+Request logging can assist with debugging and auditing.
+
+---
+
+## Logging Jobs and Queues
+
+Background jobs should log important lifecycle events.
+
+```ts
+logger.info("Job started");
+
+await process();
+
+logger.info("Job completed");
+```
+
+This helps diagnose queue processing issues.
+
+---
+
+## Log Context
+
+Contextual information greatly improves log usefulness.
+
+Less useful:
+
+```ts
+logger.error("Payment failed");
+```
+
+More useful:
+
+```ts
+logger.error("Payment failed", {
+  orderId: order.id,
+  customerId: customer.id,
+  gateway: "stripe",
+});
+```
+
+Include relevant identifiers whenever possible.
+
+---
+
+## Security Considerations
+
+Be careful not to log sensitive information.
+
+Avoid:
+
+```ts
+logger.info("Login attempt", {
+  password: request.password,
+});
+```
+
+Instead:
+
+```ts
+logger.info("Login attempt", {
+  email: request.email,
+});
+```
+
+Never log:
+
+- Passwords
+- API keys
+- Access tokens
+- Secret credentials
+- Sensitive personal data
+
+---
+
+## Log Retention
+
+Applications should define a retention strategy for logs.
+
+Common approaches include:
+
+- Daily rotation
+- Weekly rotation
+- Automatic cleanup
+- External archiving
+
+Without retention policies, log files may consume excessive disk space.
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Appropriate Levels">
+    Choose log levels that accurately reflect event severity.
+  </Card>
+
+  <Card title="Include Context">
+    Attach useful metadata such as IDs, timestamps, and event details.
+  </Card>
+
+  <Card title="Avoid Sensitive Data">
+    Never write passwords, tokens, or secrets to logs.
+  </Card>
+
+  <Card title="Log Meaningful Events">
+    Focus on events that help monitor and diagnose application behavior.
+  </Card>
+</CardGroup>
+
+---
+
+## Common Mistakes
+
+### Logging Too Little
+
+```ts
+catch (error) {
+  //
+}
+```
+
+Silent failures make debugging difficult.
+
+### Logging Too Much
+
+```ts
+logger.debug("Everything");
+```
+
+Excessive logging can create noise and increase storage costs.
+
+### Logging Sensitive Data
+
+```ts
+logger.info(request.body());
+```
+
+Request payloads may contain confidential information.
+
+Always review logged data carefully.
+
+---
+
+## Summary
+
+The Logging system provides visibility into your application's behavior and operational health.
+
+It enables you to:
+
+- Record application events
+- Track errors and exceptions
+- Monitor background jobs
+- Audit requests
+- Diagnose production issues
+- Improve observability
+
+A strong logging strategy is essential for maintaining reliable applications and responding effectively to operational problems.
+
+In the next section, you'll learn how Bejibun handles exceptions and application failures through its Error Handling system.

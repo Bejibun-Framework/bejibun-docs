@@ -1,336 +1,296 @@
 ---
 title: Deployment Overview
-description: Learn the fundamentals of deploying Bejibun applications to production environments and preparing your application for real-world traffic.
+description: Learn how to prepare, configure, and deploy Bejibun applications in production environments.
 ---
 
 # Deployment Overview
 
-Building an application is only part of the journey.
+Deploying a Bejibun application involves more than simply running the application on a server. A production environment must be configured to provide reliability, security, scalability, and operational visibility.
 
-Once your application is ready, it must be deployed to a production environment where users can access it reliably, securely, and efficiently.
+Bejibun applications run on the Bun runtime and can be deployed to:
 
-This guide provides a high-level overview of deploying Bejibun applications and introduces the concepts you'll encounter throughout the deployment process.
+- Virtual Private Servers (VPS)
+- Dedicated Servers
+- Docker Containers
+- Cloud Platforms
+- Kubernetes Clusters
 
-More detailed deployment guides are available later in the documentation.
+Regardless of the deployment strategy, the core deployment process remains the same.
 
 ---
 
-# What Is Deployment?
+## Production Architecture
 
-Deployment is the process of moving your application from a development environment to a server where it can serve real users.
-
-During deployment, your application typically goes through several stages:
+A typical production environment consists of several services working together.
 
 ```text
-Development
-      │
-      ▼
-Version Control
-      │
-      ▼
-Build Process
-      │
-      ▼
-Deployment
-      │
-      ▼
-Production Server
-      │
-      ▼
-Users
+Internet
+    │
+    ▼
+Reverse Proxy
+(Nginx / Caddy)
+    │
+    ▼
+Bejibun Application
+    │
+    ├── PostgreSQL
+    ├── Redis
+    └── Storage
 ```
 
-A successful deployment should be:
-
-- Repeatable
-- Reliable
-- Secure
-- Observable
-- Easy to maintain
+Depending on your application requirements, Redis and external storage providers may be optional.
 
 ---
 
-# Deployment Goals
+## Deployment Requirements
 
-Every production deployment should aim to achieve the following objectives.
+Before deploying a Bejibun application, ensure your environment provides:
 
-## Reliability
+### Required
 
-Applications should remain available and stable.
+- Bun Runtime
+- PostgreSQL Database
+- Environment Configuration
+- Writable Storage Directories
 
-Goals include:
+### Optional
 
-- Minimal downtime
-- Automatic recovery
-- Consistent performance
-- Stable infrastructure
-
----
-
-## Security
-
-Production systems must protect sensitive data.
-
-Common security measures include:
-
-- HTTPS
-- Secure credentials
-- Environment variables
-- Firewall configuration
-- Access controls
+- Redis
+- Amazon S3
+- Cloudflare R2
+- Monitoring Services
+- Load Balancers
 
 ---
 
-## Performance
+## Environment Configuration
 
-Applications should respond quickly under load.
+Production configuration should be managed through environment variables.
 
-Common optimization strategies include:
-
-- Caching
-- Database optimization
-- Compression
-- Reverse proxies
-- CDN integration
-
----
-
-## Observability
-
-You cannot fix problems you cannot see.
-
-Production environments should provide:
-
-- Logging
-- Error reporting
-- Monitoring
-- Health checks
-- Metrics collection
-
----
-
-# Production Environment Architecture
-
-A typical Bejibun deployment may look like:
-
-```text
-                Internet
-                     │
-                     ▼
-             Load Balancer
-                     │
-                     ▼
-              Reverse Proxy
-                 (Nginx)
-                     │
-                     ▼
-              Bejibun App
-                     │
-       ┌─────────────┼─────────────┐
-       ▼             ▼             ▼
-   Database       Redis        Storage
-```
-
-Not every application requires this level of infrastructure, but understanding the architecture helps as applications grow.
-
----
-
-# Runtime Requirements
-
-Bejibun is built specifically for Bun.
-
-Production servers should have:
-
-| Component | Recommended |
-|------------|------------|
-| Bun | Latest Stable |
-| Linux | Ubuntu LTS or equivalent |
-| Database | PostgreSQL, MySQL, SQLite |
-| Cache | Redis |
-| Reverse Proxy | Nginx or Caddy |
-
-Always keep dependencies updated to receive security patches and performance improvements.
-
----
-
-# Preparing for Production
-
-Before deploying, review your application configuration.
-
----
-
-## Disable Debug Mode
-
-Development:
-
-```env
-APP_DEBUG=true
-```
-
-Production:
-
-```env
-APP_DEBUG=false
-```
-
-Debug information should never be exposed publicly.
-
----
-
-## Set Production Environment
+Example:
 
 ```env
 APP_ENV=production
+APP_URL=https://example.com
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=bejibun
+DB_USER=postgres
+DB_PASSWORD=secret
 ```
 
-Many framework features behave differently depending on the current environment.
+Never commit production credentials into source control.
+
+Environment variables allow applications to be configured differently across development, staging, and production environments.
 
 ---
 
-## Configure Application URL
+## Database Setup
 
-```env
-APP_URL=https://api.example.com
-```
+Most Bejibun applications use PostgreSQL as their primary database.
 
-This allows the framework to generate correct URLs and links.
+Before serving production traffic:
 
----
-
-# Environment Variables
-
-Production environments should never store secrets in source code.
-
-Instead:
-
-```env
-DB_PASSWORD=
-
-JWT_SECRET=
-
-API_KEY=
-```
-
-should be provided through secure environment management systems.
-
-Examples include:
-
-- Server environment variables
-- Container secrets
-- Cloud secret managers
-- CI/CD pipelines
-
----
-
-# Database Preparation
-
-Before serving traffic, ensure your database is ready.
-
-Run migrations:
+1. Create the production database
+2. Configure database credentials
+3. Verify connectivity
+4. Run migrations
 
 ```bash
 bun ace migrate:latest
 ```
 
-If necessary, seed initial data:
+Migrations should always be executed before deploying new application versions that introduce schema changes.
+
+---
+
+## Running Seeders
+
+Some applications require default data to exist before startup.
+
+Examples include:
+
+- Roles
+- Permissions
+- System Settings
+- Reference Data
+
+Seeders can be executed with:
 
 ```bash
 bun ace db:seed
 ```
 
-Always verify migrations in a staging environment before applying them to production systems.
+Only run seeders when required by your application.
 
 ---
 
-# Starting the Application
+## Storage Configuration
 
-A production application is typically started using:
+Bejibun provides a storage abstraction layer that supports multiple storage drivers.
+
+Configuration is defined in:
+
+```text
+config/disk.ts
+```
+
+Available storage options may include:
+
+- Local Storage
+- Public Storage
+- Amazon S3
+- S3-Compatible Providers
+
+Applications should ensure storage locations are writable and persistent.
+
+---
+
+## User Uploads
+
+Applications that handle file uploads should carefully plan storage strategy.
+
+Examples:
+
+- Profile Images
+- Documents
+- Product Images
+- Reports
+
+Avoid storing user uploads inside temporary deployment directories.
+
+For production systems, external object storage is often recommended.
+
+---
+
+## Cloud Storage
+
+Cloud storage providers improve scalability and reliability.
+
+Common choices include:
+
+- Amazon S3
+- Cloudflare R2
+- MinIO
+- Google Cloud Storage
+
+Benefits include:
+
+- High durability
+- Automatic redundancy
+- Global availability
+- Reduced server disk usage
+
+---
+
+## Redis Integration
+
+Redis can be used to support framework features such as:
+
+- Cache
+- Queues
+- Sessions
+- Rate Limiting
+
+When enabled, Redis credentials should be configured through environment variables.
+
+Example architecture:
+
+```text
+Bejibun
+    │
+    ├── PostgreSQL
+    └── Redis
+```
+
+---
+
+## Installing Dependencies
+
+Install project dependencies before starting the application.
+
+```bash
+bun install
+```
+
+Production deployments should install only the dependencies required to run the application.
+
+---
+
+## Starting The Application
+
+Once configured, start the application using:
 
 ```bash
 bun start
 ```
 
-Example:
+For local development:
 
 ```bash
-APP_ENV=production bun start
+bun dev
 ```
 
-Your deployment platform may manage this process automatically.
+Production environments should always use the production startup command.
 
 ---
 
-# Process Management
+## Process Management
 
-Production applications should not rely on terminal sessions remaining open.
+Applications should run under a process manager to ensure reliability.
 
-Instead, use a process manager.
+Common options include:
 
-Examples:
-
-```text
-PM2
-Systemd
-Docker
-Kubernetes
-```
+- systemd
+- PM2
+- Docker
+- Kubernetes
 
 Benefits include:
 
 - Automatic restarts
 - Crash recovery
-- Process monitoring
 - Log management
-
-Example workflow:
-
-```text
-Application Crash
-        │
-        ▼
-Process Manager
-        │
-        ▼
-Automatic Restart
-```
+- Process monitoring
 
 ---
 
-# Reverse Proxies
+## Reverse Proxy
 
-Most production deployments place a reverse proxy in front of the application.
+A reverse proxy should be placed in front of the application.
 
-Example:
-
-```text
-User
- │
- ▼
-Nginx
- │
- ▼
-Bejibun
-```
-
-Benefits:
-
-- HTTPS termination
-- Compression
-- Static file serving
-- Load balancing
-- Security controls
-
-Popular options:
+Common choices:
 
 - Nginx
 - Caddy
 - Traefik
 
+Responsibilities include:
+
+- HTTPS termination
+- Request forwarding
+- Compression
+- Caching
+- Load balancing
+
+Example architecture:
+
+```text
+Users
+  │
+  ▼
+Nginx
+  │
+  ▼
+Bejibun
+```
+
 ---
 
-# HTTPS
+## HTTPS
 
-All production applications should use HTTPS.
+All production deployments should use HTTPS.
 
 Benefits include:
 
@@ -339,376 +299,200 @@ Benefits include:
 - Browser trust
 - Better SEO
 
-Example:
-
-```text
-https://example.com
-```
-
-instead of:
-
-```text
-http://example.com
-```
-
-Certificates can be obtained through providers such as:
+Certificates can be provided through:
 
 - Let's Encrypt
-- Cloudflare
-- Managed hosting providers
+- Cloud Providers
+- Commercial Certificate Authorities
 
 ---
 
-# Logging
+## Docker Deployments
 
-Logs are essential for diagnosing issues.
-
-Common production logs include:
-
-```text
-Application Logs
-
-Access Logs
-
-Error Logs
-
-Audit Logs
-```
-
-Example:
-
-```text
-storage/logs/
-```
-
-Logs should be monitored regularly and retained according to organizational requirements.
-
----
-
-# Monitoring
-
-Monitoring helps detect issues before users report them.
-
-Common metrics include:
-
-- CPU usage
-- Memory usage
-- Request latency
-- Error rates
-- Database performance
-
-Example monitoring stack:
-
-```text
-Application
-     │
-     ▼
-Metrics Collector
-     │
-     ▼
-Dashboard
-```
-
-Monitoring should be considered a production requirement rather than an optional feature.
-
----
-
-# Health Checks
-
-Health checks allow infrastructure to determine whether an application is functioning correctly.
-
-Example route:
-
-```ts
-Router.get("/health", () => {
-  return {
-    status: "ok"
-  };
-});
-```
-
-Response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-Load balancers and orchestration platforms often rely on health endpoints.
-
----
-
-# Caching
-
-Caching can significantly improve production performance.
-
-Examples:
-
-```text
-Database Query Cache
-
-Application Cache
-
-Response Cache
-
-Redis Cache
-```
-
-Benefits:
-
-- Faster responses
-- Reduced database load
-- Improved scalability
-
-Caching strategies should be evaluated based on application requirements.
-
----
-
-# Queue Workers
-
-Applications using background jobs must run queue workers separately from the web server.
-
-Example:
-
-```text
-Web Server
-     │
-     ▼
-HTTP Requests
-
-Queue Worker
-     │
-     ▼
-Background Jobs
-```
-
-Typical tasks include:
-
-- Email delivery
-- Notifications
-- Image processing
-- Data synchronization
-
----
-
-# File Storage
-
-Production file storage often differs from local development.
-
-Development:
-
-```text
-Local Disk
-```
-
-Production:
-
-```text
-Amazon S3
-
-Cloud Storage
-
-Object Storage
-```
-
-Separating storage from application servers improves scalability and reliability.
-
----
-
-# Deployment Strategies
-
-There are multiple ways to deploy a Bejibun application.
-
----
-
-## Traditional Servers
-
-```text
-Ubuntu
- ├── Nginx
- ├── Bun
- └── Database
-```
-
-Best for:
-
-- VPS hosting
-- Dedicated servers
-- Simple deployments
-
----
-
-## Docker
-
-```text
-Docker Container
- ├── Bejibun
- └── Bun Runtime
-```
-
-Benefits:
-
-- Consistent environments
-- Simplified deployments
-- Easy scaling
-
----
-
-## Kubernetes
-
-```text
-Cluster
- ├── Pods
- ├── Services
- └── Ingress
-```
-
-Best for:
-
-- Large-scale systems
-- High availability
-- Enterprise workloads
-
----
-
-## Platform-as-a-Service
-
-Examples:
-
-```text
-Railway
-Fly.io
-Render
-DigitalOcean App Platform
-```
-
-Benefits:
-
-- Simplified infrastructure
-- Automated deployments
-- Managed environments
-
----
-
-# CI/CD Pipelines
-
-Modern deployments are often automated.
+Bejibun includes Docker support for containerized deployments.
 
 Typical workflow:
 
 ```text
-Git Push
-    │
-    ▼
-Tests
-    │
-    ▼
-Build
-    │
-    ▼
-Deploy
+Build Image
+      │
+      ▼
+Run Container
+      │
+      ▼
+Serve Application
 ```
 
-Benefits:
-
-- Faster releases
-- Reduced human error
-- Consistent deployments
-
-Common platforms include:
-
-- GitHub Actions
-- GitLab CI
-- Jenkins
-- CircleCI
+Containers provide consistent deployment behavior across environments.
 
 ---
 
-# Production Checklist
+## Deployment Workflow
 
-Before going live, verify the following:
+A typical deployment process looks like:
 
-### Application
-
-- [ ] Debug mode disabled
-- [ ] Environment set to production
-- [ ] Health checks configured
-- [ ] Logging enabled
-
-### Security
-
-- [ ] HTTPS enabled
-- [ ] Secrets stored securely
-- [ ] Access controls configured
-- [ ] Dependencies updated
-
-### Database
-
-- [ ] Migrations executed
-- [ ] Backups configured
-- [ ] Monitoring enabled
-
-### Infrastructure
-
-- [ ] Process manager configured
-- [ ] Reverse proxy configured
-- [ ] Monitoring configured
-- [ ] Alerts configured
-
----
-
-# Common Mistakes
-
-Avoid the following:
-
-### Running in Debug Mode
-
-```env
-APP_DEBUG=true
+```text
+Pull Code
+    │
+    ▼
+Install Dependencies
+    │
+    ▼
+Configure Environment
+    │
+    ▼
+Run Migrations
+    │
+    ▼
+Start Application
+    │
+    ▼
+Verify Health
 ```
 
-in production.
+Automating this workflow helps reduce deployment errors.
 
 ---
 
-### Committing Secrets
+## Zero-Downtime Deployments
 
-Never commit:
+Production systems should minimize service interruptions during releases.
 
-```env
-DB_PASSWORD=
-JWT_SECRET=
-API_KEY=
+Common deployment strategies include:
+
+- Blue-Green Deployments
+- Rolling Deployments
+- Container Replacements
+
+These approaches allow new versions to be released with little or no downtime.
+
+---
+
+## Health Checks
+
+Health checks allow infrastructure and monitoring systems to determine whether the application is operating correctly.
+
+Health checks typically verify:
+
+- Application Status
+- Database Connectivity
+- Redis Connectivity
+- Service Availability
+
+Reliable health checks improve operational visibility.
+
+---
+
+## Logging
+
+Production environments should collect and retain logs.
+
+Important log sources include:
+
+- Application Logs
+- Error Logs
+- Access Logs
+
+Logs are essential for troubleshooting and incident investigation.
+
+---
+
+## Monitoring
+
+Monitoring provides visibility into system health and performance.
+
+Typical metrics include:
+
+- CPU Usage
+- Memory Usage
+- Response Time
+- Database Performance
+- Error Rates
+
+Production applications should always be monitored.
+
+---
+
+## Backups
+
+Backups are critical for disaster recovery.
+
+Important backup targets include:
+
+- Databases
+- Uploaded Files
+- Configuration Data
+
+Backups should be tested regularly to ensure they can be restored successfully.
+
+---
+
+## Security Checklist
+
+Before going live, ensure that:
+
+- HTTPS is enabled
+- Environment variables are secured
+- Database access is restricted
+- File uploads are validated
+- Dependencies are up to date
+- Logs are monitored
+- Backups are configured
+
+Security should be reviewed continuously, not only during deployment.
+
+---
+
+## Deployment Environments
+
+Most teams maintain multiple environments.
+
+```text
+Local
+    │
+    ▼
+Development
+    │
+    ▼
+Staging
+    │
+    ▼
+Production
 ```
 
-to version control.
+Each environment should closely resemble production to reduce deployment surprises.
 
 ---
 
-### Skipping Backups
+## Example Production Architecture
 
-Every production database should have an automated backup strategy.
+```text
+Users
+  │
+  ▼
+Nginx / Load Balancer
+  │
+  ▼
+Bejibun Application
+  │
+  ├── PostgreSQL
+  ├── Redis
+  └── Storage
+```
+
+This architecture is suitable for most modern web applications built with Bejibun.
 
 ---
 
-### Deploying Without Monitoring
+## Key Takeaways
 
-Production systems should always have visibility into application health and performance.
+- Bejibun applications run on the Bun runtime.
+- PostgreSQL is the recommended production database.
+- Environment variables should be used for configuration.
+- Storage can be local or cloud-based.
+- Redis can power caching and background infrastructure.
+- Docker is supported for containerized deployments.
+- Reverse proxies should be used in production.
+- Monitoring, backups, and security are essential for reliable operations.
 
----
-
-# What's Next?
-
-This guide introduced the core concepts of deploying a Bejibun application.
-
-Detailed deployment instructions are covered later in the documentation, including:
-
-- Bun Runtime Deployment
-- Docker Deployment
-- Nginx Configuration
-- Reverse Proxy Setup
-- Production Optimization
-- Monitoring & Logging
-
-With deployment fundamentals covered, you're ready to continue exploring the framework's core concepts and internal architecture.
+Deployment is the final stage of the application lifecycle, transforming a Bejibun application from development code into a production-ready service available to users.

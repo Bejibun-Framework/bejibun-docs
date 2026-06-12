@@ -1,0 +1,1009 @@
+---
+title: File Uploads
+description: Learn how Bejibun handles file uploads, validation, storage, security, and file management across local and cloud storage providers.
+---
+
+# File Uploads
+
+File uploads are a fundamental feature of modern applications.
+
+Common examples include:
+
+- Profile pictures
+- Product images
+- Documents
+- Videos
+- Audio files
+- Attachments
+- Generated reports
+
+While uploading a file appears simple, a production-ready upload system must handle:
+
+```text
+Validation
+
+Storage
+
+Security
+
+Organization
+
+Performance
+
+Scalability
+```
+
+Bejibun provides a unified file upload workflow that integrates directly with the Storage system.
+
+---
+
+# What Is A File Upload?
+
+A file upload is the process of transferring a file from a client to the application.
+
+Flow:
+
+```text
+User
+ │
+ ▼
+Select File
+ │
+ ▼
+HTTP Request
+ │
+ ▼
+Application
+ │
+ ▼
+Storage
+```
+
+The application receives, validates, and stores the uploaded file.
+
+---
+
+# Upload Lifecycle
+
+A typical upload follows this lifecycle:
+
+```text
+Choose File
+      │
+      ▼
+Upload Request
+      │
+      ▼
+Validation
+      │
+      ▼
+Storage
+      │
+      ▼
+Database Record
+      │
+      ▼
+Response
+```
+
+Each stage is important for reliability and security.
+
+---
+
+# Why File Uploads Matter
+
+Applications rely heavily on user-generated content.
+
+Examples:
+
+```text
+User Avatars
+
+Product Images
+
+Invoices
+
+Attachments
+
+Videos
+```
+
+Without a structured upload system, file management quickly becomes difficult.
+
+---
+
+# Upload Philosophy
+
+Applications should never trust uploaded files automatically.
+
+Every uploaded file should be:
+
+```text
+Validated
+
+Inspected
+
+Stored Safely
+
+Referenced Properly
+```
+
+Security should always be considered first.
+
+---
+
+# Receiving Files
+
+When a client uploads a file:
+
+```text
+Client
+ │
+ ▼
+Multipart Request
+ │
+ ▼
+Server
+```
+
+The uploaded file becomes available through the request object.
+
+---
+
+# Multipart Requests
+
+File uploads typically use:
+
+```http
+multipart/form-data
+```
+
+This format allows files and form data to be sent together.
+
+Example:
+
+```text
+Name
+
+Email
+
+Avatar
+```
+
+in a single request.
+
+---
+
+# Single File Upload
+
+Example:
+
+```text
+Upload Avatar
+```
+
+Flow:
+
+```text
+User
+ │
+ ▼
+Select Image
+ │
+ ▼
+Upload
+ │
+ ▼
+Store File
+```
+
+One file is attached to the request.
+
+---
+
+# Multiple File Uploads
+
+Applications may support multiple uploads.
+
+Examples:
+
+```text
+Gallery Images
+
+Attachments
+
+Documents
+```
+
+Flow:
+
+```text
+User
+ │
+ ▼
+Select Multiple Files
+ │
+ ▼
+Upload
+ │
+ ▼
+Store Files
+```
+
+Each file is processed individually.
+
+---
+
+# Upload Validation
+
+Validation is one of the most important upload steps.
+
+Never store files without validation.
+
+---
+
+# File Size Validation
+
+Large uploads can impact performance.
+
+Examples:
+
+```text
+Avatar:
+5 MB Limit
+
+Video:
+500 MB Limit
+```
+
+Validation prevents excessive resource usage.
+
+---
+
+# File Type Validation
+
+Applications should restrict allowed file types.
+
+Examples:
+
+```text
+jpg
+
+png
+
+webp
+
+pdf
+```
+
+Avoid accepting unnecessary formats.
+
+---
+
+# Extension Validation
+
+Example:
+
+```text
+photo.jpg
+```
+
+Expected extension:
+
+```text
+jpg
+```
+
+Extensions help identify file types but should never be trusted alone.
+
+---
+
+# MIME Type Validation
+
+A more reliable approach.
+
+Example:
+
+```text
+image/png
+
+image/jpeg
+
+application/pdf
+```
+
+The server should verify actual file content.
+
+---
+
+# Security Considerations
+
+Uploaded files may be malicious.
+
+Examples:
+
+```text
+Executable Files
+
+Malware
+
+Script Injection
+
+Fake Images
+```
+
+Validation helps reduce these risks.
+
+---
+
+# Dangerous Uploads
+
+Avoid accepting:
+
+```text
+.exe
+
+.sh
+
+.bat
+
+.php
+```
+
+unless explicitly required.
+
+Most applications should reject executable files.
+
+---
+
+# Upload Storage
+
+After validation:
+
+```text
+Store File
+```
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Storage
+   │
+   ▼
+Disk
+```
+
+The storage layer manages persistence.
+
+---
+
+# Choosing A Disk
+
+Files may be stored on different disks.
+
+Examples:
+
+```text
+public
+
+private
+
+s3
+
+backups
+```
+
+The disk determines where files are stored.
+
+---
+
+# Public Uploads
+
+Examples:
+
+```text
+Profile Pictures
+
+Product Images
+
+Gallery Photos
+```
+
+Users may access these files directly.
+
+---
+
+# Private Uploads
+
+Examples:
+
+```text
+Invoices
+
+Contracts
+
+Reports
+
+Medical Documents
+```
+
+Access should require authorization.
+
+---
+
+# File Naming
+
+Generated names are usually safer than user-provided names.
+
+Example:
+
+```text
+avatar.png
+```
+
+may become:
+
+```text
+6af31e7a.png
+```
+
+Benefits:
+
+```text
+Uniqueness
+
+Predictability
+
+Collision Prevention
+```
+
+---
+
+# Unique File Names
+
+Unique names prevent overwriting.
+
+Without uniqueness:
+
+```text
+avatar.png
+
+avatar.png
+```
+
+Conflict occurs.
+
+With generated names:
+
+```text
+f2d1a.png
+
+a91bc.png
+```
+
+No collision occurs.
+
+---
+
+# Organizing Uploads
+
+Good organization improves maintainability.
+
+Example:
+
+```text
+avatars/
+
+documents/
+
+products/
+
+reports/
+```
+
+Avoid placing every file in a single directory.
+
+---
+
+# Directory Structure
+
+Example:
+
+```text
+uploads
+│
+├── avatars
+├── invoices
+├── reports
+└── products
+```
+
+Well-structured directories simplify management.
+
+---
+
+# Storing File References
+
+Files are typically stored in Storage.
+
+Database records store references.
+
+Example:
+
+```text
+users
+ └── avatar_path
+```
+
+The database references the file.
+
+---
+
+# Uploading Images
+
+Images are one of the most common upload types.
+
+Examples:
+
+```text
+Avatars
+
+Product Images
+
+Banners
+
+Gallery Photos
+```
+
+Image uploads often require additional processing.
+
+---
+
+# Image Processing
+
+Common operations:
+
+```text
+Resize
+
+Optimize
+
+Compress
+
+Generate Thumbnails
+```
+
+These tasks are often delegated to background jobs.
+
+---
+
+# Thumbnail Generation
+
+Flow:
+
+```text
+Upload Image
+      │
+      ▼
+Generate Thumbnail
+      │
+      ▼
+Store Thumbnail
+```
+
+This improves frontend performance.
+
+---
+
+# Document Uploads
+
+Examples:
+
+```text
+PDF
+
+DOCX
+
+CSV
+
+XLSX
+```
+
+Documents are commonly stored in private storage.
+
+---
+
+# Video Uploads
+
+Video uploads present additional challenges.
+
+Examples:
+
+```text
+Large File Sizes
+
+Long Processing Times
+
+Storage Costs
+```
+
+Cloud storage is often preferred.
+
+---
+
+# Uploading Large Files
+
+Large uploads may require:
+
+```text
+Chunked Uploads
+
+Streaming
+
+Background Processing
+```
+
+These techniques improve reliability.
+
+---
+
+# Temporary Uploads
+
+Some uploads are temporary.
+
+Examples:
+
+```text
+Draft Attachments
+
+Import Files
+
+Processing Jobs
+```
+
+Temporary files should eventually be cleaned up.
+
+---
+
+# Upload Progress
+
+Large uploads often display progress indicators.
+
+Flow:
+
+```text
+Upload Started
+      │
+      ▼
+50%
+      │
+      ▼
+100%
+```
+
+This improves user experience.
+
+---
+
+# Upload Errors
+
+Possible failures include:
+
+```text
+File Too Large
+
+Invalid Format
+
+Network Failure
+
+Storage Failure
+```
+
+Applications should handle these gracefully.
+
+---
+
+# Upload Responses
+
+Successful uploads often return:
+
+```json
+{
+  "path": "avatars/user.png",
+  "url": "https://..."
+}
+```
+
+The client can immediately use the uploaded file.
+
+---
+
+# Upload And APIs
+
+Many uploads occur through APIs.
+
+Flow:
+
+```text
+Client
+ │
+ ▼
+Upload Request
+ │
+ ▼
+API
+ │
+ ▼
+Storage
+```
+
+The API validates and stores the file.
+
+---
+
+# Upload And Models
+
+Models often own uploaded files.
+
+Example:
+
+```text
+User
+ └── Avatar
+```
+
+The model stores metadata while Storage manages the file.
+
+---
+
+# Upload And Resources
+
+Resources commonly expose file URLs.
+
+Example:
+
+```json
+{
+  "avatar":
+  "https://cdn.example.com/avatar.png"
+}
+```
+
+Resources determine how file information is returned.
+
+---
+
+# Upload And Queues
+
+Background processing is useful for:
+
+```text
+Image Optimization
+
+Video Encoding
+
+Virus Scanning
+
+Thumbnail Generation
+```
+
+Queues prevent long upload requests.
+
+---
+
+# Upload And Cloud Storage
+
+Cloud storage providers are common for uploads.
+
+Examples:
+
+```text
+Amazon S3
+
+Cloudflare R2
+
+Google Cloud Storage
+```
+
+Benefits:
+
+```text
+Scalability
+
+Durability
+
+Global Availability
+```
+
+---
+
+# Upload And Security
+
+Security should always be considered.
+
+Recommendations:
+
+```text
+Validate Files
+
+Restrict Types
+
+Limit Size
+
+Use Private Storage
+
+Scan Uploads
+```
+
+Never trust uploaded content automatically.
+
+---
+
+# Upload Testing
+
+Applications should test:
+
+```text
+Successful Uploads
+
+Invalid Files
+
+Large Files
+
+Authorization
+
+Storage Failures
+```
+
+Reliable upload systems require comprehensive testing.
+
+---
+
+# Best Practices
+
+## Validate Every Upload
+
+Never store files blindly.
+
+---
+
+## Restrict Allowed Types
+
+Accept only required formats.
+
+---
+
+## Generate Unique Names
+
+Prevent collisions and overwrites.
+
+---
+
+## Store Metadata In The Database
+
+Keep file references separate from file contents.
+
+---
+
+## Use Private Storage For Sensitive Files
+
+Protect confidential information.
+
+---
+
+# Common Mistakes
+
+### Trusting File Extensions
+
+Extensions can be spoofed.
+
+---
+
+### Storing Sensitive Files Publicly
+
+May expose private data.
+
+---
+
+### Skipping Size Validation
+
+Large uploads can impact performance.
+
+---
+
+### Using User File Names Directly
+
+Creates collisions and security concerns.
+
+---
+
+### Processing Large Files During Requests
+
+Can increase response times significantly.
+
+---
+
+# Typical Upload Flow
+
+```text
+User
+ │
+ ▼
+Choose File
+ │
+ ▼
+Upload
+ │
+ ▼
+Validate
+ │
+ ▼
+Store
+ │
+ ▼
+Database Reference
+ │
+ ▼
+Response
+```
+
+File uploads combine validation, storage, and security into a unified workflow.
+
+---
+
+# Visual Summary
+
+```text
+File Upload
+      │
+      ├── Validation
+      ├── Storage
+      ├── Security
+      ├── Processing
+      ├── Metadata
+      └── URLs
+      │
+      ▼
+Stored File
+```
+
+File uploads allow applications to safely receive, manage, and serve user-generated content.
+
+---
+
+# Key Takeaways
+
+✔ File uploads transfer files from clients to the application
+
+✔ Uploaded files should always be validated
+
+✔ File size and type restrictions improve security
+
+✔ Storage manages file persistence
+
+✔ Database records typically store file references
+
+✔ Cloud storage improves scalability
+
+✔ Background jobs help process large files
+
+✔ Secure upload workflows protect applications and users
+
+File Uploads are a core capability of Bejibun because modern applications depend on safely handling user-generated content while maintaining performance, scalability, and security.
+
+---
+
+# What's Next?
+
+Now that you understand file uploads, continue with:
+
+- Mail
+- Notifications
+- Events
+- Queues
+- Scheduling
+
+These guides explain how applications communicate with users, process background work, and automate recurring tasks.

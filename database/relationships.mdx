@@ -1,0 +1,1013 @@
+---
+title: Relationships
+description: Learn how Bejibun relationships connect models together, simplify data access, and represent real-world associations within your application.
+---
+
+# Relationships
+
+Applications rarely work with isolated data.
+
+Consider a blogging platform:
+
+```text
+User
+ │
+ └── Posts
+```
+
+Or an e-commerce system:
+
+```text
+Customer
+ │
+ └── Orders
+```
+
+Or a project management application:
+
+```text
+User
+ │
+ └── Projects
+```
+
+These connections between models are called relationships.
+
+Relationships allow models to reference, retrieve, and interact with related data naturally.
+
+---
+
+# What Is A Relationship?
+
+A relationship describes how two models are connected.
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+```
+
+A user owns multiple posts.
+
+Instead of manually writing database queries every time related data is needed, relationships provide a structured way to access it.
+
+---
+
+# Why Relationships Matter
+
+Without relationships:
+
+```text
+Load User
+    │
+    ▼
+Write Manual Query
+    │
+    ▼
+Load Posts
+```
+
+Repeated throughout the application.
+
+Problems:
+
+```text
+Duplicate Queries
+
+Complex Logic
+
+Poor Maintainability
+```
+
+Relationships centralize this logic.
+
+---
+
+# Relationship Philosophy
+
+Relationships should describe data associations, not business logic.
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+```
+
+The relationship simply answers:
+
+```text
+How Are These Models Connected?
+```
+
+This keeps data access predictable and reusable.
+
+---
+
+# Relationship Lifecycle
+
+A typical relationship flow:
+
+```text
+User Model
+      │
+      ▼
+Relationship
+      │
+      ▼
+Posts Query
+      │
+      ▼
+Database
+```
+
+Relationships generate queries automatically.
+
+---
+
+# Common Relationship Types
+
+Most applications use four primary relationship types:
+
+```text
+One-To-One
+
+One-To-Many
+
+Many-To-One
+
+Many-To-Many
+```
+
+Each represents a different data structure.
+
+---
+
+# One-To-One
+
+A single record owns exactly one related record.
+
+Example:
+
+```text
+User
+ │
+ └── Profile
+```
+
+Each user has one profile.
+
+Each profile belongs to one user.
+
+---
+
+# One-To-One Example
+
+Database:
+
+```text
+users
+ └── id
+
+profiles
+ ├── id
+ └── user_id
+```
+
+Relationship:
+
+```text
+User
+ │
+ └── Profile
+```
+
+Useful when information should be separated into dedicated tables.
+
+---
+
+# When To Use One-To-One
+
+Examples:
+
+```text
+User → Profile
+
+User → Settings
+
+User → Preferences
+
+Order → Invoice
+```
+
+Use one-to-one relationships when records are tightly coupled.
+
+---
+
+# One-To-Many
+
+One record owns many related records.
+
+Example:
+
+```text
+User
+ │
+ ├── Post
+ ├── Post
+ └── Post
+```
+
+A user may create many posts.
+
+Each post belongs to a single user.
+
+---
+
+# One-To-Many Example
+
+Database:
+
+```text
+users
+ └── id
+
+posts
+ ├── id
+ └── user_id
+```
+
+Relationship:
+
+```text
+User
+ │
+ └── Posts
+```
+
+This is one of the most common relationship types.
+
+---
+
+# When To Use One-To-Many
+
+Examples:
+
+```text
+User → Posts
+
+Category → Products
+
+Customer → Orders
+
+Project → Tasks
+```
+
+One parent record owns multiple children.
+
+---
+
+# Many-To-One
+
+The inverse of a one-to-many relationship.
+
+Example:
+
+```text
+Post
+ │
+ └── User
+```
+
+Every post belongs to one user.
+
+Multiple posts may belong to the same user.
+
+---
+
+# Parent And Child Models
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+```
+
+Parent:
+
+```text
+User
+```
+
+Child:
+
+```text
+Post
+```
+
+Understanding parent-child relationships is important when designing data structures.
+
+---
+
+# Many-To-Many
+
+Multiple records may belong to multiple other records.
+
+Example:
+
+```text
+User
+ │
+ └── Roles
+```
+
+A user may have multiple roles.
+
+A role may belong to multiple users.
+
+---
+
+# Many-To-Many Example
+
+Database:
+
+```text
+users
+
+roles
+
+role_user
+```
+
+The intermediate table connects both models.
+
+Relationship:
+
+```text
+User
+ │
+ └── Roles
+```
+
+---
+
+# Pivot Tables
+
+Many-to-many relationships require a linking table.
+
+Example:
+
+```text
+role_user
+├── user_id
+└── role_id
+```
+
+Purpose:
+
+```text
+Connect Records
+
+Store Associations
+
+Enable Many-To-Many Access
+```
+
+Pivot tables are fundamental to many-to-many relationships.
+
+---
+
+# Real-World Examples
+
+### Blog
+
+```text
+User
+ └── Posts
+```
+
+### E-Commerce
+
+```text
+Order
+ └── Products
+```
+
+### Access Control
+
+```text
+User
+ └── Roles
+```
+
+### Education
+
+```text
+Student
+ └── Courses
+```
+
+Relationships model real-world associations.
+
+---
+
+# Defining Relationships
+
+Relationships are typically defined directly on models.
+
+Example:
+
+```ts
+export default class User extends Model {
+  posts() {
+    //
+  }
+}
+```
+
+The framework uses these definitions to build relationship queries.
+
+---
+
+# Accessing Related Data
+
+Example:
+
+```ts
+const posts =
+  await user.posts();
+```
+
+Flow:
+
+```text
+User
+ │
+ ▼
+Relationship
+ │
+ ▼
+Posts
+```
+
+The relationship automatically constructs the appropriate query.
+
+---
+
+# Chaining Relationship Queries
+
+Relationships often expose query builder functionality.
+
+Example:
+
+```ts
+await user.posts()
+  .where("published", true);
+```
+
+Benefits:
+
+```text
+Flexibility
+
+Reusability
+
+Readability
+```
+
+Relationships behave like specialized queries.
+
+---
+
+# Relationship Queries
+
+Example:
+
+```text
+User
+ │
+ ▼
+Posts Query
+ │
+ ▼
+Database
+```
+
+Relationships are built on top of the Query Builder.
+
+---
+
+# Eager Loading
+
+Relationships can be loaded alongside the primary model.
+
+Example:
+
+```text
+Load User
+    │
+    ▼
+Load Posts
+```
+
+Benefits:
+
+```text
+Fewer Queries
+
+Better Performance
+
+Simpler Code
+```
+
+Eager loading is essential for performance optimization.
+
+---
+
+# Lazy Loading
+
+Relationships may also load only when accessed.
+
+Flow:
+
+```text
+User Loaded
+      │
+      ▼
+Posts Requested
+      │
+      ▼
+Additional Query
+```
+
+This is known as lazy loading.
+
+---
+
+# Eager Loading vs Lazy Loading
+
+### Eager Loading
+
+```text
+1 Query For User
+
+1 Query For Posts
+```
+
+### Lazy Loading
+
+```text
+User Loaded
+
+Posts Loaded Later
+```
+
+Choosing the appropriate strategy depends on the use case.
+
+---
+
+# The N+1 Query Problem
+
+A common performance issue:
+
+```text
+Load 100 Users
+        │
+        ▼
+Load Posts For Each User
+```
+
+Result:
+
+```text
+101 Queries
+```
+
+Instead of:
+
+```text
+2 Queries
+```
+
+Eager loading helps avoid this problem.
+
+---
+
+# Nested Relationships
+
+Relationships can be chained.
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+        │
+        └── Comments
+```
+
+Applications often contain multiple levels of related data.
+
+---
+
+# Relationship Constraints
+
+Relationships may include additional conditions.
+
+Example:
+
+```text
+Published Posts Only
+```
+
+Benefits:
+
+```text
+Reusable Logic
+
+Cleaner Controllers
+
+Consistent Queries
+```
+
+---
+
+# Relationship Counts
+
+Sometimes only counts are required.
+
+Example:
+
+```text
+User
+ └── Posts Count
+```
+
+Instead of loading every post.
+
+Benefits:
+
+```text
+Better Performance
+
+Smaller Memory Usage
+```
+
+---
+
+# Existence Queries
+
+Determine whether related records exist.
+
+Example:
+
+```text
+Users With Posts
+```
+
+Useful for filtering parent records.
+
+---
+
+# Filtering By Relationships
+
+Example:
+
+```text
+Users
+ │
+ ▼
+Has Published Posts
+```
+
+Relationships can participate in query conditions.
+
+---
+
+# Relationship Creation
+
+Related records can be created through relationships.
+
+Flow:
+
+```text
+User
+ │
+ ▼
+Create Post
+ │
+ ▼
+Post Linked Automatically
+```
+
+This simplifies association management.
+
+---
+
+# Updating Relationships
+
+Relationships may change over time.
+
+Examples:
+
+```text
+Assign Role
+
+Remove Role
+
+Move Category
+
+Transfer Ownership
+```
+
+Relationship APIs make these operations easier.
+
+---
+
+# Deleting Related Records
+
+Applications must decide how related records behave when a parent is removed.
+
+Options:
+
+```text
+Delete Children
+
+Keep Children
+
+Set NULL
+
+Prevent Deletion
+```
+
+Database constraints often control this behavior.
+
+---
+
+# Foreign Keys
+
+Relationships rely heavily on foreign keys.
+
+Example:
+
+```text
+posts.user_id
+       │
+       ▼
+users.id
+```
+
+Benefits:
+
+```text
+Referential Integrity
+
+Consistency
+
+Validation
+```
+
+Foreign keys protect data integrity.
+
+---
+
+# Relationship Serialization
+
+Relationships may be included in API responses.
+
+Example:
+
+```json
+{
+  "id": 1,
+  "posts": []
+}
+```
+
+Resources typically control how relationships are exposed.
+
+---
+
+# Relationships And Models
+
+Relationships are defined on models.
+
+Flow:
+
+```text
+Model
+  │
+  ▼
+Relationship
+  │
+  ▼
+Related Models
+```
+
+Models are the primary entry point for relationship management.
+
+---
+
+# Relationships And Query Builder
+
+Relationships internally use query builders.
+
+Example:
+
+```text
+Relationship
+      │
+      ▼
+Query Builder
+      │
+      ▼
+Database
+```
+
+This provides the full flexibility of database querying.
+
+---
+
+# Relationships And Resources
+
+Resources often transform related data.
+
+Example:
+
+```text
+User Resource
+      │
+      ▼
+Post Resource
+```
+
+Resources control how relationships appear in API responses.
+
+---
+
+# Relationships And Migrations
+
+Relationships depend on schema definitions.
+
+Example:
+
+```text
+Migration
+     │
+     ▼
+Foreign Key
+     │
+     ▼
+Relationship
+```
+
+Database design and relationships work together.
+
+---
+
+# Best Practices
+
+## Use Foreign Keys
+
+Always enforce relationships at the database level when possible.
+
+---
+
+## Eager Load Frequently Used Relationships
+
+Reduce unnecessary database queries.
+
+---
+
+## Keep Relationships Focused
+
+Relationships should describe data associations only.
+
+---
+
+## Avoid Business Logic In Relationships
+
+Keep business workflows inside services.
+
+---
+
+## Design Relationships Carefully
+
+Good schema design simplifies application development.
+
+---
+
+# Common Mistakes
+
+### Ignoring Foreign Keys
+
+This can lead to orphaned records.
+
+---
+
+### Overusing Lazy Loading
+
+May introduce performance issues.
+
+---
+
+### Deeply Nested Relationships
+
+Can become difficult to maintain and optimize.
+
+---
+
+### Duplicating Relationship Logic
+
+Define relationships once and reuse them.
+
+---
+
+### Mixing Business Logic And Data Access
+
+Relationships should only manage associations.
+
+---
+
+# Typical Relationship Flow
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Model
+   │
+   ▼
+Relationship
+   │
+   ▼
+Database
+```
+
+Relationships simplify access to connected data.
+
+---
+
+# Visual Summary
+
+```text
+Relationships
+      │
+      ├── One-To-One
+      ├── One-To-Many
+      ├── Many-To-One
+      └── Many-To-Many
+      │
+      ▼
+Related Data
+```
+
+Relationships allow models to work together naturally while preserving a clean and expressive application structure.
+
+---
+
+# Key Takeaways
+
+✔ Relationships connect models together
+
+✔ One-to-one relationships link a single record to another
+
+✔ One-to-many relationships connect parents and children
+
+✔ Many-to-many relationships use pivot tables
+
+✔ Foreign keys enforce relationship integrity
+
+✔ Eager loading improves performance
+
+✔ Relationships build on top of the Query Builder
+
+✔ Well-designed relationships simplify application development
+
+Relationships are a core feature of the Bejibun ORM because real-world applications depend on connected data rather than isolated records.
+
+---
+
+# What's Next?
+
+Now that you understand relationships, continue with:
+
+- Factories
+- Transactions
+- Pagination
+- Serialization
+- Database Testing
+
+These guides explain how data is generated, managed safely, transformed for APIs, and validated through automated testing.

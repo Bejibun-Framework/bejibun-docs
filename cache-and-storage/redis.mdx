@@ -1,0 +1,912 @@
+---
+title: Redis
+description: Learn how Bejibun integrates with Redis to provide high-performance caching, queues, sessions, rate limiting, and distributed application features.
+---
+
+# Redis
+
+Modern applications require more than a database.
+
+They often need:
+
+- Fast caching
+- Background jobs
+- Session storage
+- Rate limiting
+- Distributed locks
+- Real-time communication
+
+While databases excel at permanent storage, they are not always the best choice for high-speed operations.
+
+Redis provides an in-memory data store designed for extremely fast data access.
+
+---
+
+# What Is Redis?
+
+Redis is an in-memory key-value data store.
+
+Unlike traditional databases:
+
+```text
+Database
+     │
+     ▼
+Disk Storage
+```
+
+Redis primarily operates in memory:
+
+```text
+Redis
+   │
+   ▼
+Memory
+```
+
+This allows data to be read and written extremely quickly.
+
+---
+
+# Why Redis Exists
+
+Without Redis:
+
+```text
+Request
+   │
+   ▼
+Database
+   │
+   ▼
+Response
+```
+
+Repeated thousands of times.
+
+Problems:
+
+```text
+High Database Load
+
+Slower Responses
+
+Increased Resource Usage
+```
+
+Redis helps offload many of these operations.
+
+---
+
+# Redis Philosophy
+
+Not all data needs permanent storage.
+
+Examples:
+
+```text
+Cache
+
+Sessions
+
+Temporary Tokens
+
+Job Queues
+```
+
+These types of data benefit from fast in-memory access.
+
+Redis specializes in handling them efficiently.
+
+---
+
+# Redis Lifecycle
+
+Typical Redis workflow:
+
+```text
+Application
+      │
+      ▼
+Redis
+      │
+      ▼
+Return Data
+```
+
+Because Redis stores data in memory, operations are often completed in milliseconds.
+
+---
+
+# Redis As A Cache
+
+One of Redis's most common uses is caching.
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Redis Cache
+   │
+   ├── Hit
+   │      │
+   │      ▼
+   │   Return Data
+   │
+   └── Miss
+          │
+          ▼
+       Database
+          │
+          ▼
+       Cache Result
+```
+
+This significantly reduces database traffic.
+
+---
+
+# Redis As A Key-Value Store
+
+Redis stores data using keys and values.
+
+Example:
+
+```text
+user:1:name
+     │
+     ▼
+John Doe
+```
+
+The key identifies the value.
+
+---
+
+# Key Structure
+
+Good Redis keys are descriptive.
+
+Examples:
+
+```text
+user:1
+
+user:1:profile
+
+settings:app
+
+dashboard:stats
+```
+
+Clear key naming improves maintainability.
+
+---
+
+# String Values
+
+The simplest Redis data type.
+
+Example:
+
+```text
+Key:
+site:name
+
+Value:
+Bejibun
+```
+
+Useful for configuration and small values.
+
+---
+
+# Numeric Values
+
+Redis can efficiently store counters.
+
+Examples:
+
+```text
+Page Views
+
+Downloads
+
+API Usage
+```
+
+Redis excels at high-frequency counting operations.
+
+---
+
+# Expiring Data
+
+Redis supports automatic expiration.
+
+Example:
+
+```text
+Store Value
+      │
+      ▼
+Expire After 1 Hour
+```
+
+After expiration:
+
+```text
+Value Removed Automatically
+```
+
+This is ideal for temporary data.
+
+---
+
+# Time To Live (TTL)
+
+TTL determines how long data remains available.
+
+Examples:
+
+```text
+60 Seconds
+
+5 Minutes
+
+1 Hour
+
+24 Hours
+```
+
+TTL is heavily used for caching.
+
+---
+
+# Redis And Sessions
+
+Sessions can be stored in Redis.
+
+Flow:
+
+```text
+User Login
+      │
+      ▼
+Session Stored
+      │
+      ▼
+Redis
+```
+
+Benefits:
+
+```text
+Fast Access
+
+Shared Storage
+
+Scalability
+```
+
+Particularly useful in distributed systems.
+
+---
+
+# Redis And Authentication
+
+Authentication systems frequently use Redis.
+
+Examples:
+
+```text
+Login Tokens
+
+Verification Codes
+
+Password Reset Tokens
+```
+
+These values are temporary and ideal for expiration-based storage.
+
+---
+
+# Redis And Rate Limiting
+
+Rate limiting protects applications from abuse.
+
+Flow:
+
+```text
+Request
+   │
+   ▼
+Redis Counter
+   │
+   ▼
+Check Limits
+```
+
+Benefits:
+
+```text
+Fast Counting
+
+Low Overhead
+
+Real-Time Enforcement
+```
+
+Redis is commonly used for API throttling.
+
+---
+
+# Redis And Queues
+
+Background jobs are often stored in Redis.
+
+Flow:
+
+```text
+Application
+      │
+      ▼
+Redis Queue
+      │
+      ▼
+Worker
+```
+
+Redis provides efficient queue processing capabilities.
+
+---
+
+# Queue Example
+
+```text
+Send Email
+      │
+      ▼
+Push Job
+      │
+      ▼
+Redis Queue
+      │
+      ▼
+Worker Processes Job
+```
+
+The user does not need to wait for the email to be sent.
+
+---
+
+# Redis And Events
+
+Applications may publish messages through Redis.
+
+Example:
+
+```text
+Order Created
+      │
+      ▼
+Redis Channel
+      │
+      ▼
+Subscribers Notified
+```
+
+This enables real-time communication patterns.
+
+---
+
+# Pub/Sub
+
+Redis supports Publish/Subscribe messaging.
+
+Flow:
+
+```text
+Publisher
+      │
+      ▼
+Redis Channel
+      │
+      ▼
+Subscribers
+```
+
+Useful for notifications and event-driven architectures.
+
+---
+
+# Redis And Real-Time Features
+
+Examples:
+
+```text
+Live Notifications
+
+Chat Systems
+
+Activity Feeds
+
+Online Presence
+```
+
+Redis helps distribute real-time events efficiently.
+
+---
+
+# Redis And Distributed Systems
+
+When applications run across multiple servers:
+
+```text
+Server A
+
+Server B
+
+Server C
+```
+
+Redis provides shared state.
+
+Benefits:
+
+```text
+Consistency
+
+Coordination
+
+Scalability
+```
+
+---
+
+# Redis And Distributed Locks
+
+Sometimes only one process should perform a task.
+
+Example:
+
+```text
+Generate Daily Report
+```
+
+Flow:
+
+```text
+Acquire Lock
+      │
+      ▼
+Run Task
+      │
+      ▼
+Release Lock
+```
+
+Redis is frequently used for distributed locking.
+
+---
+
+# Redis Data Structures
+
+Redis supports multiple data types.
+
+Examples:
+
+```text
+Strings
+
+Lists
+
+Sets
+
+Sorted Sets
+
+Hashes
+
+Streams
+```
+
+Each structure serves different use cases.
+
+---
+
+# Lists
+
+Lists store ordered collections.
+
+Examples:
+
+```text
+Job Queues
+
+Task Lists
+
+Message Buffers
+```
+
+Lists are commonly used for queue implementations.
+
+---
+
+# Sets
+
+Sets store unique values.
+
+Examples:
+
+```text
+Tags
+
+Permissions
+
+User Groups
+```
+
+Duplicates are automatically prevented.
+
+---
+
+# Sorted Sets
+
+Sorted sets maintain order.
+
+Examples:
+
+```text
+Leaderboards
+
+Rankings
+
+Scores
+```
+
+Each entry has an associated score.
+
+---
+
+# Hashes
+
+Hashes store structured objects.
+
+Example:
+
+```text
+User
+ ├── Name
+ ├── Email
+ └── Role
+```
+
+Useful for storing grouped attributes.
+
+---
+
+# Streams
+
+Streams support event processing.
+
+Examples:
+
+```text
+Event Logs
+
+Activity Streams
+
+Message Processing
+```
+
+Useful for advanced real-time systems.
+
+---
+
+# Redis Persistence
+
+Although Redis is memory-focused, it can persist data.
+
+Options include:
+
+```text
+Snapshots
+
+Append-Only Files
+```
+
+Persistence protects against data loss.
+
+---
+
+# Memory Considerations
+
+Redis stores data in memory.
+
+Benefits:
+
+```text
+Extremely Fast
+```
+
+Trade-off:
+
+```text
+Memory Consumption
+```
+
+Applications should manage stored data carefully.
+
+---
+
+# Redis And Scaling
+
+Redis improves scalability by reducing load on primary databases.
+
+Without Redis:
+
+```text
+100,000 Requests
+        │
+        ▼
+100,000 Database Queries
+```
+
+With Redis:
+
+```text
+100,000 Requests
+        │
+        ▼
+5,000 Database Queries
+```
+
+Infrastructure scales more efficiently.
+
+---
+
+# Redis And High Availability
+
+Production systems often deploy Redis with:
+
+```text
+Replication
+
+Failover
+
+Clustering
+```
+
+These features improve reliability.
+
+---
+
+# Redis And Bejibun
+
+Redis integrates with several framework features.
+
+Examples:
+
+```text
+Cache
+
+Queues
+
+Sessions
+
+Rate Limiting
+
+Locks
+
+Real-Time Features
+```
+
+Many framework components can leverage Redis automatically.
+
+---
+
+# Redis And Cache
+
+Flow:
+
+```text
+Application
+      │
+      ▼
+Cache Layer
+      │
+      ▼
+Redis
+```
+
+Redis is typically the preferred production cache backend.
+
+---
+
+# Redis And Queues
+
+Flow:
+
+```text
+Job
+ │
+ ▼
+Redis
+ │
+ ▼
+Worker
+```
+
+This allows background processing at scale.
+
+---
+
+# Redis And Sessions
+
+Flow:
+
+```text
+User Session
+       │
+       ▼
+Redis
+```
+
+Sessions become accessible across multiple application servers.
+
+---
+
+# Redis And Performance
+
+Redis can dramatically improve:
+
+```text
+Response Time
+
+Throughput
+
+Scalability
+```
+
+Especially in high-traffic applications.
+
+---
+
+# Best Practices
+
+## Use Descriptive Keys
+
+Organize keys consistently.
+
+---
+
+## Set Expiration When Appropriate
+
+Temporary data should expire automatically.
+
+---
+
+## Avoid Storing Large Objects
+
+Large values consume memory quickly.
+
+---
+
+## Monitor Memory Usage
+
+Redis performance depends heavily on available memory.
+
+---
+
+## Use Redis For Fast Access
+
+Avoid treating Redis as a primary database.
+
+---
+
+# Common Mistakes
+
+### Using Redis For Permanent Storage
+
+Redis is primarily designed for speed.
+
+---
+
+### Forgetting TTLs
+
+Temporary data may accumulate unnecessarily.
+
+---
+
+### Poor Key Naming
+
+Unstructured keys become difficult to manage.
+
+---
+
+### Storing Excessive Data
+
+Memory is finite.
+
+---
+
+### Ignoring Monitoring
+
+Production Redis instances should be monitored continuously.
+
+---
+
+# Typical Redis Flow
+
+```text
+Request
+   │
+   ▼
+Application
+   │
+   ▼
+Redis
+   │
+   ▼
+Response
+```
+
+Redis acts as a high-performance layer that accelerates application operations.
+
+---
+
+# Visual Summary
+
+```text
+Redis
+  │
+  ├── Cache
+  ├── Sessions
+  ├── Queues
+  ├── Rate Limiting
+  ├── Pub/Sub
+  ├── Locks
+  └── Real-Time Features
+  │
+  ▼
+High Performance
+```
+
+Redis provides the speed and flexibility required by modern, scalable applications.
+
+---
+
+# Key Takeaways
+
+✔ Redis is an in-memory data store optimized for speed
+
+✔ Redis is commonly used for caching
+
+✔ Redis supports sessions, queues, and rate limiting
+
+✔ Redis provides automatic expiration through TTLs
+
+✔ Redis supports Pub/Sub messaging
+
+✔ Redis offers distributed locking capabilities
+
+✔ Redis helps reduce database load
+
+✔ Redis improves scalability and application performance
+
+Redis is a core infrastructure component for many Bejibun applications because it provides a fast, reliable foundation for caching, background processing, session management, and distributed system coordination.
+
+---
+
+# What's Next?
+
+Now that you understand Redis, continue with:
+
+- Queues
+- Events
+- Broadcasting
+- Rate Limiting
+- Scheduling
+
+These guides explore asynchronous processing, application communication, and the infrastructure patterns that enable modern scalable systems.

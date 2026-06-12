@@ -1,23 +1,23 @@
 ---
 title: Release Cycle
-description: Learn how Bejibun versions are released, supported, and maintained over time.
+description: Learn how Bejibun versions are released, supported, and maintained, and understand what to expect when upgrading your applications.
 ---
 
 # Release Cycle
 
-Software frameworks evolve continuously.
+Bejibun follows a predictable release cycle designed to balance stability, innovation, and long-term maintainability.
 
-New features are introduced, bugs are fixed, performance improvements are delivered, and security vulnerabilities are addressed. Understanding the release cycle helps teams plan upgrades, maintain compatibility, and keep applications secure.
+A clear release strategy helps developers confidently build and maintain applications while adopting new features at a sustainable pace.
 
-This guide explains how Bejibun versions are managed and what developers can expect from future releases.
+This page explains how Bejibun versions are released, supported, and upgraded.
 
 ---
 
-# Versioning Strategy
+# Versioning
 
-Bejibun follows the principles of Semantic Versioning (SemVer).
+Bejibun follows **Semantic Versioning (SemVer)**.
 
-A version number consists of three parts:
+Version numbers use the format:
 
 ```text
 MAJOR.MINOR.PATCH
@@ -29,333 +29,514 @@ Example:
 1.4.2
 ```
 
-| Segment | Purpose |
-|----------|----------|
-| Major | Breaking changes |
-| Minor | New features and improvements |
-| Patch | Bug fixes and security updates |
-
----
-
-## Patch Releases
-
-Patch releases contain bug fixes and security updates.
-
-Example:
-
-```text
-1.0.0 → 1.0.1
-```
-
-Patch releases should not introduce breaking changes.
-
-Typical patch updates include:
-
-- Bug fixes
-- Performance improvements
-- Security fixes
-- Documentation corrections
-- Internal optimizations
-
-Applications should generally be able to upgrade to the latest patch version without modification.
-
----
-
-## Minor Releases
-
-Minor releases introduce new functionality while maintaining backward compatibility.
-
-Example:
-
-```text
-1.2.0 → 1.3.0
-```
-
-Minor releases may include:
-
-- New framework features
-- New CLI commands
-- Additional APIs
-- Improved developer tooling
-- New integrations
-
-Existing applications should continue working without requiring code changes.
+Each segment communicates the type of changes included in a release.
 
 ---
 
 ## Major Releases
 
-Major releases may introduce breaking changes.
+Major releases introduce breaking changes.
 
 Example:
 
 ```text
-1.x.x → 2.0.0
+1.x.x
+   │
+   ▼
+2.0.0
 ```
 
-Breaking changes can include:
+Breaking changes may include:
 
-- Removed APIs
-- Renamed methods
-- Architectural improvements
-- Configuration changes
-- Framework-wide enhancements
+- API redesigns
+- Framework architecture changes
+- Removed features
+- Updated conventions
+- Dependency changes
 
-Major releases provide an opportunity to improve the framework while removing limitations from previous versions.
+Major releases may require application updates before upgrading.
 
-Whenever possible, migration guides will be provided to assist developers with the upgrade process.
+Example:
+
+```text
+1.8.0
+   │
+   ▼
+2.0.0
+```
+
+Developers should review the upgrade guide before adopting a new major version.
 
 ---
 
-# Support Policy
+## Minor Releases
 
-Each major version receives a defined support period.
+Minor releases introduce new functionality without breaking existing applications.
 
-Support is divided into two phases:
+Example:
 
-## Active Support
+```text
+1.3.0
+   │
+   ▼
+1.4.0
+```
 
-During active support, a version receives:
+Typical additions include:
+
+- New framework features
+- New commands
+- New integrations
+- Developer experience improvements
+- Performance enhancements
+
+Applications should generally be able to upgrade safely.
+
+---
+
+## Patch Releases
+
+Patch releases contain bug fixes and small improvements.
+
+Example:
+
+```text
+1.4.1
+   │
+   ▼
+1.4.2
+```
+
+Patch releases typically include:
 
 - Bug fixes
-- Security updates
-- Performance improvements
+- Security fixes
+- Stability improvements
 - Documentation updates
 
-This is the recommended version for production applications.
-
----
-
-## Security Support
-
-After active support ends, a version enters security support.
-
-During this phase, only critical security vulnerabilities are addressed.
-
-No new features or bug fixes are added.
-
-Applications should plan to upgrade before a version reaches end-of-life.
+No breaking changes should occur in patch releases.
 
 ---
 
 # Release Types
 
-Not every release serves the same purpose.
-
-Bejibun may publish different types of releases throughout its lifecycle.
+Bejibun publishes several types of releases throughout its lifecycle.
 
 ---
 
 ## Stable Releases
 
-Stable releases are production-ready versions recommended for most users.
+Stable releases are recommended for production environments.
+
+Characteristics:
+
+- Fully tested
+- Documented
+- Supported
+- Suitable for production use
 
 Example:
 
 ```text
-v1.0.0
-v1.1.0
-v1.2.3
+v1.5.0
 ```
 
-Stable releases receive full support according to the framework's support policy.
+Production applications should primarily use stable releases.
 
 ---
 
-## Preview Releases
+## Pre-Releases
 
-Preview releases allow developers to test upcoming features before they become stable.
+Pre-releases allow developers to test upcoming features before they become stable.
 
-Example:
+Examples:
 
 ```text
+v2.0.0-alpha.1
+
 v2.0.0-beta.1
-v2.0.0-beta.2
-```
 
-Preview versions may contain:
-
-- Experimental features
-- API changes
-- Incomplete functionality
-
-These releases should not be used in critical production environments.
-
----
-
-## Release Candidates
-
-Release candidates represent versions that are nearly ready for production.
-
-Example:
-
-```text
 v2.0.0-rc.1
 ```
 
-The primary purpose of release candidates is to identify remaining issues before the final release.
+These releases help the community:
+
+- Test new functionality
+- Identify bugs
+- Provide feedback
+- Validate upgrade paths
+
+Pre-releases should not be considered production-ready unless explicitly stated.
 
 ---
 
-# Backward Compatibility
+# Release Stages
 
-Maintaining compatibility is a key goal of the framework.
+New features typically move through several stages before becoming stable.
 
-Whenever possible:
+```text
+Development
+      │
+      ▼
+Alpha
+      │
+      ▼
+Beta
+      │
+      ▼
+Release Candidate
+      │
+      ▼
+Stable Release
+```
 
-- Existing APIs remain functional
-- New features are additive
-- Deprecations are announced in advance
-- Upgrade paths are documented
+This process helps ensure quality and reliability.
 
-Breaking changes should only occur during major releases.
+---
+
+## Alpha
+
+Alpha releases contain early implementations.
+
+Characteristics:
+
+- Experimental
+- Rapidly changing
+- Incomplete features
+- Not production ready
+
+Purpose:
+
+```text
+Validate Ideas
+Gather Feedback
+Test Architecture
+```
+
+---
+
+## Beta
+
+Beta releases are feature-complete but still undergoing testing.
+
+Characteristics:
+
+- Most functionality implemented
+- Potential bugs remain
+- API changes still possible
+
+Purpose:
+
+```text
+Community Testing
+Performance Validation
+Compatibility Checks
+```
+
+---
+
+## Release Candidate (RC)
+
+Release candidates are nearly complete.
+
+Characteristics:
+
+- Feature complete
+- Stability focused
+- Bug fixes only
+
+Purpose:
+
+```text
+Final Validation
+Upgrade Testing
+Production Evaluation
+```
+
+If no major issues are discovered, the release candidate becomes the stable release.
+
+---
+
+# Support Policy
+
+Each major release receives active support for a defined period.
+
+Support typically includes:
+
+- Bug fixes
+- Security updates
+- Critical stability improvements
+
+Example lifecycle:
+
+```text
+Version 1.x
+     │
+     ├── Active Support
+     │
+     ├── Security Support
+     │
+     └── End of Life
+```
+
+Support periods may evolve as the framework matures.
+
+Always review release notes for the most current support information.
+
+---
+
+# Long-Term Stability
+
+One of Bejibun's goals is to minimize unnecessary breaking changes.
+
+The framework aims to provide:
+
+- Stable APIs
+- Predictable upgrades
+- Gradual evolution
+- Backward compatibility whenever possible
+
+Breaking changes are introduced only when they provide meaningful long-term improvements.
+
+---
+
+# Upgrade Philosophy
+
+Framework upgrades should be manageable.
+
+Bejibun follows several principles when introducing changes:
+
+### Minimize Breaking Changes
+
+Existing applications should continue working whenever possible.
+
+### Document Every Breaking Change
+
+Major releases include detailed upgrade documentation.
+
+### Provide Migration Paths
+
+Developers should understand how to transition from older APIs.
+
+### Prioritize Stability
+
+New features should not compromise existing applications.
+
+---
+
+# Security Updates
+
+Security vulnerabilities are treated with high priority.
+
+Security-related releases may be published outside the normal release schedule.
+
+Example:
+
+```text
+1.4.2
+   │
+   ▼
+1.4.3
+```
+
+These updates should be applied as soon as possible.
 
 ---
 
 # Deprecation Policy
 
-Frameworks must evolve over time.
-
-Occasionally, APIs become outdated and need to be replaced.
-
-When this happens, Bejibun follows a deprecation process.
-
-### Step 1
-
-A feature is marked as deprecated.
-
-Example:
-
-```ts
-// Deprecated
-User.findById(id);
-```
-
-Documentation will indicate the preferred alternative.
-
-### Step 2
-
-Deprecation warnings may be introduced.
-
-Developers are encouraged to migrate to the replacement API.
-
-### Step 3
-
-The deprecated feature may be removed in the next major release.
-
-This process gives teams sufficient time to update their applications.
-
----
-
-# Security Releases
-
-Security is a top priority.
-
-If a vulnerability is discovered:
-
-1. The issue is investigated.
-2. A fix is developed.
-3. A security release is published.
-4. A security advisory is issued when appropriate.
-
-Developers are encouraged to keep dependencies updated and apply security releases promptly.
-
----
-
-# Upgrade Guides
-
-Every major release should be accompanied by an upgrade guide.
-
-Upgrade guides typically include:
-
-- Breaking changes
-- Removed APIs
-- Configuration updates
-- Migration instructions
-- Recommended upgrade paths
+Features may occasionally be deprecated before removal.
 
 Example:
 
 ```text
-Upgrade Guide
-├── What's New
-├── Breaking Changes
-├── Migration Steps
-├── Deprecated Features
-└── Troubleshooting
+Version 1.5
+ └── Feature Deprecated
+
+Version 2.0
+ └── Feature Removed
 ```
 
-These guides help teams upgrade with confidence.
+This process gives developers time to update applications before breaking changes occur.
+
+Typical deprecation workflow:
+
+```text
+Feature Available
+        │
+        ▼
+Deprecation Notice
+        │
+        ▼
+Replacement Available
+        │
+        ▼
+Major Release Removal
+```
 
 ---
 
-# Long-Term Vision
+# Release Notes
 
-The Bejibun release cycle is designed to provide:
+Every release should include release notes describing:
 
-- Predictable upgrades
-- Stable production environments
-- Continuous innovation
-- Long-term maintainability
+- New features
+- Bug fixes
+- Performance improvements
+- Security updates
+- Breaking changes
+- Migration instructions
 
-The framework should evolve without creating unnecessary disruption for existing applications.
+Example:
+
+```text
+v1.5.0
+
+Added:
+- WebSocket channels
+- New cache driver
+
+Improved:
+- Route performance
+
+Fixed:
+- Redis connection issue
+```
+
+Reviewing release notes before upgrading is strongly recommended.
+
+---
+
+# Recommended Upgrade Strategy
+
+For most applications:
+
+### Patch Releases
+
+Upgrade immediately.
+
+```text
+1.4.1 → 1.4.2
+```
+
+---
+
+### Minor Releases
+
+Upgrade regularly after testing.
+
+```text
+1.4.0 → 1.5.0
+```
+
+---
+
+### Major Releases
+
+Review upgrade guides before upgrading.
+
+```text
+1.x → 2.x
+```
+
+Major releases may require code changes.
 
 ---
 
 # Staying Up to Date
 
-You can stay informed about new releases through:
+To keep applications healthy:
 
-- Release notes
-- Changelogs
-- GitHub releases
-- Framework documentation
-- Community announcements
+```text
+✔ Review Release Notes
 
-Each release should clearly communicate:
+✔ Apply Security Updates
 
-- New features
-- Improvements
-- Fixes
-- Deprecations
-- Breaking changes
+✔ Monitor Deprecation Notices
 
-Transparency helps teams make informed upgrade decisions.
+✔ Test Upgrades Early
+
+✔ Follow Upgrade Guides
+```
+
+Regular maintenance is significantly easier than large, infrequent upgrades.
 
 ---
 
-# Example Release Timeline
+# Version Compatibility
 
-The following example illustrates how support may be structured.
+Applications should generally follow these guidelines:
 
-| Version | Active Support | Security Support |
-|----------|----------|----------|
-| 1.x | Yes | Yes |
-| 2.x | Yes | No |
-| 3.x | Current | Current |
+| Version Type | Expected Compatibility |
+|-------------|------------------------|
+| Patch | Fully compatible |
+| Minor | Backward compatible |
+| Major | May contain breaking changes |
 
-> The exact support schedule may evolve as the framework matures. Always refer to the latest release information for current support details.
-
----
-
-# Our Commitment
-
-Bejibun aims to balance innovation with stability.
-
-Developers should be able to adopt new features confidently while maintaining reliable production applications.
-
-By following a predictable release cycle and clear support policy, the framework can continue evolving without compromising long-term maintainability.
+This predictable model allows teams to plan upgrades confidently.
 
 ---
 
-## Next Steps
+# Framework Evolution
 
-Now that you understand how Bejibun versions are released and maintained, continue to:
+Bejibun is continuously evolving.
+
+Future releases may introduce:
+
+- New framework capabilities
+- Improved developer tooling
+- Performance optimizations
+- Additional integrations
+- Ecosystem packages
+
+While the framework grows, its core philosophy remains unchanged:
+
+```text
+Developer Experience
+
+Type Safety
+
+Performance
+
+Consistency
+
+Maintainability
+```
+
+These principles guide every release.
+
+---
+
+# Visual Summary
+
+```text
+Major Release
+      │
+      ├── Minor Release
+      │       ├── Patch
+      │       ├── Patch
+      │       └── Patch
+      │
+      ├── Minor Release
+      │       ├── Patch
+      │       └── Patch
+      │
+      ▼
+Next Major Release
+```
+
+This structure allows the framework to evolve while maintaining stability for existing applications.
+
+---
+
+# Next Steps
+
+Now that you understand how Bejibun releases are versioned and maintained, you're ready to start building.
+
+Continue with:
 
 - Installation
 - Creating Your First Application
 - Project Structure
-- Configuration
-- Environment Variables
 
-In the next chapter, you'll install Bejibun and create your first application.
+These guides will help you set up your first Bejibun application and become familiar with the framework's architecture.
