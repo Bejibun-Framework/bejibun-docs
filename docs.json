@@ -16,112 +16,112 @@
           {
             "group": "Introduction",
             "pages": [
-              "introduction/what-is-bejibun",
-              "introduction/why-bejibun",
-              "introduction/framework-philosophy",
-              "introduction/feature-overview",
-              "introduction/release-cycle"
+              "guides/introduction/what-is-bejibun",
+              "guides/introduction/why-bejibun",
+              "guides/introduction/framework-philosophy",
+              "guides/introduction/feature-overview",
+              "guides/introduction/release-cycle"
             ]
           },
           {
             "group": "Getting Started",
             "pages": [
-              "getting-started/installation",
-              "getting-started/creating-your-first-application",
-              "getting-started/project-structure",
-              "getting-started/configuration",
-              "getting-started/environment-variables",
-              "getting-started/deployment-overview"
+              "guides/getting-started/installation",
+              "guides/getting-started/creating-your-first-application",
+              "guides/getting-started/project-structure",
+              "guides/getting-started/configuration",
+              "guides/getting-started/environment-variables",
+              "guides/getting-started/deployment-overview"
             ]
           },
           {
             "group": "Core Concepts",
             "pages": [
-              "core-concepts/request-lifecycle",
-              "core-concepts/configuration-system",
-              "core-concepts/logging",
-              "core-concepts/error-handling"
+              "guides/core-concepts/request-lifecycle",
+              "guides/core-concepts/configuration-system",
+              "guides/core-concepts/logging",
+              "guides/core-concepts/error-handling"
             ]
           },
           {
             "group": "HTTP Layer",
             "pages": [
-              "http-layer/routing",
-              "http-layer/route-parameters",
-              "http-layer/route-groups",
-              "http-layer/route-model-binding",
-              "http-layer/controllers",
-              "http-layer/middleware",
-              "http-layer/request-object",
-              "http-layer/response-object",
-              "http-layer/cookies",
-              "http-layer/file-uploads"
+              "guides/http-layer/routing",
+              "guides/http-layer/route-parameters",
+              "guides/http-layer/route-groups",
+              "guides/http-layer/route-model-binding",
+              "guides/http-layer/controllers",
+              "guides/http-layer/middleware",
+              "guides/http-layer/request-object",
+              "guides/http-layer/response-object",
+              "guides/http-layer/cookies",
+              "guides/http-layer/file-uploads"
             ]
           },
           {
             "group": "Validation",
             "pages": [
-              "validation/introduction",
-              "validation/creating-validators",
-              "validation/available-rules",
-              "validation/request-validation"
+              "guides/validation/introduction",
+              "guides/validation/creating-validators",
+              "guides/validation/available-rules",
+              "guides/validation/request-validation"
             ]
           },
           {
             "group": "Database & ORM",
             "pages": [
-              "database/models",
-              "database/crud-operations",
-              "database/soft-deletes",
-              "database/migrations",
-              "database/seeders"
+              "guides/database/models",
+              "guides/database/crud-operations",
+              "guides/database/soft-deletes",
+              "guides/database/migrations",
+              "guides/database/seeders"
             ]
           },
           {
             "group": "Caching",
             "pages": [
-              "caching/cache",
-              "caching/redis"
+              "guides/caching/cache",
+              "guides/caching/redis"
             ]
           },
           {
             "group": "Storage",
             "pages": [
-              "storage/file-storage"
+              "guides/storage/file-storage"
             ]
           },
           {
             "group": "Background Processing",
             "pages": [
-              "background/queues",
-              "background/scheduler"
+              "guides/background/queues",
+              "guides/background/scheduler"
             ]
           },
           {
             "group": "Realtime",
             "pages": [
-              "realtime/websockets"
+              "guides/realtime/websockets"
             ]
           },
           {
             "group": "Security",
             "pages": [
-              "security/cors",
-              "security/rate-limiting"
+              "guides/security/cors",
+              "guides/security/rate-limiting"
             ]
           },
           {
             "group": "API Development",
             "pages": [
-              "api-development/openapi",
-              "api-development/x402-payments"
+              "guides/api-development/openapi",
+              "guides/api-development/x402-payments"
             ]
           },
           {
             "group": "CLI & Helpers",
             "pages": [
-              "cli/ace",
-              "packages/utils"
+              "guides/cli/ace",
+              "guides/packages/utils"
             ]
           }
         ]
