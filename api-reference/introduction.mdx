@@ -1,55 +1,33 @@
 ---
-title: "Introduction"
-description: "How Bejibun generates and serves your API reference."
+title: 'Introduction'
+description: 'Example section for showcasing API endpoints'
 ---
 
-Bejibun generates an OpenAPI specification directly from your routes. As your API evolves, the reference stays in sync because it's built from the same code that handles requests.
+<Note>
+  If you're not looking to build API reference documentation, you can delete
+  this section by removing the api-reference folder.
+</Note>
 
-## How it works
+## Welcome
 
-Annotate controller methods with the global [`@ApiDoc`](/api-development/openapi) decorator to describe each endpoint. At startup, the server collects this metadata, builds an OpenAPI document, and writes it to `public/apis.json`.
+There are two ways to build API documentation: [OpenAPI](https://bejibun.com/docs/api-playground/openapi/setup) and [MDX components](https://bejibun.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
 
-```ts
-@ApiDoc({
-    description: "Create a test record",
-    request: {
-        params: [
-            { name: "name", in: "query", required: true, schema: { type: "string" } }
-        ]
-    }
-})
-public async add(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(TestValidator.add, body);
-
-    return super.response.setData({ name: body.name }).send();
-}
-```
-
-## Viewing the reference
-
-| Location | Contents |
-| --- | --- |
-| `/apis` | Interactive API viewer |
-| `public/apis.json` | Generated OpenAPI spec |
-
-Rebuild or inspect routes anytime with:
-
-```bash
-bun ace route:list
-```
+<Card
+  title="Plant Store Endpoints"
+  icon="leaf"
+  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
+>
+  View the OpenAPI specification file
+</Card>
 
 ## Authentication
 
-The base document in `config/route.ts` pre-defines two security schemes you can apply to your endpoints:
+All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
 
-```ts
-securitySchemes: {
-    ApiKeyAuth: { type: "apiKey", in: "header", name: "x-api-key" },
-    BearerAuth: { type: "http", scheme: "bearer" }
-}
+```json
+"security": [
+  {
+    "bearerAuth": []
+  }
+]
 ```
-
-<Note>
-The endpoint examples in this section illustrate Mintlify's API reference components. Your live, always-current reference is generated from your own routes and served at `/apis`.
-</Note>

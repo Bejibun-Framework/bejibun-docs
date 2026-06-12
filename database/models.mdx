@@ -1,68 +1,974 @@
 ---
-title: "Models"
-description: "Define database models with BaseModel, powered by Objection.js."
-icon: "table"
+title: Models
+description: Learn how Bejibun models represent database records, interact with the ORM, manage relationships, and serve as the foundation of your application's data layer.
 ---
 
-Models are the heart of Bejibun's data layer. Each model maps to a database table and extends `BaseModel`, which builds on [Objection.js](https://vincit.github.io/objection.js) and adds soft deletes and automatic timestamps.
+# Models
 
-## Defining a model
+Models are the primary way your application interacts with database records.
 
-```bash
-bun ace make:model TestModel
+A model represents a table in your database and provides an object-oriented interface for creating, retrieving, updating, and deleting data.
+
+Instead of working directly with raw SQL, models allow you to interact with data using familiar TypeScript classes.
+
+Models are one of the most important building blocks of the Bejibun database layer.
+
+---
+
+# What Is A Model?
+
+A model is a class that represents a database table.
+
+Example:
+
+```text
+User Model
+      │
+      ▼
+users Table
 ```
 
-```ts app/models/TestModel.ts
-import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
-import BaseModel from "@bejibun/core/bases/BaseModel";
+Every instance of the model represents a single database record.
 
-export default class TestModel extends BaseModel {
-    public static tableName: string = "tests";
-    public static idColumn: string = "id";
+Example:
 
-    declare id: bigint;
-    declare name: string;
-    declare created_at: Timestamp;
-    declare updated_at: Timestamp;
-    declare deleted_at: NullableTimestamp;
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com"
 }
 ```
 
-## Conventions
+This record becomes a model object that can be manipulated within your application.
 
-| Static property | Default | Purpose |
-| --- | --- | --- |
-| `tableName` | — | The table this model maps to (required) |
-| `idColumn` | — | Primary key column (typically `"id"`) |
-| `createdColumn` | `"created_at"` | Created-at timestamp column |
-| `updatedColumn` | `"updated_at"` | Updated-at timestamp column |
-| `deletedColumn` | `"deleted_at"` | Soft-delete timestamp column |
+---
 
-The `Timestamp` type is `Luxon.DateTime | Date | string`; `NullableTimestamp` adds `null`.
+# Why Models Exist
 
-## Automatic timestamps
+Without models:
 
-`BaseModel` fills timestamps for you:
-
-- On **insert**, `created_at` and `updated_at` are set to the current time.
-- On **update**, `updated_at` is refreshed.
-
-You don't need to set these columns manually.
-
-## Querying
-
-Use the static helpers (covered in [CRUD Operations](/database/crud-operations)) or drop down to the underlying Objection query builder for anything more advanced:
-
-```ts
-const active = await TestModel.query()
-    .where("name", "like", "A%")
-    .orderBy("created_at", "desc");
+```text
+Application
+     │
+     ▼
+Raw SQL
 ```
 
-<Note>
-`Model.query()` returns a full Objection query builder, so the entire Objection/Knex query API is available.
-</Note>
+Every query would need to be written manually.
 
-## Planned
+Example:
 
-Model **relationships**, **eager loading**, **scopes**, **mutators**, and **model events** are on the roadmap (relations targeted for Q3 2026) and are not yet exposed by the framework.
+```sql
+SELECT *
+FROM users
+WHERE id = 1;
+```
+
+As applications grow:
+
+```text
+Queries Become Repetitive
+
+Business Rules Become Scattered
+
+Maintenance Becomes Difficult
+```
+
+Models provide a centralized and expressive interface for working with data.
+
+---
+
+# Model Lifecycle
+
+A typical model lifecycle looks like this:
+
+```text
+Database Record
+        │
+        ▼
+Model Instance
+        │
+        ▼
+Application Logic
+        │
+        ▼
+Database Update
+```
+
+Models act as a bridge between the database and your application.
+
+---
+
+# Creating A Model
+
+Models typically extend a base model class.
+
+Example:
+
+```ts
+export default class User extends Model {
+  //
+}
+```
+
+This gives the model access to database functionality provided by the framework.
+
+---
+
+# Table Mapping
+
+Each model is associated with a database table.
+
+Example:
+
+```text
+User
+```
+
+maps to:
+
+```text
+users
+```
+
+Likewise:
+
+```text
+Post
+```
+
+maps to:
+
+```text
+posts
+```
+
+This convention allows the framework to locate the appropriate table automatically.
+
+---
+
+# Model Structure
+
+Example:
+
+```ts
+export default class User extends Model {
+  id!: number;
+
+  name!: string;
+
+  email!: string;
+}
+```
+
+The model describes the shape of the underlying data.
+
+---
+
+# Model Instances
+
+When data is retrieved from the database, it becomes a model instance.
+
+Example:
+
+```ts
+const user =
+  await User.find(1);
+```
+
+Result:
+
+```ts
+User
+```
+
+The returned object contains both data and model functionality.
+
+---
+
+# Retrieving Records
+
+Models provide methods for retrieving data.
+
+Example:
+
+```ts
+const user =
+  await User.find(1);
+```
+
+Flow:
+
+```text
+Model
+   │
+   ▼
+Query
+   │
+   ▼
+Database
+   │
+   ▼
+Result
+```
+
+The framework handles the underlying query automatically.
+
+---
+
+# Finding A Record
+
+Retrieve a single record by its primary key.
+
+Example:
+
+```ts
+const user =
+  await User.find(1);
+```
+
+Result:
+
+```json
+{
+  "id": 1,
+  "name": "John Doe"
+}
+```
+
+This is one of the most common model operations.
+
+---
+
+# Finding Or Failing
+
+Some operations require a record to exist.
+
+Example:
+
+```ts
+const user =
+  await User.findOrFail(1);
+```
+
+Flow:
+
+```text
+Record Found
+      │
+      ▼
+Return Model
+```
+
+or:
+
+```text
+Record Missing
+      │
+      ▼
+Exception
+```
+
+This avoids repetitive existence checks.
+
+---
+
+# Retrieving Multiple Records
+
+Example:
+
+```ts
+const users =
+  await User.all();
+```
+
+Result:
+
+```text
+Collection<User>
+```
+
+Useful for listing resources.
+
+---
+
+# Creating Records
+
+Models can create new database records.
+
+Example:
+
+```ts
+const user =
+  await User.create({
+    name: "John Doe",
+    email: "john@example.com"
+  });
+```
+
+Flow:
+
+```text
+Model Data
+     │
+     ▼
+Insert Query
+     │
+     ▼
+Database
+```
+
+A new record is stored and returned.
+
+---
+
+# Updating Records
+
+Existing records can be modified.
+
+Example:
+
+```ts
+user.name =
+  "Jane Doe";
+
+await user.save();
+```
+
+Flow:
+
+```text
+Model
+   │
+   ▼
+Update Query
+   │
+   ▼
+Database
+```
+
+Changes are persisted automatically.
+
+---
+
+# Deleting Records
+
+Models can remove records.
+
+Example:
+
+```ts
+await user.delete();
+```
+
+Flow:
+
+```text
+Model
+   │
+   ▼
+Delete Query
+   │
+   ▼
+Database
+```
+
+The corresponding database row is removed.
+
+---
+
+# Mass Assignment
+
+Models may support creating records from structured input.
+
+Example:
+
+```ts
+await User.create({
+  name: "John",
+  email: "john@example.com"
+});
+```
+
+Mass assignment simplifies record creation.
+
+---
+
+# Model Attributes
+
+Attributes represent database columns.
+
+Example:
+
+```ts
+user.name
+
+user.email
+
+user.createdAt
+```
+
+Each attribute maps to a stored value.
+
+---
+
+# Attribute Casting
+
+Database values can be automatically converted into application-friendly types.
+
+Database:
+
+```json
+{
+  "is_active": 1
+}
+```
+
+Model:
+
+```ts
+{
+  isActive: true
+}
+```
+
+Casting improves consistency throughout the application.
+
+---
+
+# Default Values
+
+Models may define default values for attributes.
+
+Example:
+
+```text
+status = active
+```
+
+This helps reduce repetitive initialization logic.
+
+---
+
+# Hidden Attributes
+
+Some fields should never be exposed publicly.
+
+Examples:
+
+```text
+Password
+
+Tokens
+
+Secrets
+```
+
+Hidden attributes are excluded during serialization.
+
+---
+
+# Computed Attributes
+
+Models can expose calculated values.
+
+Example:
+
+```ts
+fullName
+```
+
+Generated from:
+
+```ts
+firstName
+
+lastName
+```
+
+Computed properties improve usability without storing redundant data.
+
+---
+
+# Model Serialization
+
+Models can be converted into JSON.
+
+Example:
+
+```ts
+user.toJSON();
+```
+
+Result:
+
+```json
+{
+  "id": 1,
+  "name": "John"
+}
+```
+
+Serialization is commonly used when returning API responses.
+
+---
+
+# Querying Through Models
+
+Models often expose query-building capabilities.
+
+Example:
+
+```ts
+User.query()
+```
+
+Flow:
+
+```text
+Model
+   │
+   ▼
+Query Builder
+   │
+   ▼
+Database
+```
+
+This provides a fluent way to retrieve data.
+
+---
+
+# Filtering Records
+
+Example:
+
+```ts
+User.query()
+  .where("active", true);
+```
+
+Result:
+
+```text
+Active Users Only
+```
+
+Filtering reduces unnecessary data retrieval.
+
+---
+
+# Ordering Records
+
+Example:
+
+```ts
+User.query()
+  .orderBy("name");
+```
+
+Result:
+
+```text
+Alphabetically Sorted Users
+```
+
+Ordering controls result presentation.
+
+---
+
+# Limiting Results
+
+Example:
+
+```ts
+User.query()
+  .limit(10);
+```
+
+Result:
+
+```text
+Maximum 10 Records
+```
+
+Useful for pagination and performance.
+
+---
+
+# Model Relationships
+
+Models frequently relate to one another.
+
+Example:
+
+```text
+User
+ │
+ └── Posts
+```
+
+Relationships allow applications to navigate connected data naturally.
+
+---
+
+# One-To-One Relationships
+
+Example:
+
+```text
+User
+ │
+ └── Profile
+```
+
+Each user owns exactly one profile.
+
+---
+
+# One-To-Many Relationships
+
+Example:
+
+```text
+User
+ │
+ ├── Post
+ ├── Post
+ └── Post
+```
+
+A single user owns many posts.
+
+---
+
+# Many-To-Many Relationships
+
+Example:
+
+```text
+User
+ │
+ └── Roles
+```
+
+Users may have multiple roles and roles may belong to multiple users.
+
+---
+
+# Relationship Loading
+
+Relationships can be loaded alongside a model.
+
+Example:
+
+```text
+User
+ └── Posts
+```
+
+Benefits:
+
+```text
+Fewer Queries
+
+Better Performance
+
+Cleaner Code
+```
+
+---
+
+# Model Events
+
+Applications may react to model lifecycle events.
+
+Examples:
+
+```text
+Creating
+
+Created
+
+Updating
+
+Updated
+
+Deleting
+
+Deleted
+```
+
+Events allow custom behavior during model operations.
+
+---
+
+# Soft Deletes
+
+Sometimes records should not be permanently removed.
+
+Instead:
+
+```text
+Record Marked As Deleted
+```
+
+Benefits:
+
+```text
+Recovery
+
+Auditing
+
+Historical Tracking
+```
+
+Soft deletes provide additional safety.
+
+---
+
+# Model Factories
+
+Factories generate model instances for testing and seeding.
+
+Example:
+
+```text
+Generate User
+```
+
+Benefits:
+
+```text
+Testing
+
+Development
+
+Seed Data
+```
+
+Factories reduce repetitive setup code.
+
+---
+
+# Model Scopes
+
+Scopes provide reusable query constraints.
+
+Example:
+
+```ts
+User.active()
+```
+
+Instead of:
+
+```ts
+User.query()
+  .where("active", true);
+```
+
+Scopes improve readability and reuse.
+
+---
+
+# Models And Controllers
+
+Controllers should use models indirectly whenever possible.
+
+Example:
+
+```text
+Controller
+     │
+     ▼
+Service
+     │
+     ▼
+Model
+```
+
+This separation keeps controllers focused on request handling.
+
+---
+
+# Models And Services
+
+Services frequently coordinate model operations.
+
+Example:
+
+```text
+UserService
+      │
+      ▼
+User Model
+```
+
+Business logic belongs in services rather than models or controllers.
+
+---
+
+# Models And Resources
+
+Models represent data.
+
+Resources represent presentation.
+
+```text
+Model
+   │
+   ▼
+Resource
+   │
+   ▼
+API Response
+```
+
+Each layer serves a different purpose.
+
+---
+
+# Best Practices
+
+## Keep Models Focused
+
+Models should represent data and relationships.
+
+---
+
+## Use Services For Business Logic
+
+Avoid placing large workflows directly inside models.
+
+---
+
+## Hide Sensitive Fields
+
+Protect passwords, tokens, and private information.
+
+---
+
+## Use Relationships
+
+Avoid manually joining related data everywhere.
+
+---
+
+## Prefer Query Builder Methods
+
+Use expressive model queries instead of raw SQL whenever possible.
+
+---
+
+# Common Mistakes
+
+### Fat Models
+
+Avoid placing all application logic inside models.
+
+---
+
+### Exposing Sensitive Data
+
+Never return passwords or internal secrets.
+
+---
+
+### Duplicate Queries
+
+Use scopes and reusable query patterns.
+
+---
+
+### Ignoring Relationships
+
+Relationships simplify data access significantly.
+
+---
+
+### Excessive Raw SQL
+
+Use framework abstractions when appropriate.
+
+---
+
+# Typical Model Flow
+
+```text
+Request
+   │
+   ▼
+Controller
+   │
+   ▼
+Service
+   │
+   ▼
+Model
+   │
+   ▼
+Database
+   │
+   ▼
+Result
+```
+
+Models act as the application's primary interface to stored data.
+
+---
+
+# Visual Summary
+
+```text
+Model
+   │
+   ├── Attributes
+   ├── Relationships
+   ├── Queries
+   ├── Events
+   ├── Serialization
+   └── Persistence
+   │
+   ▼
+Database
+```
+
+Models provide a structured, object-oriented way to interact with database records.
+
+---
+
+# Key Takeaways
+
+✔ Models represent database tables
+
+✔ Model instances represent database records
+
+✔ Models provide CRUD functionality
+
+✔ Relationships connect related data
+
+✔ Query builders enable expressive database queries
+
+✔ Serialization converts models into API-friendly formats
+
+✔ Hidden attributes protect sensitive data
+
+✔ Models form the foundation of the database layer
+
+Models are one of the most important components of a Bejibun application because they provide the primary interface between your application and persistent data.
+
+---
+
+# What's Next?
+
+Now that you understand models, continue with:
+
+- Query Builder
+- Relationships
+- Migrations
+- Seeders
+- Factories
+
+These guides explain how models retrieve data, connect to other models, and integrate with the rest of the database ecosystem.

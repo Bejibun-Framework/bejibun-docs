@@ -37,7 +37,7 @@ The final application will demonstrate:
 If you haven't already created a project:
 
 ```bash
-bunx @bejibun/cli my-app
+bun create bejibun my-app
 ```
 
 Navigate into the project:
@@ -65,7 +65,25 @@ bun dev
 A typical request moves through the application like this:
 
 ```text
-app/models/User.ts
+Request
+   │
+   ▼
+Route
+   │
+   ▼
+Controller
+   │
+   ▼
+Validation
+   │
+   ▼
+Model
+   │
+   ▼
+Database
+   │
+   ▼
+Response
 ```
 
 Most Bejibun applications follow this pattern.
@@ -123,7 +141,48 @@ bun ace make:controller UserController
 Example:
 
 ```text
-app/controllers/UserController.ts
+app/
+└── controllers/
+    └── UserController.ts
+```
+
+Open the controller:
+
+```ts
+export default class UserController {
+  async index() {
+    return [];
+  }
+}
+```
+
+---
+
+# Register the Controller Route
+
+Update your route:
+
+```ts
+import UserController from "#controllers/UserController";
+
+Router.get(
+  "/users",
+  [UserController, "index"]
+);
+```
+
+When the route is called, Bejibun executes the controller method.
+
+---
+
+# Create a Model
+
+Models represent data stored in the database.
+
+Generate a model:
+
+```bash
+bun ace make:model User
 ```
 
 Example:
