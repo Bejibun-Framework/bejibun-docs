@@ -1,13 +1,65 @@
 {
-  "$schema": "https://bejibun.com/docs.json",
+  "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Bejibun",
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.bejibun.com"
+    }
+  },
   "colors": {
     "primary": "#FF6C02",
     "light": "#FF6C02",
     "dark": "#FF6C02"
   },
+  "background": {
+    "decoration": "gradient"
+  },
   "favicon": "/logo/bejibun.png",
+  "appearance": {
+    "default": "system"
+  },
+  "logo": {
+    "light": "/logo/bejibun.png",
+    "dark": "/logo/bejibun.png"
+  },
+  "banner": {
+    "content": "\uD83C\uDF31 Help us scale. Your contribution funds developer hiring, better documentation, and a stronger ecosystem for everyone. [Donate](https://donatr.ee/bejibun-framework)",
+    "dismissible": false
+  },
+  "metadata": {
+    "timestamp": true
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:havea@bejibun.com"
+      },
+      {
+        "label": "Buy $BJBN",
+        "href": "https://www.coingecko.com/en/coins/bejibun",
+        "icon": "zap"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Homepage",
+      "href": "https://bejibun.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
   "navigation": {
     "tabs": [
       {
@@ -162,39 +214,10 @@
       ]
     }
   },
-  "logo": {
-    "light": "/logo/bejibun.png",
-    "dark": "/logo/bejibun.png"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:havea@bejibun.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Homepage",
-      "href": "https://bejibun.com"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
-  },
   "footer": {
     "socials": {
       "x": "https://x.com/bjbnframework",
-      "github": "https://github.com/Bejibun-Framework/bejibun",
+      "github": "https://github.com/Bejibun-Framework",
       "telegram": "https://t.me/BejibunPortal"
     }
   }
