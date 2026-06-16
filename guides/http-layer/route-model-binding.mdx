@@ -4,7 +4,7 @@ description: "Resolve a model instance from a route parameter using findOrFail a
 icon: "link"
 ---
 
-A common pattern is to resolve a model directly from a route parameter. Bejibun does **not** perform implicit (automatic) model binding the way some frameworks do — instead you resolve the model explicitly inside your controller. This keeps resolution predictable and type-safe.
+A common pattern is to resolve a model directly from a route parameter. Bejibun does **not** perform implicit (automatic) model binding the way some frameworks do -- instead you resolve the model explicitly inside your controller. This keeps resolution predictable and type-safe.
 
 <Note>
 Automatic route–model binding is **not yet available**. The recommended pattern below uses the verified `findOrFail` and validator `exists` APIs.
@@ -36,7 +36,7 @@ export default class TestController extends BaseController {
 
 ## Validating existence first
 
-To validate the parameter before querying — and return a clean validation error instead of a not-found error — use the `exists` rule in a validator:
+To validate the parameter before querying -- and return a clean validation error instead of a not-found error -- use the `exists` rule in a validator:
 
 ```ts app/validators/TestValidator.ts
 import type {ValidatorType} from "@bejibun/core/types/ValidatorType";

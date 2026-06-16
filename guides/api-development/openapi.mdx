@@ -8,7 +8,7 @@ Bejibun generates an OpenAPI specification from your API routes at startup. Anno
 
 ## The `@ApiDoc` decorator
 
-`@ApiDoc` is available globally — no import needed. Add it above a controller method to describe the endpoint:
+`@ApiDoc` is available globally -- no import needed. Add it above a controller method to describe the endpoint:
 
 ```ts app/controllers/HelloController.ts
 @ApiDoc({
@@ -72,7 +72,7 @@ bun ace route:list
 
 ## The OpenAPI template
 
-The base document — title, servers, security schemes, tags — comes from `config/route.ts`. It pre-defines API-key and bearer security schemes:
+The base document -- title, servers, security schemes, tags -- comes from `config/route.ts`. It pre-defines API-key and bearer security schemes:
 
 ```ts config/route.ts
 securitySchemes: {
@@ -84,5 +84,5 @@ securitySchemes: {
 Adjust the `info`, `servers`, and `tags` in that file to match your API.
 
 <Tip>
-Keep `@ApiDoc` annotations next to the logic they describe — the spec stays accurate because it's generated from the same code that handles requests.
+Keep `@ApiDoc` annotations next to the logic they describe -- the spec stays accurate because it's generated from the same code that handles requests.
 </Tip>

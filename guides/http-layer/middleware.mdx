@@ -4,7 +4,7 @@ description: "Intercept requests before they reach your controller."
 icon: "filter"
 ---
 
-Middleware wraps your route handlers, letting you run logic before (and after) a request reaches its controller — authentication, logging, rate limiting, and more.
+Middleware wraps your route handlers, letting you run logic before (and after) a request reaches its controller -- authentication, logging, rate limiting, and more.
 
 ## The middleware contract
 
@@ -49,7 +49,7 @@ export default Router.prefix("test")
 ```
 
 <Note>
-Middleware is applied so that the **first** middleware listed is the **outermost** wrapper — it runs first on the way in and last on the way out.
+Middleware is applied so that the **first** middleware listed is the **outermost** wrapper -- it runs first on the way in and last on the way out.
 </Note>
 
 ## Built-in middleware

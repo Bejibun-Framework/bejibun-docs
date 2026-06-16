@@ -4,7 +4,7 @@ description: "Populate your database with test or default data."
 icon: "seedling"
 ---
 
-Seeders fill your database with data — defaults, reference tables, or sample records for development. They live in `database/seeders/` and run through the `ace` CLI.
+Seeders fill your database with data -- defaults, reference tables, or sample records for development. They live in `database/seeders/` and run through the `ace` CLI.
 
 ## Creating a seeder
 
@@ -44,9 +44,9 @@ Example output:
 
 ## Patterns
 
-- **Reference data** — seed lookup tables (roles, categories) that your app expects to exist.
-- **Local development** — generate realistic sample rows so you can build against populated data.
-- **Idempotency** — guard inserts (check existence first) if you intend to re-run a seeder safely.
+- **Reference data** -- seed lookup tables (roles, categories) that your app expects to exist.
+- **Local development** -- generate realistic sample rows so you can build against populated data.
+- **Idempotency** -- guard inserts (check existence first) if you intend to re-run a seeder safely.
 
 ```ts
 export async function seed(knex: Knex): Promise<void> {

@@ -4,7 +4,7 @@ description: "Capture dynamic URL segments and read them inside your controller.
 icon: "brackets-curly"
 ---
 
-Routes often need to capture segments of the URL — for example, the ID of the record you want to fetch. Bejibun uses the `:name` syntax to declare a dynamic parameter.
+Routes often need to capture segments of the URL -- for example, the ID of the record you want to fetch. Bejibun uses the `:name` syntax to declare a dynamic parameter.
 
 ## Defining parameters
 
@@ -79,7 +79,7 @@ public async detail(request: Bun.BunRequest): Promise<Response> {
 ```
 
 <Tip>
-Pass `true` as the third argument to `exists` (`exists(TestModel, "id", true)`) to include **soft-deleted** rows — useful for a `restore` endpoint.
+Pass `true` as the third argument to `exists` (`exists(TestModel, "id", true)`) to include **soft-deleted** rows -- useful for a `restore` endpoint.
 </Tip>
 
 ## Parameters in OpenAPI

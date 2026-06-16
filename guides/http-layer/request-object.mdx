@@ -4,7 +4,7 @@ description: "Read input from the Bun request with super.parse()."
 icon: "inbox"
 ---
 
-Bejibun controllers receive Bun's native `Bun.BunRequest`. Rather than wrapping it in a custom class, Bejibun gives you `super.parse(request)` — a single method that collects **all** request input into one object.
+Bejibun controllers receive Bun's native `Bun.BunRequest`. Rather than wrapping it in a custom class, Bejibun gives you `super.parse(request)` -- a single method that collects **all** request input into one object.
 
 ## Reading input
 
@@ -46,7 +46,7 @@ export default class TestController extends BaseController {
 </Steps>
 
 <Note>
-`parse()` never throws — malformed input is silently skipped. Use a [validator](/guides/http-layer/controllers) to enforce the shape you expect.
+`parse()` never throws -- malformed input is silently skipped. Use a [validator](/guides/http-layer/controllers) to enforce the shape you expect.
 </Note>
 
 ## Accessing the raw request

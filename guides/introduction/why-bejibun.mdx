@@ -6,13 +6,15 @@ icon: "circle-question"
 
 # Why Bejibun?
 
-Building backend applications in TypeScript has never been easier—but it often comes with a hidden cost.
+Building backend applications in TypeScript has never been easier--but it often comes with a hidden cost.
 
-Many projects begin by selecting a runtime, then a router, an ORM, a validation library, a dependency injection container, a documentation generator, a cache layer, a queue system, and countless supporting packages.
+Many projects begin by selecting a runtime, then a router, an ORM, a validation library, a dependency injection container,
+a documentation generator, a cache layer, a queue system, and countless supporting packages.
 
 While this flexibility is powerful, it can also lead to fragmented architectures, inconsistent patterns, and unnecessary complexity.
 
-Bejibun was created to provide a cohesive development experience where the most common backend requirements work together from the start.
+Bejibun was created to provide a cohesive development experience where the most common backend requirements work together
+from the start.
 
 ---
 
@@ -53,14 +55,35 @@ Bejibun provides a unified ecosystem.
 Instead of assembling unrelated libraries, developers work within a framework designed around consistent patterns.
 
 ```text
-Application
- ├── Routes
- ├── Controllers
- ├── Models
- ├── Validators
- ├── Middleware
- ├── Jobs
- └── Services
+📁 Application
+├── 📁 app
+│   ├── controllers/
+│   ├── exceptions/
+│   ├── jobs/
+│   ├── middlewares/
+│   ├── models/
+│   ├── validators/
+│   └── websockets/
+├── 📁 commands
+├── 📁 config
+├── 📁 database
+│   ├── migrations/
+│   └── seeders/
+├── 📁 public
+├── 📁 resources
+├── 📁 routes
+├── 📁 storage
+│   ├── app/
+│   ├── cache/
+│   └── framework/
+├── 📁 tests
+├── .env
+├── Dockerfile
+├── ace.ts
+├── bootstrap.ts
+├── bunfig.toml
+├── package.json
+└── server.ts
 ```
 
 Every component follows the same architectural principles.
@@ -97,7 +120,7 @@ Bejibun encourages organized application architecture through:
 
 - MVC patterns
 - Dependency injection
-- Service providers
+- Centralized configuration
 - Modular configuration
 - Clear project structure
 
@@ -143,7 +166,9 @@ Framework
 ├── WebSockets
 ├── OpenAPI
 ├── Logging
-├── Jobs
+├── Queue
+├── Scheduler
+├── Unit testing
 └── Storage
 ```
 
@@ -162,11 +187,12 @@ Bejibun provides conventions that encourage predictable organization.
 ```text
 app/
 ├── controllers/
+├── exceptions/
+├── jobs/
 ├── middlewares/
 ├── models/
 ├── validators/
-├── jobs/
-└── exceptions/
+└── websockets/
 ```
 
 A consistent structure makes applications easier to understand, onboard, and maintain.
@@ -255,7 +281,6 @@ Bejibun is designed to be extended when necessary.
 Developers can:
 
 - Create custom middleware
-- Register custom services
 - Build reusable packages
 - Extend validation behavior
 - Add custom commands
@@ -277,7 +302,7 @@ Developers coming from frameworks such as:
 - Express
 - Fastify
 
-will find many familiar concepts while benefiting from Bun's modern runtime capabilities.
+Will find many familiar concepts while benefiting from Bun's modern runtime capabilities.
 
 ---
 
@@ -309,24 +334,52 @@ Build applications that remain manageable as they grow.
 
 ## Bejibun at a Glance
 
-```text
-Bun Runtime
-      │
-      ▼
-Bejibun Framework
-      │
-      ├── Routing
-      ├── Validation
-      ├── ORM
-      ├── Cache
-      ├── Redis
-      ├── WebSockets
-      ├── OpenAPI
-      ├── Jobs
-      └── Storage
-      │
-      ▼
-Your Application
+```mermaid
+flowchart TB
+    Bun["Bun Runtime"]
+
+    subgraph Bejibun["Bejibun Framework"]
+        Core["Core Framework"]
+
+        HTTP["HTTP Layer"]
+        Database["Database Layer"]
+        Infrastructure["Infrastructure"]
+        Developer["Developer Experience"]
+
+        Core --> HTTP
+        Core --> Database
+        Core --> Infrastructure
+        Core --> Developer
+
+        HTTP --> Routing["Routing"]
+        HTTP --> Middleware["Middleware"]
+        HTTP --> Controller["Controller"]
+        HTTP --> Validation["Validation"]
+        HTTP --> CORS["CORS"]
+        HTTP --> RateLimiter["Rate Limiter"]
+
+        Database --> ORM["ORM"]
+        Database --> Migrations["Migrations"]
+        Database --> Seeders["Seeders"]
+
+        Infrastructure --> Cache["Cache"]
+        Infrastructure --> Redis["Redis"]
+        Infrastructure --> Queue["Queue"]
+        Infrastructure --> Scheduler["Scheduler"]
+        Infrastructure --> WebSockets["WebSockets"]
+        Infrastructure --> Storage["Storage"]
+
+        Developer --> Command["Command"]
+        Developer --> OpenAPI["OpenAPI"]
+        Developer --> Logging["Logging"]
+        Developer --> ExceptionHandler["Exception Handler"]
+        Developer --> UnitTesting["Unit Testing"]
+    end
+
+    App["Your Application"]
+
+    Bun --> Bejibun
+    Bejibun --> App
 ```
 
 The framework handles the common infrastructure concerns so developers can focus on delivering value.
@@ -339,6 +392,6 @@ Now that you understand why Bejibun exists and the problems it aims to solve, co
 
 - Framework Philosophy
 - Feature Overview
-- Installation
+- Release Cycle
 
 These guides explain the principles behind the framework and help you start building your first application.

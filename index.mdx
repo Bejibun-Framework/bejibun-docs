@@ -1,86 +1,95 @@
 ---
 title: "Welcome to Bejibun"
-description: "A batteries-included TypeScript framework for building scalable APIs, Web3 platforms, and backend services — powered by Bun."
+description: "A batteries-included TypeScript framework for building scalable APIs, Web3 platforms, and backend services -- powered by Bun."
 icon: "house"
 ---
 
-**Bejibun** brings Laravel-style developer experience to the Bun runtime. It's a batteries-included, MVC, TypeScript-first framework with everything you need to build production APIs — routing, controllers, validation, an ORM with soft deletes, migrations, queues, scheduling, WebSockets, caching, storage, and an `ace` CLI — without assembling a dozen libraries yourself.
+**Bejibun** brings Laravel-style developer experience to the Bun runtime.
+It's a batteries-included, MVC, TypeScript-first framework with everything you need to build production APIs -- routing,
+controllers, validation, an ORM with soft deletes, migrations, queues, scheduling, WebSockets, caching, storage,
+and an `ace` CLI -- without assembling a dozen libraries yourself.
 
 <CardGroup cols={2}>
-  <Card title="What is Bejibun?" icon="circle-question" href="/guides/introduction/what-is-bejibun">
-    Understand the framework, its philosophy, and where it fits.
-  </Card>
-  <Card title="Installation" icon="download" href="/guides/getting-started/installation">
-    Install Bun, scaffold a project, and run your first server.
-  </Card>
-  <Card title="Routing" icon="route" href="/guides/http-layer/routing">
-    Define routes and map them to controllers.
-  </Card>
-  <Card title="Models & ORM" icon="table" href="/guides/database/models">
-    Work with the database using Objection-powered models.
-  </Card>
+    <Card title="What is Bejibun?" icon="circle-question" href="/guides/introduction/what-is-bejibun">
+        Understand the framework, its philosophy, and where it fits.
+    </Card>
+    <Card title="Installation" icon="download" href="/guides/getting-started/installation">
+        Install Bun, scaffold a project, and run your first server.
+    </Card>
+    <Card title="Routing" icon="route" href="/guides/http-layer/routing">
+        Define routes and map them to controllers.
+    </Card>
+    <Card title="Models & ORM" icon="table" href="/guides/database/models">
+        Work with the database using Objection-powered models.
+    </Card>
 </CardGroup>
 
 ## Quickstart
 
 <Steps>
-  <Step title="Install Bun">
-    ```bash
-    curl -fsSL https://bun.sh/install | bash
-    ```
-  </Step>
-  <Step title="Create a project">
-    ```bash
-    bunx @bejibun/cli my-app
-    ```
-  </Step>
-  <Step title="Run the dev server">
-    ```bash
-    cd my-app
-    bun dev
-    ```
-    Your app is now running at `http://127.0.0.1:3000`.
-  </Step>
+    <Step title="Install Bun">
+        **Linux / MacOS**
+        ```bash
+        curl -fsSL https://bun.sh/install | bash
+        ```
+
+        **Windows**
+        ```bash
+        powershell -c "irm bun.sh/install.ps1 | iex"
+        ```
+    </Step>
+    <Step title="Create a project">
+        ```bash
+        bunx @bejibun/cli my-app
+        ```
+    </Step>
+    <Step title="Run the dev server">
+        ```bash
+        cd my-app
+        bun dev
+        ```
+        Your app is now running at `http://127.0.0.1:3000`.
+    </Step>
 </Steps>
 
 ## Explore the framework
 
 <CardGroup cols={3}>
-  <Card title="Validation" icon="circle-check" href="/guides/validation/introduction">
-    Type-safe request validation with Vine.js.
-  </Card>
-  <Card title="Database & ORM" icon="database" href="/guides/database/models">
-    Models, CRUD, soft deletes, migrations, seeders.
-  </Card>
-  <Card title="Caching" icon="bolt" href="/guides/caching/cache">
-    Local and Redis cache drivers.
-  </Card>
-  <Card title="File Storage" icon="folder-open" href="/guides/storage/file-storage">
-    Local and S3 disks behind one API.
-  </Card>
-  <Card title="Queues & Jobs" icon="list-ol" href="/guides/background/queues">
-    Defer work to background workers.
-  </Card>
-  <Card title="Task Scheduling" icon="clock" href="/guides/background/scheduler">
-    Cron-style scheduled commands.
-  </Card>
-  <Card title="WebSockets" icon="tower-broadcast" href="/guides/realtime/websockets">
-    Realtime features on Bun's native server.
-  </Card>
-  <Card title="OpenAPI & Swagger" icon="book-open" href="/guides/api-development/openapi">
-    Auto-generated API docs from your routes.
-  </Card>
-  <Card title="x402 Payments" icon="money-bill-transfer" href="/guides/api-development/x402-payments">
-    HTTP-native crypto payments.
-  </Card>
+    <Card title="Validation" icon="circle-check" href="/guides/validation/introduction">
+        Type-safe request validation with Vine.js.
+    </Card>
+    <Card title="Database & ORM" icon="database" href="/guides/database/models">
+        Models, CRUD, soft deletes, migrations, seeders.
+    </Card>
+    <Card title="Caching" icon="bolt" href="/guides/caching/cache">
+        Local and Redis cache drivers.
+    </Card>
+    <Card title="File Storage" icon="folder-open" href="/guides/storage/file-storage">
+        Local and S3 disks behind one API.
+    </Card>
+    <Card title="Queues & Jobs" icon="list-ol" href="/guides/background/queues">
+        Defer work to background workers.
+    </Card>
+    <Card title="Task Scheduling" icon="clock" href="/guides/background/scheduler">
+        Cron-style scheduled commands.
+    </Card>
+    <Card title="WebSockets" icon="tower-broadcast" href="/guides/realtime/websockets">
+        Realtime features on Bun's native server.
+    </Card>
+    <Card title="OpenAPI & Swagger" icon="book-open" href="/guides/api-development/openapi">
+        Auto-generated API docs from your routes.
+    </Card>
+    <Card title="x402 Payments" icon="money-bill-transfer" href="/guides/api-development/x402-payments">
+        HTTP-native crypto payments.
+    </Card>
 </CardGroup>
 
 ## Built on a modern stack
 
-| Layer | Technology |
-| --- | --- |
-| Runtime, package manager, bundler | [Bun](https://bun.com) |
-| ORM & query layer | [Objection.js](https://vincit.github.io/objection.js) |
-| Migrations & seeders | [Knex.js](https://knexjs.org) |
-| Validation | [Vine.js](https://vinejs.dev) |
-| Date & time | [Luxon](https://moment.github.io/luxon) |
+| Layer                             | Technology                                            |
+| ---                               | ---                                                   |
+| Runtime, package manager, bundler | [Bun](https://bun.com)                                |
+| ORM & query layer                 | [Objection.js](https://vincit.github.io/objection.js) |
+| Migrations & seeders              | [Knex.js](https://knexjs.org)                         |
+| Validation                        | [Vine.js](https://vinejs.dev)                         |
+| Date & time                       | [Luxon](https://moment.github.io/luxon)               |

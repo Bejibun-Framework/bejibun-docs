@@ -22,7 +22,7 @@ export default class Handler extends ExceptionHandler {
 ```
 
 <Warning>
-This file is required — the server throws on startup if `app/exceptions/handler.ts` is missing.
+This file is required -- the server throws on startup if `app/exceptions/handler.ts` is missing.
 </Warning>
 
 ## How errors are mapped
@@ -37,7 +37,7 @@ When an error reaches the handler, it is logged (`Logger.setContext("APP").error
 | `RateLimiterException` | its `.code` (too many requests) |
 | `RuntimeException` | its `.code` |
 | Objection `ValidationError` | its `.statusCode` |
-| Any other error | `500` — `"Internal server error."` |
+| Any other error | `500` -- `"Internal server error."` |
 
 Every error response uses the standard envelope:
 
@@ -79,7 +79,7 @@ if (!allowed) {
 }
 ```
 
-To customize behavior — for example, to report errors to an external service — add logic in `Handler.handle()` before calling `super.handle(error)`.
+To customize behavior -- for example, to report errors to an external service -- add logic in `Handler.handle()` before calling `super.handle(error)`.
 
 ## Serving static files & 404s
 

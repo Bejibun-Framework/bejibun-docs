@@ -4,7 +4,7 @@ description: "Write structured, color-coded logs with the Bejibun logger."
 icon: "scroll"
 ---
 
-Bejibun ships with `@bejibun/logger` — a lightweight, color-coded logger used throughout the framework and available to your application code.
+Bejibun ships with `@bejibun/logger` -- a lightweight, color-coded logger used throughout the framework and available to your application code.
 
 ## Basic logging
 
@@ -39,7 +39,7 @@ Each line is timestamped and labelled with its level:
 
 ## Adding context
 
-Use `setContext()` to replace the level label with a custom tag — useful for identifying the subsystem that produced a log:
+Use `setContext()` to replace the level label with a custom tag -- useful for identifying the subsystem that produced a log:
 
 ```ts
 Logger.setContext("Payment").info("Charge succeeded.");
@@ -50,7 +50,7 @@ This is the same mechanism the framework uses internally (`[Router]`, `[WebSocke
 
 ## Logging errors with a stack trace
 
-`trace()` logs an error together with its stack — the idiom for caught exceptions:
+`trace()` logs an error together with its stack -- the idiom for caught exceptions:
 
 ```ts
 try {
@@ -73,5 +73,5 @@ Logger.separator();
 ```
 
 <Tip>
-`@bejibun/logger` is a standalone package — you can use it in scripts and other Bun projects, not just inside a Bejibun app.
+`@bejibun/logger` is a standalone package -- you can use it in scripts and other Bun projects, not just inside a Bejibun app.
 </Tip>

@@ -4,7 +4,7 @@ description: "Gate API resources behind HTTP-native crypto payments with @bejibu
 icon: "money-bill-transfer"
 ---
 
-`@bejibun/x402` implements the **x402** protocol — HTTP-native payments built on the `402 Payment Required` status code. Clients submit a crypto payment (verified by a facilitator) before they can access a protected resource. It supports EVM and Solana networks.
+`@bejibun/x402` implements the **x402** protocol -- HTTP-native payments built on the `402 Payment Required` status code. Clients submit a crypto payment (verified by a facilitator) before they can access a protected resource. It supports EVM and Solana networks.
 
 ## Installation
 
@@ -69,12 +69,12 @@ return X402
     .setConfig()         // optional overrides (description, paywall HTML, schemas…)
     .setFacilitator()    // optional facilitator config
     .setPaywall()        // optional paywall config
-    .setRequest(request) // required — provides the request headers
+    .setRequest(request) // required -- provides the request headers
     .middleware(() => {
         // your paid resource here
     });
 ```
 
 <Warning>
-The default config targets a **test network** (`testnet: true`). Before going live, switch `network`/`testnet` to production values and set a real payout `address` — and never commit production payout addresses or facilitator secrets to source control.
+The default config targets a **test network** (`testnet: true`). Before going live, switch `network`/`testnet` to production values and set a real payout `address` -- and never commit production payout addresses or facilitator secrets to source control.
 </Warning>

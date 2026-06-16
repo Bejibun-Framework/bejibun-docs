@@ -72,7 +72,7 @@ const trashed = await TestModel.onlyTrashed(); // trashed only
 
 ## Validating against trashed rows
 
-The `exists` validation rule can opt into trashed rows — useful for a restore endpoint that must accept an already-deleted ID:
+The `exists` validation rule can opt into trashed rows -- useful for a restore endpoint that must accept an already-deleted ID:
 
 ```ts
 id: super.validator.number().min(1).exists(TestModel, "id", true)

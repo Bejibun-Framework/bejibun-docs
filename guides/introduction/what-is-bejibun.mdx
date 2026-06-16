@@ -8,9 +8,11 @@ icon: "book-open"
 
 Bejibun is a modern, batteries-included TypeScript framework built specifically for the Bun runtime.
 
-Inspired by the developer experience of frameworks like Laravel, Bejibun provides a structured and productive environment for building APIs, web applications, real-time systems, and backend services without sacrificing performance or type safety.
+Inspired by the developer experience of frameworks like Laravel, Bejibun provides a structured and productive environment
+for building APIs, web applications, real-time systems, and backend services without sacrificing performance or type safety.
 
-Rather than assembling dozens of libraries and configurations before writing application logic, Bejibun provides a unified ecosystem with sensible defaults and first-class integrations.
+Rather than assembling dozens of libraries and configurations before writing application logic, Bejibun provides
+a unified ecosystem with sensible defaults and first-class integrations.
 
 ---
 
@@ -77,10 +79,13 @@ Bejibun includes a growing ecosystem of integrated features that work together o
 
 Current framework capabilities include:
 
+- Installation CLI
+- Ace as CLI command
 - Routing
-- Controllers
 - Middleware
+- Controller
 - Validation
+- Command
 - Database ORM
 - Migrations
 - Seeders
@@ -91,8 +96,11 @@ Current framework capabilities include:
 - Logging
 - Exception handling
 - Queue jobs
+- Scheduler
 - Rate limiting
 - File storage
+- CORS
+- Unit testing
 - x402 payments
 
 Instead of spending time evaluating and integrating multiple packages, developers can rely on a consistent framework experience.
@@ -103,20 +111,35 @@ Instead of spending time evaluating and integrating multiple packages, developer
 
 Bejibun follows the Model-View-Controller (MVC) pattern.
 
-```text
-Request
-   │
-   ▼
-Controller
-   │
-   ▼
-Service / Business Logic
-   │
-   ▼
-Model
-   │
-   ▼
-Database
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router
+    participant Controller
+    participant Validator
+    participant Service
+    participant Model
+    participant Database
+
+    Client->>Router: HTTP Request
+    Router->>Controller: Route Match
+
+    Controller->>Validator: Validate Request
+
+    alt Validation Failed
+        Validator-->>Controller: Validation Errors
+        Controller-->>Client: 422 Unprocessable Content
+    else Validation Passed
+        Validator-->>Controller: Valid Data
+        Controller->>Service: Execute Use Case
+        Service->>Model: Fetch / Save Data
+        Model->>Database: SQL Query
+
+        Database-->>Model: Result
+        Model-->>Service: Entity / Data
+        Service-->>Controller: Response Data
+        Controller-->>Client: 200 OK
+    end
 ```
 
 This architecture encourages:
@@ -162,17 +185,39 @@ Integrate monetized endpoints using built-in x402 support.
 
 One of Bejibun's primary goals is consistency.
 
-Instead of learning separate conventions for routing, validation, database access, caching, and background processing, developers interact with a cohesive framework designed around shared principles.
+Instead of learning separate conventions for routing, validation, database access, caching, and background processing,
+developers interact with a cohesive framework designed around shared principles.
 
 ```text
-Application
-├── Routes
-├── Controllers
-├── Models
-├── Validators
-├── Jobs
-├── Middleware
-└── Services
+📁 Application
+├── 📁 app
+│   ├── controllers/
+│   ├── exceptions/
+│   ├── jobs/
+│   ├── middlewares/
+│   ├── models/
+│   ├── validators/
+│   └── websockets/
+├── 📁 commands
+├── 📁 config
+├── 📁 database
+│   ├── migrations/
+│   └── seeders/
+├── 📁 public
+├── 📁 resources
+├── 📁 routes
+├── 📁 storage
+│   ├── app/
+│   ├── cache/
+│   └── framework/
+├── 📁 tests
+├── .env
+├── Dockerfile
+├── ace.ts
+├── bootstrap.ts
+├── bunfig.toml
+├── package.json
+└── server.ts
 ```
 
 This consistency reduces cognitive overhead and helps teams move faster.
@@ -188,7 +233,7 @@ Developers can:
 - Create custom middleware
 - Build custom commands
 - Extend validation rules
-- Add custom service providers
+- Add startup codes
 - Develop reusable packages
 - Integrate external services
 
@@ -248,7 +293,8 @@ Its vision is centered around:
 - Extensibility
 - Long-term maintainability
 
-By combining Bun's speed with a cohesive application architecture, Bejibun helps developers focus on building products rather than configuring infrastructure.
+By combining Bun's speed with a cohesive application architecture, Bejibun helps developers focus on building products
+rather than configuring infrastructure.
 
 ---
 

@@ -25,7 +25,7 @@ Every Bejibun endpoint returns a response built with the **`Response` facade**, 
 | `status` | `200` | HTTP status code |
 
 <Note>
-Document and test all of your API endpoints against this `{ data, message, status }` contract — it is returned by every successful response.
+Document and test all of your API endpoints against this `{ data, message, status }` contract -- it is returned by every successful response.
 </Note>
 
 ## Building a response
@@ -93,5 +93,5 @@ public async download(request: Bun.BunRequest): Promise<Response> {
 ```
 
 <Tip>
-CORS headers are loaded once at startup and merged into **every** response — `send()` and `stream()` both apply them. Configure them in `config/cors.ts`.
+CORS headers are loaded once at startup and merged into **every** response -- `send()` and `stream()` both apply them. Configure them in `config/cors.ts`.
 </Tip>

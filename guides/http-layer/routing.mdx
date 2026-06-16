@@ -34,7 +34,7 @@ export default Router.prefix("api").group([
 ```
 
 <Note>
-`routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist — the server throws on startup if any is missing.
+`routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on startup if any is missing.
 </Note>
 
 ## Defining routes
@@ -85,7 +85,7 @@ A handler can be a **controller reference string** or an **inline function**.
 
 <CodeGroup>
 ```ts Controller reference
-// "ControllerName@method" — resolved from app/controllers/
+// "ControllerName@method" -- resolved from app/controllers/
 Router.get("users", "UserController@index");
 ```
 
