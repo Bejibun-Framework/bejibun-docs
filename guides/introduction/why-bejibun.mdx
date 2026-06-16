@@ -344,12 +344,12 @@ flowchart TB
         HTTP["HTTP Layer"]
         Database["Database Layer"]
         Infrastructure["Infrastructure"]
-        Developer["Developer Experience"]
+        Tooling["Developer Tools"]
 
         Core --> HTTP
         Core --> Database
         Core --> Infrastructure
-        Core --> Developer
+        Core --> Tooling
 
         HTTP --> Routing["Routing"]
         HTTP --> Middleware["Middleware"]
@@ -368,12 +368,15 @@ flowchart TB
         Infrastructure --> Scheduler["Scheduler"]
         Infrastructure --> WebSockets["WebSockets"]
         Infrastructure --> Storage["Storage"]
+        Infrastructure --> Jobs["Jobs"]
+        Infrastructure --> Configuration["Configuration"]
+        Infrastructure --> X402["x402"]
 
-        Developer --> Command["Command"]
-        Developer --> OpenAPI["OpenAPI"]
-        Developer --> Logging["Logging"]
-        Developer --> ExceptionHandler["Exception Handler"]
-        Developer --> UnitTesting["Unit Testing"]
+        Tooling --> Command["Command"]
+        Tooling --> OpenAPI["OpenAPI"]
+        Tooling --> Logging["Logging"]
+        Tooling --> ErrorHandling["Error Handling"]
+        Tooling --> UnitTesting["Unit Testing"]
     end
 
     App["Your Application"]

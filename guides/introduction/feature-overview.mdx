@@ -8,7 +8,8 @@ icon: "sparkles"
 
 Bejibun is a full-stack backend framework designed to provide everything needed to build modern applications on Bun.
 
-Rather than forcing developers to assemble dozens of third-party packages, Bejibun offers a cohesive ecosystem of tools that work together using consistent conventions and architecture.
+Rather than forcing developers to assemble dozens of third-party packages, Bejibun offers a cohesive ecosystem of tools
+that work together using consistent conventions and architecture.
 
 This page provides a high-level overview of the framework's major capabilities.
 
@@ -20,20 +21,18 @@ Building production applications requires much more than HTTP routing.
 
 A typical application needs:
 
-```text
-Routing
-Validation
-Database Access
-Caching
-Redis
-Background Jobs
-WebSockets
-Logging
-API Documentation
-Authentication
-Storage
-Rate Limiting
-```
+- Routing
+- Validation
+- Database Access
+- Caching
+- Redis
+- Background Jobs
+- WebSockets
+- Logging
+- API Documentation
+- Authentication
+- Storage
+- Rate Limiting
 
 Bejibun provides a growing collection of integrated solutions that address these common requirements.
 
@@ -47,9 +46,9 @@ Example:
 
 ```ts
 Router.get("/", () => {
-  return {
-    message: "Hello World"
-  };
+    return Response.json({
+        message: "Hello World"
+    });
 });
 ```
 
@@ -63,6 +62,7 @@ Features include:
 - Resource routes
 - API routes
 - WebSocket routes
+- x402 Payments
 
 Routing serves as the foundation of every Bejibun application.
 
@@ -75,10 +75,10 @@ Controllers organize request handling into dedicated classes.
 Example:
 
 ```ts
-export default class UserController {
-  async index() {
-    //
-  }
+export default class UserController extends BaseController {
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        //
+    }
 }
 ```
 
@@ -109,8 +109,7 @@ Common use cases include:
 Example:
 
 ```ts
-Router.get("/profile", handler)
-  .middleware(["auth"]);
+Router.middleware(new AuthMiddleware()).get("/profile", handler);
 ```
 
 Middleware creates a flexible request processing pipeline.
@@ -124,11 +123,13 @@ Validation ensures incoming data meets application requirements before business 
 Example:
 
 ```ts
-export default class CreateUserValidator {
-  schema = {
-    name: validator.string(),
-    email: validator.email()
-  };
+export default class UserValidator extends BaseValidator {
+    public static get createUser(): ValidatorType {
+        return super.validator.create({
+            name: super.validator.string(),
+            email: super.validator.string().email()
+        });
+    }
 }
 ```
 
@@ -150,8 +151,7 @@ Bejibun includes an ORM for working with application data using models and queri
 Example:
 
 ```ts
-const users =
-  await User.query();
+const users = await User.all();
 ```
 
 Capabilities include:
@@ -175,14 +175,12 @@ Migrations allow database schemas to evolve alongside application code.
 Example:
 
 ```ts
-export default class CreateUsersTable {
-  async up() {
+export function up(knex: Knex): Knex.SchemaBuilder {
     //
-  }
+}
 
-  async down() {
+export function down(knex: Knex): Knex.SchemaBuilder {
     //
-  }
 }
 ```
 
@@ -202,10 +200,8 @@ Seeders populate databases with sample or initial data.
 Example:
 
 ```ts
-export default class UserSeeder {
-  async run() {
+export async function seed(knex: Knex): Promise<void> {
     //
-  }
 }
 ```
 
@@ -224,10 +220,7 @@ Caching reduces database and API load by storing frequently accessed data.
 Example:
 
 ```ts
-await Cache.set(
-  "users",
-  users
-);
+await Cache.add("users", users);
 ```
 
 Benefits:
@@ -255,10 +248,7 @@ Common use cases:
 Example:
 
 ```ts
-await Redis.set(
-  "online-users",
-  100
-);
+await Redis.set("online-users", 100);
 ```
 
 Redis enables many advanced application features.
@@ -280,9 +270,15 @@ Common applications:
 Example:
 
 ```ts
-WebSocket.on("message", () => {
-  //
-});
+Router.websocket("/", "ChatWebSocket@handle");
+```
+
+```ts
+export default class ChatWebSocket extends BaseWebSocket {
+    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+        //
+    }
+}
 ```
 
 Bejibun includes first-class support for realtime applications.
@@ -302,17 +298,18 @@ Examples:
 
 Jobs move long-running work into background workers.
 
-```text
-Request
-   │
-   ▼
-Dispatch Job
-   │
-   ▼
-Queue
-   │
-   ▼
-Worker
+```mermaid
+flowchart TB
+    Request["Request"]
+    Dispatch["Dispatch Job"]
+    Queue["Queue"]
+    Worker["Queue Worker"]
+    Job["Process Job"]
+
+    Request --> Dispatch
+    Dispatch --> Queue
+    Queue --> Worker
+    Worker --> Job
 ```
 
 This improves application responsiveness and scalability.
@@ -348,10 +345,7 @@ Common use cases:
 Example:
 
 ```ts
-await Storage.put(
-  "avatars/user.png",
-  file
-);
+await Storage.put("avatars/user.png", file);
 ```
 
 Storage drivers can be configured to support different environments.
@@ -371,13 +365,9 @@ Benefits:
 
 Example outputs:
 
-```text
-OpenAPI Specification
-
-Swagger UI
-
-API Explorer
-```
+- OpenAPI Specification
+- Swagger UI
+- API Explorer
 
 Maintaining API documentation becomes significantly easier.
 
@@ -390,9 +380,7 @@ Logging records important application events.
 Example:
 
 ```ts
-Logger.info(
-  "User authenticated"
-);
+Logger.info("User authenticated");
 ```
 
 Logs help teams:
@@ -413,9 +401,19 @@ Bejibun provides centralized exception handling.
 Example:
 
 ```ts
-throw new Error(
-  "Something went wrong"
-);
+throw new Error("Something went wrong");
+```
+
+```ts app/exceptions/handler.ts
+import ExceptionHandler from "@bejibun/core/exceptions/ExceptionHandler";
+
+export default class Handler extends ExceptionHandler {
+    public handle(error: any): globalThis.Response {
+        //
+
+        return super.handle(error);
+    }
+}
 ```
 
 The framework automatically:
@@ -435,9 +433,13 @@ Rate limiting protects applications from abuse and excessive traffic.
 
 Example:
 
-```ts
-Router.get("/api")
-  .middleware(["throttle"]);
+```ts config/limiter.ts
+const config: Record<string, any> = {
+    limit: 30,
+    duration: 60 // seconds
+};
+
+export default config;
 ```
 
 Benefits:
@@ -455,35 +457,20 @@ Cross-Origin Resource Sharing (CORS) controls how external clients interact with
 
 Example configuration:
 
-```ts
-export default {
-  origin: ["*"]
+```ts config/cors.ts
+const config: Record<string, any> = {
+    allowedHeaders: "*",
+    credentials: false,
+    exposedHeaders: [],
+    maxAge: 86400,
+    methods: "*",
+    origin: "*"
 };
+
+export default config;
 ```
 
 This helps secure browser-based applications and API integrations.
-
----
-
-# Dependency Injection
-
-Bejibun includes a service container and dependency injection system.
-
-Example:
-
-```ts
-constructor(
-  protected users:
-    UserService
-) {}
-```
-
-Benefits:
-
-- Loose coupling
-- Easier testing
-- Better maintainability
-- Improved architecture
 
 ---
 
@@ -494,9 +481,7 @@ Configuration is centralized and environment-aware.
 Example:
 
 ```ts
-Config.get(
-  "database.default"
-);
+config("database.default");
 ```
 
 Applications can safely manage:
@@ -519,7 +504,7 @@ Typical commands include:
 ```bash
 bun ace make:controller
 bun ace make:model
-bun ace migrate
+bun ace migrate:latest
 bun ace db:seed
 ```
 
@@ -579,26 +564,46 @@ The framework provides strong defaults while remaining flexible.
 
 # At a Glance
 
-```text
-Bejibun
-├── Routing
-├── Controllers
-├── Middleware
-├── Validation
-├── ORM
-├── Migrations
-├── Seeders
-├── Cache
-├── Redis
-├── WebSockets
-├── Jobs
-├── Storage
-├── OpenAPI
-├── Logging
-├── Error Handling
-├── Rate Limiting
-├── Configuration
-└── x402
+```mermaid
+flowchart LR
+    Bejibun["Bejibun"]
+
+    HTTP["HTTP Layer"]
+    Database["Database Layer"]
+    Infrastructure["Infrastructure"]
+    Tooling["Developer Tools"]
+
+    Bejibun --> HTTP
+    Bejibun --> Database
+    Bejibun --> Infrastructure
+    Bejibun --> Tooling
+
+    HTTP --> Routing["Routing"]
+    HTTP --> Middleware["Middleware"]
+    HTTP --> Controllers["Controllers"]
+    HTTP --> Validation["Validation"]
+    HTTP --> CORS["CORS"]
+    HTTP --> RateLimiter["Rate Limiter"]
+
+    Database --> ORM["ORM"]
+    Database --> Migrations["Migrations"]
+    Database --> Seeders["Seeders"]
+
+    Infrastructure --> Cache["Cache"]
+    Infrastructure --> Redis["Redis"]
+    Infrastructure --> Queue["Queue"]
+    Infrastructure --> Scheduler["Scheduler"]
+    Infrastructure --> WebSockets["WebSockets"]
+    Infrastructure --> Storage["Storage"]
+    Infrastructure --> Jobs["Jobs"]
+    Infrastructure --> Configuration["Configuration"]
+    Infrastructure --> X402["x402"]
+
+    Tooling --> Command["Command"]
+    Tooling --> OpenAPI["OpenAPI"]
+    Tooling --> Logging["Logging"]
+    Tooling --> ErrorHandling["Error Handling"]
+    Tooling --> UnitTesting["Unit Testing"]
 ```
 
 Together, these features provide a complete foundation for building modern applications on Bun.

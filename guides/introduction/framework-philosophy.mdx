@@ -10,7 +10,8 @@ Every framework is built upon a set of principles.
 
 These principles influence everything--from project structure and APIs to developer experience and long-term maintainability.
 
-Bejibun is not simply a collection of tools. It is a framework designed around a clear philosophy: helping developers build modern applications faster while maintaining code quality, consistency, and scalability.
+Bejibun is not simply a collection of tools. It is a framework designed around a clear philosophy: helping developers
+build modern applications faster while maintaining code quality, consistency, and scalability.
 
 Understanding these principles will help you better understand why Bejibun works the way it does.
 
@@ -46,10 +47,10 @@ For example:
 ```text
 app/
 ├── controllers/
+├── jobs/
 ├── middlewares/
 ├── models/
-├── validators/
-└── jobs/
+└── validators/
 ```
 
 Developers immediately know where code belongs without reading extensive configuration.
@@ -126,14 +127,12 @@ Bejibun favors consistency across the framework.
 
 Examples include:
 
-```text
-Routes
-Controllers
-Validators
-Models
-Jobs
-Middleware
-```
+- Routes
+- Controllers
+- Validators
+- Models
+- Jobs
+- Middleware
 
 Each component follows familiar conventions and predictable behavior.
 
@@ -167,16 +166,18 @@ However, frameworks should not force teams to rebuild their architecture as appl
 
 Bejibun encourages patterns that scale naturally:
 
-```text
-Request
-   │
-Controller
-   │
-Service
-   │
-Model
-   │
-Database
+```mermaid
+flowchart TB
+    Request["HTTP Request"]
+    Controller["Controller"]
+    Service["Business Logic"]
+    Model["Model"]
+    Database["Database"]
+
+    Request --> Controller
+    Controller --> Service
+    Service --> Model
+    Model --> Database
 ```
 
 Whether an application serves hundreds of users or millions of requests, the underlying architecture remains familiar.
@@ -187,6 +188,14 @@ Whether an application serves hundreds of users or millions of requests, the und
 
 Each part of an application should have a clear responsibility.
 
+### Routers
+
+Direct incoming requests to the appropriate controllers.
+
+### Middleware
+
+Process requests before reaching controllers.
+
 ### Controllers
 
 Handle incoming requests.
@@ -195,21 +204,17 @@ Handle incoming requests.
 
 Validate incoming data.
 
+### Services
+
+Contain business logic.
+
 ### Models
 
 Represent application data.
 
-### Middleware
-
-Process requests before reaching controllers.
-
 ### Jobs
 
 Handle background processing.
-
-### Services
-
-Contain business logic.
 
 Keeping responsibilities separate leads to cleaner and more maintainable applications.
 
@@ -258,14 +263,18 @@ However, performance is viewed as a foundation rather than the sole objective.
 
 A framework must balance:
 
-```text
-Performance
-      +
-Developer Experience
-      +
-Maintainability
-      +
-Scalability
+```mermaid
+flowchart TB
+    Performance["Performance"]
+    DX["Developer Experience"]
+    Maintainability["Maintainability"]
+    Scalability["Scalability"]
+    Framework["Great Frameworks"]
+
+    Performance --> Framework
+    DX --> Framework
+    Maintainability --> Framework
+    Scalability --> Framework
 ```
 
 Optimizing one at the expense of the others often creates long-term problems.
@@ -313,27 +322,16 @@ The framework should remain adaptable while preserving its core principles.
 
 The philosophy of Bejibun can be summarized as:
 
-```text
-Developer Experience First
-
-Convention Over Configuration
-
-Batteries Included
-
-TypeScript First
-
-Built for Bun
-
-Consistency Over Complexity
-
-Explicit Over Magic
-
-Scalable by Default
-
-Extensible by Design
-
-Production Ready
-```
+- Developer Experience First
+- Convention Over Configuration
+- Batteries Included
+- TypeScript First
+- Built for Bun
+- Consistency Over Complexity
+- Explicit Over Magic
+- Scalable by Default
+- Extensible by Design
+- Production Ready
 
 These principles guide every feature, package, and design decision throughout the framework.
 
@@ -344,7 +342,7 @@ These principles guide every feature, package, and design decision throughout th
 Now that you understand the philosophy behind Bejibun, continue with:
 
 - Feature Overview
+- Release Cycle
 - Installation
-- Creating Your First Application
 
 These guides introduce the framework's capabilities and help you begin building your first application.
