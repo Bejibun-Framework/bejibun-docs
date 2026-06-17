@@ -18,12 +18,9 @@ Bejibun is built specifically for Bun and requires a modern development environm
 
 ## Runtime Requirements
 
-| Software | Version |
-|-----------|-----------|
-| Bun | Latest Stable |
-| TypeScript | Included |
-| Node.js | Not Required |
-| Git | Recommended |
+| Software   | Version       |
+| ---------- | ------------- |
+| Bun        | Latest Stable |
 
 To verify your Bun installation:
 
@@ -45,7 +42,7 @@ If Bun is not installed, follow the instructions below.
 
 Bejibun relies on Bun as its runtime, package manager, and development toolchain.
 
-## Linux & macOS
+### Linux / MacOS
 
 Install Bun using the official installation script:
 
@@ -59,9 +56,7 @@ After installation, restart your terminal and verify:
 bun --version
 ```
 
----
-
-## Windows
+### Windows
 
 Install Bun using PowerShell:
 
@@ -99,25 +94,17 @@ Run:
 bunx @bejibun/cli my-app
 ```
 
-Or:
-
-```bash
-bunx @bejibun/cli my-app
-```
-
 The CLI will generate a new project structure and install the required dependencies.
 
 Example:
 
 ```bash
-Creating project...
+✔  Pulling starter kit.
+✔  Installing dependencies.
+✔  Cleansing.
+✔  Setup environment.
 
-✔ Generating application files
-✔ Installing dependencies
-✔ Creating environment configuration
-✔ Preparing project structure
-
-Application created successfully.
+Success! Project initialization completed.
 ```
 
 ---
@@ -133,17 +120,35 @@ cd my-app
 Your project directory should look similar to:
 
 ```text
-my-app/
-├── app/
-├── config/
-├── database/
-├── public/
-├── routes/
-├── storage/
-├── tests/
+📁 my-app
+├── 📁 app
+│   ├── controllers/
+│   ├── exceptions/
+│   ├── jobs/
+│   ├── middlewares/
+│   ├── models/
+│   ├── validators/
+│   └── websockets/
+├── 📁 commands
+├── 📁 config
+├── 📁 database
+│   ├── migrations/
+│   └── seeders/
+├── 📁 public
+├── 📁 resources
+├── 📁 routes
+├── 📁 storage
+│   ├── app/
+│   ├── cache/
+│   └── framework/
+├── 📁 tests
 ├── .env
+├── Dockerfile
+├── ace.ts
+├── bootstrap.ts
 ├── bunfig.toml
-└── package.json
+├── package.json
+└── server.ts
 ```
 
 The exact structure may vary depending on the framework version and installed packages.
@@ -161,9 +166,9 @@ Example:
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
-APP_URL=http://localhost:3000
-
-PORT=3000
+APP_HOST=127.0.0.1
+APP_PORT=3000
+APP_URL="http://${APP_HOST}:${APP_PORT}"
 ```
 
 You can customize these values as needed.
@@ -216,14 +221,11 @@ This allows you to edit code and see changes immediately without manually restar
 
 Typical workflow:
 
-```text
-Edit File
-     ↓
-Save
-     ↓
-Framework Reloads
-     ↓
-Refresh Browser
+```mermaid
+flowchart LR
+    A[Edit File] --> B[Save]
+    B --> C[Framework Reloads]
+    C --> D[Refresh Browser]
 ```
 
 ---
@@ -235,11 +237,11 @@ To confirm that everything is working correctly:
 Create a simple route.
 
 ```ts
-Router.get("/", async () => {
-  return {
-    framework: "Bejibun",
-    status: "running"
-  };
+Router.get("/", () => {
+    return Response.json({
+        "framework": "Bejibun",
+        "status": "running"
+    });
 });
 ```
 
@@ -253,8 +255,8 @@ Expected response:
 
 ```json
 {
-  "framework": "Bejibun",
-  "status": "running"
+    "framework": "Bejibun",
+    "status": "running"
 }
 ```
 
@@ -274,15 +276,43 @@ bun ace
 
 Example:
 
-```text
-make:controller
-make:model
-make:migration
-make:seeder
-make:validator
-route:list
-migrate:latest
-migrate:rollback
+```bash
+Usage: ace [options] [command]
+
+Ace for your commander
+Author: Havea Crenata <havea.crenata@gmail.com>
+
+Options:
+  -v, --version                Show the current version
+  -h, --help                   display help for command
+
+Commands:
+  db:seed                      Run database seeders
+  install <packages...>        Install package dependencies
+  maintenance:down [options]   Turn app into maintenance mode
+  maintenance:up               Turn app into live mode
+  make:command <file>          Create a new command file
+  make:controller <file>       Create a new controller file
+  make:job <file>              Create a new job file
+  make:middleware <file>       Create a new middleware file
+  make:migration <file>        Create a new migration file
+  make:model <file>            Create a new model file
+  make:seeder <file>           Create a new seeder file
+  make:validator <file>        Create a new validator file
+  migrate:fresh [options]      Rollback all migrations and re-run migrations
+  migrate:latest               Run latest migration
+  migrate:rollback [options]   Rollback the latest migrations
+  migrate:status [options]     List migrations status
+  package:configure [options]  Configure package after installation
+  queue:flush                  Flush all of the failed queue jobs
+  queue:retry                  Retry a failed queue job
+  queue:work                   Start processing jobs on the queue as a daemon
+  help [command]               display help for command
+
+Examples:
+  $ bun ace --help
+  $ bun ace --version
+  $ bun ace migrate:latest
 ```
 
 These commands help automate common development tasks.
@@ -294,7 +324,7 @@ These commands help automate common development tasks.
 Generate a controller:
 
 ```bash
-bun ace make:controller HomeController
+bun ace make:controller Home
 ```
 
 Generated file:
@@ -305,15 +335,16 @@ app/controllers/HomeController.ts
 
 Example:
 
-```ts
+```ts app/controllers/HomeController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HomeController extends BaseController {
-  public async index(request: Bun.BunRequest): Promise<Response> {
-    return super.response.setData({
-      message: "Welcome to Bejibun"
-    }).send();
-  }
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        return super.response.setData({
+            message: "Hello, world!",
+            method: request.method
+        }).send();
+    }
 }
 ```
 
@@ -338,13 +369,25 @@ bun ace make:model User
 Generated file:
 
 ```text
-app/models/User.ts
+app/models/UserModel.ts
 ```
 
 Example:
 
-```ts
-export default class User extends BaseModel {}
+```ts app/models/UserModel.ts
+import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+
+export default class UserModel extends BaseModel {
+    public static tableName: string = "users";
+    public static idColumn: string = "id";
+
+    declare id: bigint;
+    declare name: string;
+    declare created_at: Timestamp;
+    declare updated_at: Timestamp;
+    declare deleted_at: NullableTimestamp;
+}
 ```
 
 Models provide a convenient way to interact with database records.
@@ -436,13 +479,16 @@ bun --version
 If the configured port is unavailable:
 
 ```bash
-EADDRINUSE
+error: Failed to start server. Is port 3000 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
 ```
 
 Change the port in your environment configuration:
 
 ```env
-PORT=4000
+APP_PORT=4000
 ```
 
 Restart the development server afterward.
@@ -473,7 +519,5 @@ Continue with:
 - Creating Your First Application
 - Project Structure
 - Configuration
-- Environment Variables
-- Request Lifecycle
 
 In the next guide, you'll build a complete application and learn how the framework components work together.
