@@ -25,21 +25,21 @@ By the end of this guide, you'll understand how a typical Bejibun application is
 
 We'll create a small API that allows users to:
 
-```text
-GET    /users
-GET    /users/:id
-POST   /users
-PUT    /users/:id
-DELETE /users/:id
-```
+| Method | Endpoint   | Description       |
+| ------ | ---------- | ----------------- |
+| GET    | /users     | Get all users     |
+| GET    | /users/:id | Get user by ID    |
+| POST   | /users     | Create new user   |
+| PUT    | /users/:id | Update user by ID |
+| DELETE | /users/:id | Delete user by ID |
 
 Example response:
 
 ```json
 {
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com"
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com"
 }
 ```
 
@@ -82,16 +82,25 @@ bun ace make:model User
 Generated file:
 
 ```text
-app/models/User.ts
+app/models/UserModel.ts
 ```
 
 Example:
 
-```ts
-import BaseModel from "@bejibun/core/database/BaseModel";
+```ts app/models/UserModel.ts
+import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
+import BaseModel from "@bejibun/core/bases/BaseModel";
 
-export default class User extends BaseModel {
-  static tableName = "users";
+export default class UserModel extends BaseModel {
+    public static tableName: string = "users";
+    public static idColumn: string = "id";
+
+    declare id: bigint;
+    declare name: string;
+    declare email: string;
+    declare created_at: Timestamp;
+    declare updated_at: Timestamp;
+    declare deleted_at: NullableTimestamp;
 }
 ```
 
@@ -111,25 +120,22 @@ bun ace make:migration create_users_table
 
 Example migration:
 
-```ts
-import { Schema } from "@bejibun/core/database";
+```ts database/migrations/20260101_000001_create_users_table.ts
+import type {Knex} from "knex";
+import UserModel from "@/app/models/UserModel";
 
-export default class extends Schema {
-  async up() {
-    this.createTable("users", table => {
-      table.id();
-
-      table.string("name");
-
-      table.string("email").unique();
-
-      table.timestamps();
+export function up(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.createTable(UserModel.tableName, (table: Knex.TableBuilder) => {
+        table.bigIncrements("id");
+        table.string("name");
+        table.string("email").unique();
+        table.timestamps(true, true);
+        table.timestamp("deleted_at");
     });
-  }
+}
 
-  async down() {
-    this.dropTable("users");
-  }
+export function down(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.dropTable(UserModel.tableName);
 }
 ```
 
@@ -150,7 +156,7 @@ Controllers contain your application's request handling logic.
 Generate a controller:
 
 ```bash
-bun ace make:controller UserController
+bun ace make:controller User
 ```
 
 Generated file:
@@ -161,8 +167,12 @@ app/controllers/UserController.ts
 
 Example:
 
-```ts
-export default class UserController {}
+```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class UserController extends BaseController {
+    //
+}
 ```
 
 We'll implement functionality shortly.
@@ -174,21 +184,23 @@ We'll implement functionality shortly.
 Open your routes file:
 
 ```text
-routes/index.ts
+routes/api.ts
 ```
 
 Register user routes:
 
 ```ts
-Router.get("/users", "UserController@index");
+Router.prefix("users").group([
+    Router.get("/", "UserController@index"),
 
-Router.get("/users/:id", "UserController@show");
+    Router.get("/:id", "UserController@show"),
 
-Router.post("/users", "UserController@store");
+    Router.post("/", "UserController@store"),
 
-Router.put("/users/:id", "UserController@update");
+    Router.put("/:id", "UserController@update"),
 
-Router.delete("/users/:id", "UserController@destroy");
+    Router.delete("/:id", "UserController@destroy")
+]);
 ```
 
 Each route maps an HTTP request to a controller action.
@@ -199,48 +211,53 @@ Each route maps an HTTP request to a controller action.
 
 Let's add the controller methods.
 
-```ts
-import User from "#models/User";
+```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
 
-export default class UserController {
-  async index() {
-    return User.all();
-  }
+export default class UserController extends BaseController {
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        const users = await UserModel.all();
 
-  async show({ params }) {
-    return User.findOrFail(params.id);
-  }
+        return super.response.setData(users).send();
+    }
 
-  async store({ request }) {
-    return User.create(
-      request.all()
-    );
-  }
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
 
-  async update({
-    params,
-    request
-  }) {
-    const user =
-      await User.findOrFail(params.id);
+        const user = await UserModel.findOrFail(body.id);
 
-    await user.update(
-      request.all()
-    );
+        return super.response.setData(user).send();
+    }
 
-    return user;
-  }
+    public async store(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
 
-  async destroy({ params }) {
-    const user =
-      await User.findOrFail(params.id);
+        const user = await UserModel.create({
+            name: body.name,
+            email: body.email
+        });
 
-    await user.delete();
+        return super.response.setData(user).send();
+    }
 
-    return {
-      success: true
-    };
-  }
+    public async update(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+
+        const user = await UserModel.findOrFail(body.id).update({
+            name: body.name,
+            email: body.email
+        });
+
+        return super.response.setData(user).send();
+    }
+
+    public async destroy(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+
+        await UserModel.findOrFail(body.id).delete();
+
+        return super.response.setData().send();
+    }
 }
 ```
 
@@ -255,38 +272,46 @@ Accepting user input without validation is dangerous.
 Generate a validator:
 
 ```bash
-bun ace make:validator CreateUserValidator
+bun ace make:validator User
 ```
 
 Example:
 
-```ts
-import vine from "@vinejs/vine";
+```ts app/validators/UserValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
 
-export const CreateUserValidator =
-  vine.compile(
-    vine.object({
-      name: vine.string(),
-
-      email: vine.string().email()
-    })
-  );
+export default class UserValidator extends BaseValidator {
+    public static get store(): ValidatorType {
+        return super.validator.create({
+            name: super.validator.string(),
+            email: super.validator.string().email()
+        });
+    }
+}
 ```
 
 Use the validator:
 
 ```ts
-import {
-  CreateUserValidator
-} from "#validators/CreateUserValidator";
+import UserValidator from "@/app/validators/UserValidator";
 
-async store({ request }) {
-  const payload =
-    await request.validate(
-      CreateUserValidator
-    );
+export default class UserController extends BaseController {
+    // ...
 
-  return User.create(payload);
+    public async store(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(UserValidator.store, body);
+
+        const user = await UserModel.create({
+            name: body.name,
+            email: body.email
+        });
+
+        return super.response.setData(user).send();
+    }
+
+    // ...
 }
 ```
 
@@ -306,8 +331,8 @@ Request body:
 
 ```json
 {
-  "name": "John Doe",
-  "email": "john@example.com"
+    "name": "John Doe",
+    "email": "john@example.com"
 }
 ```
 
@@ -315,9 +340,15 @@ Response:
 
 ```json
 {
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com"
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "created_at": "2026-01-01T15:00:000Z",
+        "updated_at": "2026-01-01T15:00:000Z"
+    },
+    "message": "Success",
+    "status": 200
 }
 ```
 
@@ -330,13 +361,19 @@ GET /users
 Response:
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com"
-  }
-]
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "created_at": "2026-01-01T15:00:000Z",
+            "updated_at": "2026-01-01T15:00:000Z"
+        }
+    ],
+    "message": "Success",
+    "status": 200
+}
 ```
 
 Retrieve a specific user:
@@ -345,35 +382,37 @@ Retrieve a specific user:
 GET /users/1
 ```
 
+Response:
+
+```json
+{
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "created_at": "2026-01-01T15:00:000Z",
+        "updated_at": "2026-01-01T15:00:000Z"
+    },
+    "message": "Success",
+    "status": 200
+}
+```
+
 ---
 
 # Understanding the Request Flow
 
 When a request reaches your application, it passes through several layers.
 
-```text
-Client Request
-       │
-       ▼
-     Route
-       │
-       ▼
-  Middleware
-       │
-       ▼
-   Validation
-       │
-       ▼
-  Controller
-       │
-       ▼
-    Model
-       │
-       ▼
-  Database
-       │
-       ▼
-   Response
+```mermaid
+flowchart TD
+    A[Client Request] --> B[Route]
+    B --> C[Middleware]
+    C --> D[Validation]
+    D --> E[Controller]
+    E --> F[Model]
+    F --> G[Database]
+    G --> H[Response]
 ```
 
 Understanding this flow is critical for building maintainable applications.
@@ -387,28 +426,30 @@ As applications grow, controllers should remain thin.
 Avoid:
 
 ```ts
-async store({ request }) {
-  // hundreds of lines of logic
+public async store(request: Bun.BunRequest): Promise<Response> {
+    // hundreds of lines of logic
 }
 ```
 
 Instead:
 
 ```ts
-async store({ request }) {
-  return UserService.create(
-    request.all()
-  );
+public async store(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+
+    return super.response.setData(
+        UserService.create(body)
+    ).send();
 }
 ```
 
 Example service:
 
-```ts
+```ts app/services/UserService.ts
 export default class UserService {
-  static async create(data) {
-    return User.create(data);
-  }
+    public static async create(data) {
+        return User.create(data);
+    }
 }
 ```
 
@@ -432,7 +473,9 @@ Example:
 
 ```json
 {
-  "message": "User not found"
+    "data": null,
+    "message": "No query results for model [UserModel] [999].",
+    "status": 404
 }
 ```
 
@@ -449,6 +492,8 @@ Instead of:
 ```ts
 Router.get("/users", "UserController@index");
 
+Router.get("/users/:id", "UserController@show");
+
 Router.post("/users", "UserController@store");
 
 Router.put("/users/:id", "UserController@update");
@@ -459,10 +504,7 @@ Router.delete("/users/:id", "UserController@destroy");
 You can use:
 
 ```ts
-Router.resource(
-  "users",
-  UserController
-);
+Router.resource("users", UserController);
 ```
 
 This generates a complete set of conventional CRUD routes automatically.
@@ -509,6 +551,5 @@ Continue to:
 - Project Structure
 - Configuration
 - Environment Variables
-- Request Lifecycle
 
 In the next chapter, you'll explore how a Bejibun application is organized and learn the purpose of each directory within a project.
