@@ -19,19 +19,35 @@ Whether you're working alone or collaborating with a large team, knowing where c
 A newly created Bejibun application may look similar to:
 
 ```text
-my-app/
-├── app/
-├── bootstrap/
-├── config/
-├── database/
-├── public/
-├── routes/
-├── storage/
-├── tests/
+📁 Application
+├── 📁 app
+│   ├── controllers/
+│   ├── exceptions/
+│   ├── jobs/
+│   ├── middlewares/
+│   ├── models/
+│   ├── validators/
+│   └── websockets/
+├── 📁 commands
+├── 📁 config
+├── 📁 database
+│   ├── migrations/
+│   └── seeders/
+├── 📁 public
+├── 📁 resources
+├── 📁 routes
+├── 📁 storage
+│   ├── app/
+│   ├── cache/
+│   └── framework/
+├── 📁 tests
 ├── .env
+├── Dockerfile
+├── ace.ts
+├── bootstrap.ts
+├── bunfig.toml
 ├── package.json
-├── tsconfig.json
-└── bunfig.toml
+└── server.ts
 ```
 
 Each directory has a specific responsibility.
@@ -67,11 +83,13 @@ Controllers handle incoming requests and return responses.
 
 Example:
 
-```ts
-export default class UserController {
-  async index() {
-    //
-  }
+```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class UserController extends BaseController {
+    public async index(request: Bun.BunRequest): Promise<Response> {
+        //
+    }
 }
 ```
 
@@ -95,9 +113,19 @@ Models represent application data and database records.
 
 Example:
 
-```ts
-export default class User {
-  //
+```ts app/models/UserModel.ts
+import type {Timestamp, NullableTimestamp} from "@bejibun/core/bases/BaseModel";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+
+export default class UserModel extends BaseModel {
+    public static tableName: string = "users";
+    public static idColumn: string = "id";
+
+    declare id: bigint;
+    // ...
+    declare created_at: Timestamp;
+    declare updated_at: Timestamp;
+    declare deleted_at: NullableTimestamp;
 }
 ```
 
@@ -122,9 +150,17 @@ Validators define rules for incoming data.
 
 Example:
 
-```ts
-export default class CreateUserValidator {
-  //
+```ts app/validators/UserValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
+
+export default class UserValidator extends BaseValidator {
+    public static get store(): ValidatorType {
+        return super.validator.create({
+            name: super.validator.string(),
+            email: super.validator.string().email()
+        });
+    }
 }
 ```
 
@@ -148,11 +184,17 @@ Middleware intercepts requests before they reach controllers.
 
 Example:
 
-```ts
+```ts app/middlewares/AuthMiddleware.ts
+import type {HandlerType} from "@bejibun/core/types";
+
 export default class AuthMiddleware {
-  async handle(ctx, next) {
-    await next();
-  }
+    public handle(handler: HandlerType): HandlerType {
+        return async (request: Bun.BunRequest, server: Bun.Server<any>) => {
+            // ...
+
+            return handler(request, server);
+        };
+    }
 }
 ```
 
@@ -176,13 +218,25 @@ Jobs represent tasks that execute in the background.
 
 Examples:
 
-```text
-SendEmailJob
+- SendEmailJob
 
-GenerateReportJob
+```ts app/jobs/SendEmailJob.ts
+import BaseJob from "@bejibun/core/bases/BaseJob";
 
-ProcessPaymentJob
+export default class SendEmailJob extends BaseJob {
+    /**
+     * Execute the job.
+     *
+     * @var $arguments Array<any>
+     */
+    public async handle(args: Array<any>): Promise<void> {
+        // ...
+    }
+}
 ```
+
+- GenerateReportJob
+- ProcessPaymentJob
 
 Background jobs help keep HTTP requests fast and responsive.
 
@@ -198,9 +252,25 @@ This directory contains custom exceptions and exception handlers.
 
 Example:
 
-```ts
-export class UserNotFoundException
-  extends Error {}
+```ts app/exceptions/UserNotFoundException.ts
+import Logger from "@bejibun/logger";
+import {defineValue} from "@bejibun/utils";
+
+export default class UserNotFoundException extends Error {
+    public code: number;
+
+    public constructor(message?: string, code?: number) {
+        super(message);
+        this.name = "UserNotFoundException";
+        this.code = defineValue(code, 404);
+
+        Logger.setContext(this.name).error(this.message).trace(this.stack);
+
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, UserNotFoundException);
+        }
+    }
+}
 ```
 
 Responsibilities:
@@ -221,22 +291,27 @@ Contains realtime communication handlers.
 
 Example:
 
-```text
-ChatSocket.ts
-NotificationSocket.ts
+```ts app/websockets/ChatWebSocket.ts
+import BaseWebSocket from "@bejibun/core/bases/BaseWebSocket";
+
+export default class ChatWebSocket extends BaseWebSocket {
+    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+        // ...
+    }
+}
 ```
 
 These handlers manage WebSocket connections and events.
 
 ---
 
-# The bootstrap Directory
+# The bootstrap File
 
 ```text
-bootstrap/
+bootstrap.ts
 ```
 
-The bootstrap directory is responsible for starting the application.
+The bootstrap file is responsible for starting the application.
 
 Typical responsibilities include:
 
@@ -261,24 +336,104 @@ Example:
 
 ```text
 config/
-├── cache/
-├── command/
-├── cors/
-├── database/
-├── disk/
-├── limiter/
-├── performance/
-├── redis/
-├── route/
-├── websocket/
-└── x402/
+├── cache.ts
+├── command.ts
+├── cors.ts
+├── database.ts
+├── disk.ts
+├── limiter.ts
+├── performance.ts
+├── redis.ts
+├── route.ts
+├── websocket.ts
+└── x402.ts
 ```
 
 Configuration files control framework behavior without changing application code.
 
----
+### Cache Configuration
 
-## Database Configuration
+```text
+config/cache.ts
+```
+
+Configures cache drivers and cache behavior.
+
+Example:
+
+```ts config/cache.ts
+import App from "@bejibun/app";
+import CacheDriverEnum from "@bejibun/cache/enums/CacheDriverEnum";
+
+const config: Record<string, any> = {
+    default: "local",
+
+    connections: {
+        local: {
+            driver: CacheDriverEnum.Local,
+            path: App.Path.storagePath("cache") // absolute path
+        },
+
+        redis: {
+            driver: CacheDriverEnum.Redis,
+            host: Bun.env.REDIS_HOST,
+            port: Bun.env.REDIS_PORT,
+            password: Bun.env.REDIS_PASSWORD,
+            database: Bun.env.REDIS_DATABASE
+        }
+    }
+};
+
+export default config;
+```
+
+### Command Configuration
+
+```text
+config/command.ts
+```
+
+Configure the locations of your command directories.
+
+Example:
+
+```ts config/command.ts
+const config: Array<Record<string, any>> = [
+    /*
+    {
+        path: "your-dependencies/your-directory-commands",
+        path: "@bejibun/database/commands" // Example
+    }
+    */
+];
+
+export default config;
+```
+
+### CORS Configuration
+
+```text
+config/cors.ts
+```
+
+Controls cross-origin resource sharing behavior.
+
+Example:
+
+```ts config/cors.ts
+const config: Record<string, any> = {
+    allowedHeaders: "*",
+    credentials: false,
+    exposedHeaders: [],
+    maxAge: 86400,
+    methods: "*",
+    origin: "*"
+};
+
+export default config;
+```
+
+### Database Configuration
 
 ```text
 config/database.ts
@@ -288,63 +443,274 @@ Defines database connections and ORM behavior.
 
 Example:
 
-```ts
-export default {
-  default: "sqlite"
+```ts config/database.ts
+import type {Knex} from "knex";
+
+const config: Knex.Config = {
+    client: "pg",
+    connection: {
+        host: Bun.env.DB_HOST,
+        port: Bun.env.DB_PORT,
+        user: Bun.env.DB_USER,
+        password: Bun.env.DB_PASSWORD,
+        database: Bun.env.DB_DATABASE
+    },
+    migrations: {
+        extension: "ts",
+        directory: "./database/migrations",
+        schemaName: "public",
+        tableName: "migrations"
+    },
+    pool: {
+        min: 0,
+        max: 10
+    },
+    seeds: {
+        extension: "ts",
+        directory: "./database/seeders"
+    }
 };
+
+export default config;
 ```
 
----
-
-## Cache Configuration
+### Disk Configuration
 
 ```text
-config/cache/
+config/disk.ts
 ```
 
-Configures cache drivers and cache behavior.
+Configure disk connections and storage drivers.
 
----
+Example:
 
-## Redis Configuration
+```ts config/disk.ts
+import App from "@bejibun/app";
+import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
 
-```text
-config/redis/
+const config: Record<string, any> = {
+    default: "local",
+
+    disks: {
+        local: {
+            driver: DiskDriverEnum.Local,
+            root: App.Path.storagePath("app")
+        },
+
+        public: {
+            driver: DiskDriverEnum.Local,
+            root: App.Path.storagePath("app/public"),
+            url: `${Bun.env.APP_URL}/storage/public`
+        },
+
+        s3: {
+            driver: DiskDriverEnum.S3,
+            endpoint: Bun.env.S3_ENDPOINT,
+            region: Bun.env.S3_REGION,
+            bucket: Bun.env.S3_BUCKET,
+            access_key_id: Bun.env.S3_ACCESS_KEY_ID,
+            secret_access_key: Bun.env.S3_SECRET_ACCESS_KEY,
+            url: ""
+        }
+    }
+};
+
+export default config;
 ```
 
-Defines Redis connection settings.
-
----
-
-## CORS Configuration
+### Rate Limiter Configuration
 
 ```text
-config/cors/
-```
-
-Controls cross-origin resource sharing behavior.
-
----
-
-## Rate Limiter Configuration
-
-```text
-config/limiter/
+config/limiter.ts
 ```
 
 Defines request throttling and rate-limiting rules.
 
----
+Example:
 
-## WebSocket Configuration
+```ts config/limiter.ts
+const config: Record<string, any> = {
+    limit: 30,
+    duration: 60 // seconds
+};
+
+export default config;
+```
+
+### Performance Configuration
 
 ```text
-config/websocket/
+config/performance.ts
+```
+
+Configure performance-related features and settings.
+
+Example:
+
+```ts config/performance.ts
+const config: Record<string, any> = {
+    middlewares: {
+        limiter: true,
+        maintenance: true
+    }
+};
+
+export default config;
+```
+
+### Redis Configuration
+
+```text
+config/redis.ts
+```
+
+Defines Redis connection settings.
+
+Example:
+
+```ts config/redis.ts
+const config: Record<string, any> = {
+    default: Bun.env.REDIS_CONNECTION,
+
+    connections: {
+        local: {
+            host: Bun.env.REDIS_HOST,
+            port: Bun.env.REDIS_PORT,
+            password: Bun.env.REDIS_PASSWORD,
+            database: Bun.env.REDIS_DATABASE,
+            maxRetries: Number(Bun.env.REDIS_MAX_RETRIES)
+        }
+    }
+};
+
+export default config;
+```
+
+### Route Configuration
+
+```text
+config/route.ts
+```
+
+Configure Swagger/OpenAPI documentation settings.
+
+Example:
+
+```ts config/route.ts
+const config: Record<string, any> = {
+    default: "swagger",
+
+    templates: {
+        swagger: {
+            openapi: "3.0.0",
+            components: {
+                securitySchemes: {
+                    ApiKeyAuth: {
+                        type: "apiKey",
+                        in: "header",
+                        name: "x-api-key"
+                    },
+                    BearerAuth: {
+                        type: "http",
+                        scheme: "bearer"
+                    }
+                }
+            },
+            security: [
+                {
+                    ApiKeyAuth: []
+                },
+                {
+                    BearerAuth: []
+                }
+            ],
+            tags: [
+                {
+                    name: "Hello",
+                    description: "Dummy APIs"
+                },
+                {
+                    name: "Test",
+                    description: "Example APIs"
+                }
+            ],
+            info: {
+                title: "Route List",
+                description: "Bejibun Route List",
+                contact: {
+                    name: "API Support",
+                    email: "havea@bejibun.com",
+                    url: "https://bejibun.com"
+                },
+                license: {
+                    name: "MIT",
+                    url: "https://github.com/Bejibun-Framework/bejibun/blob/master/LICENSE"
+                }
+            },
+            servers: [
+                {
+                    url: Bun.env.APP_URL,
+                    description: `${Bun.env.APP_ENV} server`
+                }
+            ],
+            paths: {}
+        }
+    }
+};
+
+export default config;
+```
+
+### WebSocket Configuration
+
+```text
+config/websocket.ts
 ```
 
 Configures realtime communication settings.
 
----
+Example:
+
+```ts config/websocket.ts
+const config: Record<string, any> = {
+    maxPayloadLength: 1024 * 1024 * 16,
+
+    backpressureLimit: 1024 * 1024 * 16,
+
+    closeOnBackpressureLimit: false,
+
+    idleTimeout: 60,
+
+    publishToSelf: false,
+
+    sendPings: false
+};
+
+export default config;
+```
+
+### x402 Configuration
+
+```text
+config/x402.ts
+```
+
+Configure x402 payment settings.
+
+Example:
+
+```ts config/x402.ts
+const config = {
+    version: 1,
+    network: "solana-devnet",
+    address: "GAnoyvy9p3QFyxikWDh9hA3fmSk2uiPLNWyQ579cckMn",
+    price: "$0.01",
+    timeout: 60,
+    forceJson: false,
+    testnet: true
+};
+export default config;
+```
 
 # The database Directory
 
@@ -360,9 +726,7 @@ database/
 └── seeders/
 ```
 
----
-
-## Migrations
+### Migrations
 
 ```text
 database/migrations/
@@ -372,8 +736,23 @@ Migrations define database schema changes.
 
 Example:
 
-```text
-create_users_table.ts
+```ts database/migrations/20260101_000001_create_users_table.ts
+import type {Knex} from "knex";
+import UserModel from "@/app/models/UserModel";
+
+export function up(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.createTable(UserModel.tableName, (table: Knex.TableBuilder) => {
+        table.bigIncrements("id");
+        table.string("name");
+        table.string("email").unique();
+        table.timestamps(true, true);
+        table.timestamp("deleted_at");
+    });
+}
+
+export function down(knex: Knex): Knex.SchemaBuilder {
+    return knex.schema.dropTable(UserModel.tableName);
+}
 ```
 
 Responsibilities:
@@ -383,9 +762,7 @@ Responsibilities:
 - Add indexes
 - Manage schema evolution
 
----
-
-## Seeders
+### Seeders
 
 ```text
 database/seeders/
@@ -395,8 +772,16 @@ Seeders populate the database with initial data.
 
 Example:
 
-```text
-UserSeeder.ts
+```ts database/seeders/20260101_000001_create_users_seeder.ts
+import type {Knex} from "knex";
+import UserModel from "@/app/models/UserModel";
+
+export async function seed(knex: Knex): Promise<void> {
+    await UserModel.query(knex).insert({
+        name: "John Doe",
+        email: "john.doe@example.com"
+    });
+}
 ```
 
 Common uses:
@@ -419,17 +804,15 @@ Example:
 
 ```text
 routes/
-├── api/
-├── web/
-└── websocket/
+├── api.ts
+├── web.ts
+└── websocket.ts
 ```
 
----
-
-## API Routes
+### API Routes
 
 ```text
-routes/api/
+routes/api.ts
 ```
 
 Contains API endpoints.
@@ -437,7 +820,7 @@ Contains API endpoints.
 Example:
 
 ```ts
-Router.get("/users");
+Router.get("/users", "UserController@index");
 ```
 
 Typically used for:
@@ -446,28 +829,22 @@ Typically used for:
 - Mobile backends
 - Third-party integrations
 
----
-
-## Web Routes
+### Web Routes
 
 ```text
-routes/web/
+routes/web.ts
 ```
 
 Contains traditional web application routes.
 
 Example:
 
-```ts
-Router.get("/");
-```
+> 🚧 Coming soon.
 
----
-
-## WebSocket Routes
+### WebSocket Routes
 
 ```text
-routes/websocket/
+routes/websocket.ts
 ```
 
 Registers realtime communication endpoints.
@@ -475,7 +852,7 @@ Registers realtime communication endpoints.
 Example:
 
 ```ts
-WebSocket.channel("chat");
+Router.websocket("/chat", "ChatWebSocket@handle");
 ```
 
 ---
@@ -493,7 +870,9 @@ Example:
 ```text
 public/
 ├── apis.html
-└── apis.json
+├── apis.json
+├── index.css
+└── index.html
 ```
 
 Common contents include:
@@ -518,9 +897,9 @@ Example:
 
 ```text
 storage/
-├── logs/
+├── app/
 ├── cache/
-└── uploads/
+└── framework/
 ```
 
 Typical contents:
@@ -575,7 +954,9 @@ Example:
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
-APP_DEBUG=true
+APP_HOST=127.0.0.1
+APP_PORT=3000
+APP_URL="http://${APP_HOST}:${APP_PORT}"
 ```
 
 Sensitive values should always be stored in environment files rather than committed to source code.
@@ -594,7 +975,7 @@ Example:
 
 ```json
 {
-  "name": "my-app"
+    "name": "my-app"
 }
 ```
 
@@ -618,7 +999,7 @@ Example:
 
 ```json
 {
-  "compilerOptions": {}
+    "compilerOptions": {}
 }
 ```
 
@@ -658,26 +1039,14 @@ Used for:
 
 A typical request flows through multiple directories:
 
-```text
-Request
-   │
-   ▼
-routes/
-   │
-   ▼
-app/controllers/
-   │
-   ▼
-app/validators/
-   │
-   ▼
-app/models/
-   │
-   ▼
-database/
-   │
-   ▼
-Response
+```mermaid
+flowchart TD
+    A[Request] --> B[routes/]
+    B --> C[app/controllers/]
+    C --> D[app/validators/]
+    D --> E[app/models/]
+    E --> F[database/]
+    F --> G[Response]
 ```
 
 Each component has a focused responsibility.
@@ -695,8 +1064,8 @@ app/
 ├── controllers/
 ├── middlewares/
 ├── models/
-├── validators/
-└── jobs/
+├── jobs/
+└── validators/
 ```
 
 Avoid placing unrelated code into the same directory.
@@ -711,15 +1080,15 @@ Clear organization improves maintainability.
 Application
 │
 ├── app/            → Business Logic
-├── bootstrap/      → Application Startup
 ├── config/         → Configuration
 ├── database/       → Migrations & Seeders
-├── routes/         → Route Definitions
 ├── public/         → Public Assets
+├── routes/         → Route Definitions
 ├── storage/        → Generated Files
 ├── tests/          → Automated Tests
 │
 ├── .env
+├── bootstrap.ts    → Application Startup
 ├── package.json
 ├── tsconfig.json
 └── bunfig.toml
@@ -735,6 +1104,6 @@ Now that you're familiar with the application structure, continue with:
 
 - Configuration
 - Environment Variables
-- MVC Pattern
+- Deployment Overview
 
-These guides explain how applications are configured and how the framework's architecture is organized.
+These guides explain how to configure your application and prepare it for deployment.
