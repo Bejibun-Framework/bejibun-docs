@@ -26,35 +26,35 @@ This guide walks through the complete journey of a request.
 
 Every incoming request follows a sequence of steps:
 
-```text
-Client
-  │
-  ▼
-HTTP Server
-  │
-  ▼
-Router
-  │
-  ▼
-Middleware
-  │
-  ▼
-Validation
-  │
-  ▼
-Controller
-  │
-  ▼
-Service Layer
-  │
-  ▼
-Model / Database
-  │
-  ▼
-Response
-  │
-  ▼
-Client
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router
+    participant Controller
+    participant Validator
+    participant Service
+    participant Model
+    participant Database
+
+    Client->>Router: HTTP Request
+    Router->>Controller: Route Match
+
+    Controller->>Validator: Validate Request
+
+    alt Validation Failed
+        Validator-->>Controller: Validation Errors
+        Controller-->>Client: 422 Unprocessable Content
+    else Validation Passed
+        Validator-->>Controller: Valid Data
+        Controller->>Service: Execute Use Case
+        Service->>Model: Fetch / Save Data
+        Model->>Database: SQL Query
+
+        Database-->>Model: Result
+        Model-->>Service: Entity / Data
+        Service-->>Controller: Response Data
+        Controller-->>Client: 200 OK
+    end
 ```
 
 Each layer has a specific responsibility.
@@ -65,42 +65,35 @@ Each layer has a specific responsibility.
 
 The complete lifecycle can be visualized as:
 
-```text
-1. Request Arrives
-          │
-          ▼
-2. Application Bootstrap
-          │
-          ▼
-3. Route Resolution
-          │
-          ▼
-4. Middleware Execution
-          │
-          ▼
-5. Validation
-          │
-          ▼
-6. Controller Action
-          │
-          ▼
-7. Business Logic
-          │
-          ▼
-8. Database Operations
-          │
-          ▼
-9. Response Creation
-          │
-          ▼
-10. Response Sent
+```mermaid id="r4xj8k"
+sequenceDiagram
+    participant Client
+    participant App as Bejibun Application
+    participant Router
+    participant Middleware
+    participant Validator
+    participant Controller
+    participant Service
+    participant Database
+
+    Client->>App: 1. Request Arrives
+    App->>App: 2. Application Bootstrap
+    App->>Router: 3. Route Resolution
+    Router->>Middleware: 4. Middleware Execution
+    Middleware->>Validator: 5. Validation
+    Validator->>Controller: 6. Controller Action
+    Controller->>Service: 7. Business Logic
+    Service->>Database: 8. Database Operations
+    Database-->>Service: Result
+    Service-->>Controller: Result
+    Controller-->>App: 9. Response Creation
+    App-->>Client: 10. Response Sent
 ```
+
 
 Let's examine each stage in detail.
 
----
-
-# 1. Request Arrival
+### 1. Request Arrival
 
 The lifecycle begins when a client sends an HTTP request.
 
@@ -121,45 +114,36 @@ The request may originate from:
 
 The Bejibun HTTP server receives the request and begins processing.
 
----
-
-# 2. Application Bootstrap
+### 2. Application Bootstrap
 
 Before handling requests, Bejibun initializes the application.
 
 During bootstrap, the framework loads:
 
-```text
-Configuration
-Environment Variables
-Service Providers
-Framework Components
-Routes
-```
+- Configuration
+- Environment Variables
+- Service Providers
+- Framework Components
+- Routes
 
 Example:
 
 ```text
-bootstrap/
+bootstrap.ts
 ```
 
 This process prepares the application to handle requests efficiently.
 
 In production environments, bootstrap operations are typically performed once when the application starts.
 
----
-
-# 3. Route Resolution
+### 3. Route Resolution
 
 After initialization, the router determines which route matches the request.
 
 Example route:
 
 ```ts
-Router.get(
-  "/users/:id",
-  "UserController@show"
-);
+Router.get("/users/:id", "UserController@show");
 ```
 
 Incoming request:
@@ -170,9 +154,9 @@ GET /users/1
 
 Resolved parameters:
 
-```ts
+```json
 {
-  id: "1"
+    "id": 1
 }
 ```
 
@@ -184,9 +168,7 @@ If no route matches:
 
 is returned automatically.
 
----
-
-# 4. Middleware Execution
+### 4. Middleware Execution
 
 Before reaching a controller, the request passes through middleware.
 
@@ -195,24 +177,19 @@ Middleware acts as a filtering layer.
 Example:
 
 ```ts
-Router.middleware(
-  AuthMiddleware
-).get(
-  "/profile",
-  "ProfileController@show"
-);
+Router.middleware(new AuthMiddleware()).get("/profile", "ProfileController@show");
 ```
 
 Lifecycle:
 
-```text
-Request
-   │
-   ▼
-Middleware
-   │
-   ▼
-Controller
+```mermaid
+flowchart LR
+    Request["Request"]
+    Middleware["Middleware"]
+    Controller["Controller"]
+
+    Request --> Middleware
+    Middleware --> Controller
 ```
 
 Common middleware responsibilities include:
@@ -224,42 +201,39 @@ Common middleware responsibilities include:
 - Security Checks
 - Request Transformation
 
----
+Example:
 
-## Example Authentication Middleware
+```ts app/middlewares/AuthMiddleware.ts
+import type {HandlerType} from "@bejibun/core/types";
 
-```ts
 export default class AuthMiddleware {
-  async handle(ctx, next) {
-    const user =
-      await Auth.user();
+    public handle(handler: HandlerType): HandlerType {
+        return async (request: Bun.BunRequest, server: Bun.Server<any>) => {
+            // ...
 
-    if (!user) {
-      return response.unauthorized();
+            return handler(request, server);
+        };
     }
-
-    await next();
-  }
 }
 ```
 
 If authentication fails, the request stops immediately.
 
-```text
-Request
-   │
-   ▼
-Authentication Failed
-   │
-   ▼
-401 Response
+```mermaid
+flowchart LR
+    Request["Request"]
+    Auth["Authentication Middleware"]
+    Failed["Authentication Failed"]
+    Response["401 Unauthorized"]
+
+    Request --> Auth
+    Auth --> Failed
+    Failed --> Response
 ```
 
 The controller never executes.
 
----
-
-# 5. Request Validation
+### 5. Request Validation
 
 After middleware completes, incoming data may be validated.
 
@@ -267,33 +241,49 @@ Example request:
 
 ```json
 {
-  "name": "John",
-  "email": "john@example.com"
+    "name": "John Doe",
+    "email": "john@example.com"
 }
 ```
 
 Validator:
 
-```ts
-export const CreateUserValidator =
-  vine.compile(
-    vine.object({
-      name: vine.string(),
+```ts app/validators/UserValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
 
-      email: vine
-        .string()
-        .email()
-    })
-  );
+export default class UserValidator extends BaseValidator {
+    public static get store(): ValidatorType {
+        return super.validator.create({
+            name: super.validator.string(),
+            email: super.validator.string().email()
+        });
+    }
+}
 ```
 
 Controller:
 
-```ts
-const payload =
-  await request.validate(
-    CreateUserValidator
-  );
+```ts app/controllers/UserController.ts
+import UserValidator from "@/app/validators/UserValidator";
+
+export default class UserController extends BaseController {
+    // ...
+
+    public async store(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(UserValidator.store, body);
+
+        const user = await UserModel.create({
+            name: body.name,
+            email: body.email
+        });
+
+        return super.response.setData(user).send();
+    }
+
+    // ...
+}
 ```
 
 If validation fails:
@@ -311,9 +301,7 @@ If validation fails:
 
 The request stops and a validation response is returned.
 
----
-
-# 6. Controller Execution
+### 6. Controller Execution
 
 If validation succeeds, the controller action executes.
 
@@ -339,9 +327,7 @@ Responsibilities include:
 
 Controllers should remain focused and concise.
 
----
-
-# 7. Business Logic Layer
+### 7. Business Logic Layer
 
 Complex operations should be delegated to services.
 
@@ -380,9 +366,7 @@ Benefits:
 - Testability
 - Separation of concerns
 
----
-
-# 8. Database Operations
+### 8. Database Operations
 
 Most applications interact with a database.
 
@@ -410,9 +394,7 @@ Result
 
 Bejibun models abstract database interactions into TypeScript classes.
 
----
-
-# 9. Response Generation
+### 9. Response Generation
 
 After processing is complete, a response is created.
 
@@ -718,4 +700,5 @@ The next section dives deeper into individual framework features such as:
 - Caching
 - Queues
 
-With the request lifecycle understood, you'll be able to see exactly where each framework component fits into the application architecture.
+With the request lifecycle understood, you'll be able to see exactly where each framework component fits into the
+application architecture.
