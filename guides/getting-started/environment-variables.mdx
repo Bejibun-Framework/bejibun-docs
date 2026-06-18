@@ -6,9 +6,11 @@ icon: "binary"
 
 # Environment Variables
 
-Environment variables allow your application to behave differently across development, testing, staging, and production environments without changing source code.
+Environment variables allow your application to behave differently across development, staging, and production
+environments without changing source code.
 
-Bejibun uses environment variables to store configuration values that may vary between deployments, such as database credentials, API keys, hostnames, and runtime settings.
+Bejibun uses environment variables to store configuration values that may vary between deployments, such as database
+credentials, API keys, hostnames, and runtime settings.
 
 This approach improves:
 
@@ -29,7 +31,9 @@ Example:
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
-APP_DEBUG=true
+APP_HOST=127.0.0.1
+APP_PORT=3000
+APP_URL="http://${APP_HOST}:${APP_PORT}"
 ```
 
 Your application can read these values during startup and use them throughout the framework.
@@ -44,8 +48,8 @@ Avoid:
 
 ```ts
 const database = {
-  host: "127.0.0.1",
-  password: "secret"
+    host: "127.0.0.1",
+    password: "secret"
 };
 ```
 
@@ -57,7 +61,7 @@ DB_PASSWORD=secret
 ```
 
 ```ts
-host: Env.get("DB_HOST")
+const host = env("DB_HOST");
 ```
 
 This separation allows configuration to change without modifying application code.
@@ -79,8 +83,9 @@ Example:
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
-APP_DEBUG=true
-APP_URL=http://localhost:3000
+APP_HOST=127.0.0.1
+APP_PORT=3000
+APP_URL="http://${APP_HOST}:${APP_PORT}"
 ```
 
 This file contains environment-specific configuration for your application.
@@ -97,8 +102,24 @@ Most projects provide an example file:
 
 Create your environment file:
 
+### Linux / MacOS
+
 ```bash
 cp .env.example .env
+```
+
+### Windows
+
+**Command Prompt**
+
+```bash
+copy .env.example .env
+```
+
+**Powershell**
+
+```bash
+Copy-Item .env.example .env
 ```
 
 Then update the values to match your local environment.
@@ -112,7 +133,7 @@ Environment variables can be accessed using the environment service.
 Example:
 
 ```ts
-Env.get("APP_NAME");
+env("APP_NAME");
 ```
 
 Output:
@@ -132,10 +153,7 @@ You may provide a fallback value when a variable does not exist.
 Example:
 
 ```ts
-Env.get(
-  "APP_PORT",
-  3000
-);
+env("APP_PORT", 3000);
 ```
 
 If:
@@ -189,39 +207,11 @@ APP_ENV=development
 
 Common values:
 
-```text
-development
-
-testing
-
-staging
-
-production
-```
+- development
+- staging
+- production
 
 Environment values help the framework determine how it should behave.
-
----
-
-## Debug Mode
-
-```env
-APP_DEBUG=true
-```
-
-Development:
-
-```env
-APP_DEBUG=true
-```
-
-Production:
-
-```env
-APP_DEBUG=false
-```
-
-Debug mode should never be enabled in production.
 
 ---
 
@@ -247,31 +237,14 @@ Example:
 
 ```env
 DB_CONNECTION=pgsql
-
 DB_HOST=127.0.0.1
-
 DB_PORT=5432
-
-DB_DATABASE=bejibun
-
-DB_USERNAME=postgres
-
-DB_PASSWORD=password
+DB_USER=root
+DB_PASSWORD=root
+DB_DATABASE=app
 ```
 
 These values are loaded into the database configuration during startup.
-
----
-
-# SQLite Example
-
-```env
-DB_CONNECTION=sqlite
-
-DB_DATABASE=database/database.sqlite
-```
-
-SQLite is often used for local development and testing.
 
 ---
 
@@ -279,16 +252,11 @@ SQLite is often used for local development and testing.
 
 ```env
 DB_CONNECTION=mysql
-
 DB_HOST=127.0.0.1
-
 DB_PORT=3306
-
-DB_DATABASE=bejibun
-
-DB_USERNAME=root
-
-DB_PASSWORD=password
+DB_USER=root
+DB_PASSWORD=root
+DB_DATABASE=app
 ```
 
 ---
@@ -297,16 +265,11 @@ DB_PASSWORD=password
 
 ```env
 DB_CONNECTION=pgsql
-
 DB_HOST=127.0.0.1
-
 DB_PORT=5432
-
-DB_DATABASE=bejibun
-
-DB_USERNAME=postgres
-
-DB_PASSWORD=password
+DB_USER=root
+DB_PASSWORD=root
+DB_DATABASE=app
 ```
 
 Choose the configuration appropriate for your environment.
@@ -319,10 +282,11 @@ Applications using Redis may define:
 
 ```env
 REDIS_HOST=127.0.0.1
-
 REDIS_PORT=6379
-
 REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_MAX_RETRIES=10
+REDIS_CONNECTION=local
 ```
 
 These settings are used by:
@@ -344,13 +308,8 @@ CACHE_DRIVER=memory
 
 Possible drivers:
 
-```text
-memory
-
-redis
-
-file
-```
+- local
+- redis
 
 The selected driver determines how cached data is stored.
 
@@ -368,31 +327,11 @@ FILESYSTEM_DISK=local
 
 Possible values:
 
-```text
-local
-
-s3
-```
+- local
+- public
+- s3
 
 Different environments can use different storage providers without code changes.
-
----
-
-# Mail Variables
-
-If your application uses email functionality, configuration may look similar to:
-
-```env
-MAIL_HOST=smtp.example.com
-
-MAIL_PORT=587
-
-MAIL_USERNAME=user
-
-MAIL_PASSWORD=password
-```
-
-Mail-related variables should always remain outside source code.
 
 ---
 
@@ -418,38 +357,26 @@ These values should never be committed to version control.
 
 One of the biggest advantages of environment variables is environment separation.
 
----
-
-## Development
+### Development
 
 ```env
 APP_ENV=development
 
-APP_DEBUG=true
-
 DB_HOST=localhost
 ```
 
----
-
-## Testing
+### Staging
 
 ```env
-APP_ENV=testing
-
-APP_DEBUG=false
+APP_ENV=staging
 
 DB_DATABASE=test_db
 ```
 
----
-
-## Production
+### Production
 
 ```env
 APP_ENV=production
-
-APP_DEBUG=false
 
 DB_HOST=production-db
 ```
@@ -467,22 +394,20 @@ Environment variables are typically referenced inside configuration files.
 Example:
 
 ```ts
-export default {
-  host: Env.get("DB_HOST"),
-  port: Env.get("DB_PORT")
+const config: Record<string, any> = {
+    host: env("DB_HOST"),
+    port: env("DB_PORT")
 };
+
+export default config;
 ```
 
 This creates a clean separation:
 
-```text
-.env
-   │
-   ▼
-config/*
-   │
-   ▼
-Application Code
+```mermaid
+flowchart LR
+    A[.env] --> B[config/*]
+    B --> C[Application Code]
 ```
 
 Application code rarely needs direct access to environment variables.
@@ -503,17 +428,11 @@ A configuration validation system can help ensure required values exist before t
 
 Typical validation targets:
 
-```text
-Database Credentials
-
-Redis Credentials
-
-API Keys
-
-Mail Configuration
-
-Storage Configuration
-```
+- Database Credentials
+- Redis Credentials
+- API Keys
+- Mail Configuration
+- Storage Configuration
 
 Failing fast prevents runtime surprises.
 
@@ -523,23 +442,13 @@ Failing fast prevents runtime surprises.
 
 When the application starts:
 
-```text
-Application Start
-        │
-        ▼
-Load .env
-        │
-        ▼
-Parse Variables
-        │
-        ▼
-Load Config Files
-        │
-        ▼
-Register Services
-        │
-        ▼
-Start Server
+```mermaid
+flowchart TD
+    A[Application Start] --> B[Load .env]
+    B --> C[Parse Variables]
+    C --> D[Load Config Files]
+    D --> E[Register Services]
+    E --> F[Start Server]
 ```
 
 Every service receives its configuration before handling requests.
@@ -552,9 +461,7 @@ Environment variables often contain sensitive information.
 
 Follow these recommendations.
 
----
-
-## Never Commit .env
+### Never Commit .env
 
 Add `.env` to `.gitignore`.
 
@@ -573,9 +480,7 @@ Git Repository
 
 Secrets should never be stored in source control.
 
----
-
-## Commit .env.example
+### Commit .env.example
 
 Good:
 
@@ -595,9 +500,7 @@ DB_DATABASE=
 
 This helps other developers understand required configuration.
 
----
-
-## Use Strong Secrets
+### Use Strong Secrets
 
 Avoid:
 
@@ -611,9 +514,7 @@ Prefer:
 APP_KEY=7e4f1f0b7c...
 ```
 
----
-
-## Rotate Credentials
+### Rotate Credentials
 
 Periodically rotate:
 
@@ -624,9 +525,7 @@ Periodically rotate:
 
 Especially after security incidents.
 
----
-
-## Limit Access
+### Limit Access
 
 Only authorized systems and developers should have access to production environment variables.
 
@@ -648,25 +547,19 @@ Use:
 API_KEY=secret
 ```
 
----
-
 ### Missing Variables
 
 Always verify required values exist.
-
----
 
 ### Using Development Settings in Production
 
 Avoid:
 
 ```env
-APP_DEBUG=true
+APP_ENV=development
 ```
 
 Production environments should disable debug mode.
-
----
 
 ### Sharing Real Credentials
 
@@ -686,22 +579,32 @@ A typical Bejibun application might contain:
 ```env
 APP_NAME=Bejibun
 APP_ENV=development
-APP_DEBUG=true
-APP_URL=http://localhost:3000
+APP_HOST=localhost
+APP_PORT=3000
+APP_URL="http://${APP_HOST}:${APP_PORT}"
 
-DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=bejibun
-DB_USERNAME=postgres
-DB_PASSWORD=password
+DB_USER=root
+DB_PASSWORD=root
+DB_DATABASE=app
+
+CACHE_DRIVER=local
+
+FILESYSTEM_DISK=local
 
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+REDIS_MAX_RETRIES=10
+REDIS_CONNECTION=local
 
-CACHE_DRIVER=redis
-
-FILESYSTEM_DISK=local
+S3_ENDPOINT=
+S3_REGION=
+S3_BUCKET=
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=
 ```
 
 Your actual configuration will depend on the services your application uses.
@@ -710,20 +613,12 @@ Your actual configuration will depend on the services your application uses.
 
 # Visual Summary
 
-```text
-.env
-  │
-  ▼
-Environment Service
-  │
-  ▼
-Configuration Files
-  │
-  ▼
-Framework Services
-  │
-  ▼
-Application Code
+```mermaid
+flowchart TD
+    A[.env] --> B[Environment Service]
+    B --> C[Configuration Files]
+    C --> D[Framework Services]
+    D --> E[Application Code]
 ```
 
 Environment variables provide a secure and flexible way to configure applications across different environments.
@@ -736,6 +631,7 @@ Now that you understand how environment variables work, continue with:
 
 - Deployment Overview
 - Request Lifecycle
-- Service Container
+- Configuration System
 
-These guides explain how Bejibun applications are deployed, how requests flow through the framework, and how services are managed internally.
+These guides explain how Bejibun applications are deployed, how requests flow through the framework, and how services are
+managed internally.
