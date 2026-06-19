@@ -265,6 +265,8 @@ export default class UserValidator extends BaseValidator {
 Controller:
 
 ```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import UserModel from "@/app/models/UserModel";
 import UserValidator from "@/app/validators/UserValidator";
 
 export default class UserController extends BaseController {
@@ -290,12 +292,9 @@ If validation fails:
 
 ```json
 {
-  "errors": [
-    {
-      "field": "email",
-      "message": "Invalid email"
-    }
-  ]
+    "data": null,
+    "message": "The name field must be defined",
+    "status": 200
 }
 ```
 
@@ -307,13 +306,24 @@ If validation succeeds, the controller action executes.
 
 Example:
 
-```ts
-export default class UserController {
-  async show({ params }) {
-    return User.findOrFail(
-      params.id
-    );
-  }
+```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import UserModel from "@/app/models/UserModel";
+import UserValidator from "@/app/validators/UserValidator";
+
+export default class UserController extends BaseController {
+    // ...
+
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(UserValidator.show, body);
+
+        const user = await UserModel.findOrFail(body.id);
+
+        return super.response.setData(user).send();
+    }
+
+    // ...
 }
 ```
 
@@ -334,28 +344,30 @@ Complex operations should be delegated to services.
 Instead of:
 
 ```ts
-async store({ request }) {
-  // hundreds of lines
+public async store(request: Bun.BunRequest): Promise<Response> {
+    // hundreds of lines of logic
 }
 ```
 
 Use:
 
 ```ts
-async store({ request }) {
-  return UserService.create(
-    request.all()
-  );
+public async store(request: Bun.BunRequest): Promise<Response> {
+    const body = await super.parse(request);
+
+    return super.response.setData(
+        UserService.create(body)
+    ).send();
 }
 ```
 
 Service:
 
-```ts
+```ts app/services/UserService.ts
 export default class UserService {
-  static async create(data) {
-    return User.create(data);
-  }
+    public static async create(data) {
+        return User.create(data);
+    }
 }
 ```
 
@@ -373,23 +385,16 @@ Most applications interact with a database.
 Example:
 
 ```ts
-const user =
-  await User.findOrFail(id);
+const user = await UserModel.findOrFail(id);
 ```
 
 Lifecycle:
 
-```text
-Service
-   │
-   ▼
-Model
-   │
-   ▼
-Database Query
-   │
-   ▼
-Result
+```mermaid
+flowchart LR
+    A[Service] --> B[Model]
+    B --> C[Database Query]
+    C --> D[Result]
 ```
 
 Bejibun models abstract database interactions into TypeScript classes.
@@ -401,16 +406,24 @@ After processing is complete, a response is created.
 Example:
 
 ```ts
-return {
-  message: "Success"
-};
+const user = await UserModel.findOrFail(id);
+
+return super.response.setData(user).send();
 ```
 
 Generated response:
 
 ```json
 {
-  "message": "Success"
+    "data": {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "created_at": "2026-01-01T15:00:00.000Z",
+        "updated_at": "2026-01-01T15:00:00.000Z"
+    },
+    "message": "Success",
+    "status": 200
 }
 ```
 
@@ -422,45 +435,15 @@ Responses may include:
 - Files
 - Redirects
 
----
-
-## Explicit Responses
-
-Example:
-
-```ts
-return response.ok({
-  message: "User created"
-});
-```
-
-Or:
-
-```ts
-return response.created({
-  id: user.id
-});
-```
-
-These helpers improve readability and consistency.
-
----
-
-# 10. Response Sent
+### 10. Response Sent
 
 Finally, the response is returned to the client.
 
-```text
-Controller
-     │
-     ▼
-Response
-     │
-     ▼
-HTTP Server
-     │
-     ▼
-Client
+```mermaid
+graph LR
+    Controller --> Response
+    Response --> HTTPServer["HTTP Server"]
+    HTTPServer --> Client
 ```
 
 At this point, the request lifecycle is complete.
@@ -473,13 +456,11 @@ Errors can occur at any stage.
 
 Examples:
 
-```text
-Route Not Found
-Validation Failure
-Authentication Failure
-Database Error
-Application Error
-```
+- Route Not Found
+- Validation Failure
+- Authentication Failure
+- Database Error
+- Application Error
 
 Bejibun catches and formats errors consistently.
 
@@ -487,7 +468,9 @@ Example:
 
 ```json
 {
-  "message": "User not found"
+    "data": null,
+    "message": "No query results for model [UserModel] [999].",
+    "status": 404
 }
 ```
 
@@ -501,35 +484,13 @@ Middleware execution follows a pipeline pattern.
 
 Example:
 
-```text
-Request
-   │
-   ▼
-Auth Middleware
-   │
-   ▼
-Rate Limit Middleware
-   │
-   ▼
-Logging Middleware
-   │
-   ▼
-Controller
+```mermaid
+graph TD
+    Request --> Auth["Auth Middleware"]
+    Auth --> RateLimiterMiddleware["Rate Limiter Middleware"]
+    RateLimiterMiddleware --> Logging["Logging Middleware"]
+    Logging --> Controller
 ```
-
-After the controller returns:
-
-```text
-Controller
-   │
-   ▼
-Logging Middleware
-   │
-   ▼
-Response
-```
-
-Middleware can run both before and after controller execution.
 
 ---
 
@@ -538,52 +499,52 @@ Middleware can run both before and after controller execution.
 Consider the following endpoint:
 
 ```ts
-Router.post(
-  "/users",
-  "UserController@store"
-);
+Router.post("/users", "UserController@store");
 ```
 
 Request:
 
 ```json
 {
-  "name": "John",
-  "email": "john@example.com"
+    "name": "John Doe",
+    "email": "john@example.com"
 }
 ```
 
 Lifecycle:
 
-```text
-Request Arrives
-      │
-      ▼
-Route Match
-      │
-      ▼
-Authentication Middleware
-      │
-      ▼
-Validation
-      │
-      ▼
-Controller
-      │
-      ▼
-UserService
-      │
-      ▼
-User Model
-      │
-      ▼
-Database Insert
-      │
-      ▼
-JSON Response
-      │
-      ▼
-Client
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router
+    participant Auth
+    participant Validation
+    participant Controller
+    participant UserService
+    participant UserModel
+    participant DB as Database
+
+    Client->>Router: POST /users
+    Router->>Auth: Forward request
+
+    alt Authentication Failed
+        Auth-->>Client: 401 Unauthorized
+    else Authentication Success
+        Auth->>Validation: Validate payload
+
+        alt Validation Failed
+            Validation-->>Client: 400 Bad Request
+        else Validation Success
+            Validation->>Controller: Valid request
+            Controller->>UserService: Create user
+            UserService->>UserModel: Save
+            UserModel->>DB: INSERT
+            DB-->>UserModel: Success
+            UserModel-->>UserService: User entity
+            UserService-->>Controller: Result
+            Controller-->>Client: 200 Success (JSON)
+        end
+    end
 ```
 
 This represents the typical flow of most Bejibun applications.
@@ -599,9 +560,9 @@ When building applications:
 Good:
 
 ```ts
-return UserService.create(
-  payload
-);
+return super.response.setData(
+    UserService.create(body)
+).send();
 ```
 
 Avoid:
@@ -610,13 +571,9 @@ Avoid:
 // massive controller logic
 ```
 
----
-
 ### Validate Early
 
 Validate input before business logic executes.
-
----
 
 ### Use Middleware Appropriately
 
@@ -626,13 +583,9 @@ Middleware should handle cross-cutting concerns such as:
 - Logging
 - Security
 
----
-
 ### Centralize Business Logic
 
 Place business rules in services rather than controllers.
-
----
 
 ### Handle Errors Consistently
 
@@ -642,63 +595,37 @@ Use framework-provided error handling whenever possible.
 
 # Visual Summary
 
-```text
-┌──────────────┐
-│   Client     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│    Router    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Middleware   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Validation   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Controller   │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Services    │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Models / DB  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  Response    │
-└──────────────┘
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Router
+    participant Middleware
+    participant Validation
+    participant Controller
+    participant Services
+    participant DB as Models / DB
+
+    Client->>Router: HTTP Request
+    Router->>Middleware: Route Request
+    Middleware->>Validation: Process Request
+    Validation->>Controller: Validated Data
+    Controller->>Services: Execute Business Logic
+    Services->>DB: Query / Update Data
+    DB-->>Services: Result
+    Services-->>Controller: Response Data
+    Controller-->>Client: HTTP Response
 ```
 
 ---
 
 # What's Next?
 
-You now understand how requests flow through a Bejibun application and how the framework's components work together.
+You now understand how requests flow through a Bejibun application and how the framework's components work together,
+continue with:
 
-The next section dives deeper into individual framework features such as:
+- Configuration System
+- Logging
+- Error Handling
 
-- Routing
-- Controllers
-- Middleware
-- Validation
-- Database
-- Authentication
-- Caching
-- Queues
-
-With the request lifecycle understood, you'll be able to see exactly where each framework component fits into the
-application architecture.
+These guides build on the concepts introduced here and explain how configuration, logging, and error handling integrate
+into the framework's request processing pipeline.

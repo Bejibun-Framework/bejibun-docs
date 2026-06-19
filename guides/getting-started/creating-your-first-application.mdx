@@ -215,6 +215,7 @@ Let's add the controller methods.
 
 ```ts app/controllers/UserController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
+import UserModel from "@/app/models/UserModel";
 
 export default class UserController extends BaseController {
     public async index(request: Bun.BunRequest): Promise<Response> {
@@ -296,6 +297,8 @@ export default class UserValidator extends BaseValidator {
 Use the validator:
 
 ```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import UserModel from "@/app/models/UserModel";
 import UserValidator from "@/app/validators/UserValidator";
 
 export default class UserController extends BaseController {
@@ -448,9 +451,11 @@ public async store(request: Bun.BunRequest): Promise<Response> {
 Example service:
 
 ```ts app/services/UserService.ts
+import UserModel from "@/app/models/UserModel";
+
 export default class UserService {
     public static async create(data) {
-        return User.create(data);
+        return UserModel.create(data);
     }
 }
 ```
