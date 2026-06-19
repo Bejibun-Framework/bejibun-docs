@@ -4,7 +4,8 @@ description: "How Bejibun loads configuration files and the global config() and 
 icon: "sliders"
 ---
 
-Bejibun keeps configuration in plain TypeScript modules under `config/`. Each file exports a `default` object, and you read values anywhere with the global `config()` helper.
+Bejibun keeps configuration in plain TypeScript modules under `config/`. Each file exports a `default` object, and you
+read values anywhere with the global `config()` helper.
 
 ## Configuration files
 
@@ -21,22 +22,23 @@ export default config;
 
 The scaffold ships these files:
 
-| File | Configures |
-| --- | --- |
-| `cache.ts` | Cache driver & connections |
-| `command.ts` | Extra `ace` command package paths |
-| `cors.ts` | CORS headers |
-| `database.ts` | Knex database connection |
-| `disk.ts` | Storage disks |
-| `limiter.ts` | Rate limiting |
-| `performance.ts` | Toggle global middleware |
-| `redis.ts` | Redis connections |
-| `route.ts` | OpenAPI / Swagger template |
-| `websocket.ts` | WebSocket server options |
-| `x402.ts` | x402 payments |
+| File             | Configures                        |
+| ---------------- | --------------------------------- |
+| `cache.ts`       | Cache driver & connections        |
+| `command.ts`     | Extra `ace` command package paths |
+| `cors.ts`        | CORS headers                      |
+| `database.ts`    | Database connection               |
+| `disk.ts`        | Storage disks                     |
+| `limiter.ts`     | Rate limiting                     |
+| `performance.ts` | Toggle feature                    |
+| `redis.ts`       | Redis connections                 |
+| `route.ts`       | OpenAPI / Swagger template        |
+| `websocket.ts`   | WebSocket server options          |
+| `x402.ts`        | x402 payments                     |
 
 <Note>
-The core provides built-in defaults for `disk`, `limiter`, `performance`, `route`, and `websocket`. If you delete a project file, the bundled default is used.
+    The core provides built-in defaults for `cache`, `cors`, `disk`, `limiter`, `redis`, and `websocket`.
+    If you delete a project file, the bundled default is used.
 </Note>
 
 ## Reading configuration
@@ -44,15 +46,15 @@ The core provides built-in defaults for `disk`, `limiter`, `performance`, `route
 The global `config()` function reads values using dot notation -- the first segment is the file name:
 
 ```ts
-config("disk.default");          // "local"
-config("limiter.limit");         // 30
-config("cache.connections.redis.host");
+config("disk.default");                 // "local"
+config("limiter.limit");                // 30
+config("cache.connections.redis.host"); // 127.0.0.1
 ```
 
 Provide a fallback for missing keys:
 
 ```ts
-config("queue.driver", "database");
+config("cache.default", "redis");
 ```
 
 ## Environment variables
@@ -60,21 +62,37 @@ config("queue.driver", "database");
 The global `env()` helper reads from the environment (a thin wrapper over `Bun.env`):
 
 ```ts
-env("APP_URL");   // "http://127.0.0.1:3000"
-env("APP_ENV");   // "development"
+env("APP_URL"); // "http://127.0.0.1:3000"
+env("APP_ENV"); // "development"
 ```
 
 Configuration files typically read environment variables themselves, keeping secrets out of source control:
 
 ```ts config/database.ts
-const config = {
+import type {Knex} from "knex";
+
+const config: Knex.Config = {
     client: "pg",
     connection: {
-        host: Bun.env.DB_HOST,
-        port: Bun.env.DB_PORT,
-        user: Bun.env.DB_USER,
-        password: Bun.env.DB_PASSWORD,
-        database: Bun.env.DB_DATABASE
+        host: env("DB_HOST"),
+        port: env("DB_PORT"),
+        user: env("DB_USER"),
+        password: env("DB_PASSWORD"),
+        database: env("DB_DATABASE")
+    },
+    migrations: {
+        extension: "ts",
+        directory: "./database/migrations",
+        schemaName: "public",
+        tableName: "migrations"
+    },
+    pool: {
+        min: 0,
+        max: 10
+    },
+    seeds: {
+        extension: "ts",
+        directory: "./database/seeders"
     }
 };
 
@@ -82,7 +100,8 @@ export default config;
 ```
 
 <Warning>
-Store credentials in `.env`, never in committed config files. Keep `.env` out of version control and use a separate set of values per environment.
+    Store credentials in `.env`, never in committed config files. Keep `.env` out of version control and
+    use a separate set of values per environment.
 </Warning>
 
 See [Environment Variables](/guides/getting-started/environment-variables) for the full list of variables the scaffold uses.

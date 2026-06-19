@@ -378,10 +378,10 @@ const config: Record<string, any> = {
 
         redis: {
             driver: CacheDriverEnum.Redis,
-            host: Bun.env.REDIS_HOST,
-            port: Bun.env.REDIS_PORT,
-            password: Bun.env.REDIS_PASSWORD,
-            database: Bun.env.REDIS_DATABASE
+            host: env("REDIS_HOST"),
+            port: env("REDIS_PORT"),
+            password: env("REDIS_PASSWORD"),
+            database: env("REDIS_DATABASE")
         }
     }
 };
@@ -457,11 +457,11 @@ import type {Knex} from "knex";
 const config: Knex.Config = {
     client: "pg",
     connection: {
-        host: Bun.env.DB_HOST,
-        port: Bun.env.DB_PORT,
-        user: Bun.env.DB_USER,
-        password: Bun.env.DB_PASSWORD,
-        database: Bun.env.DB_DATABASE
+        host: env("DB_HOST"),
+        port: env("DB_PORT"),
+        user: env("DB_USER"),
+        password: env("DB_PASSWORD"),
+        database: env("DB_DATABASE")
     },
     migrations: {
         extension: "ts",
@@ -510,16 +510,16 @@ const config: Record<string, any> = {
         public: {
             driver: DiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${Bun.env.APP_URL}/storage/public`
+            url: `${env("APP_URL")}/storage/public`
         },
 
         s3: {
             driver: DiskDriverEnum.S3,
-            endpoint: Bun.env.S3_ENDPOINT,
-            region: Bun.env.S3_REGION,
-            bucket: Bun.env.S3_BUCKET,
-            access_key_id: Bun.env.S3_ACCESS_KEY_ID,
-            secret_access_key: Bun.env.S3_SECRET_ACCESS_KEY,
+            endpoint: env("S3_ENDPOINT"),
+            region: env("S3_REGION"),
+            bucket: env("S3_BUCKET"),
+            access_key_id: env("S3_ACCESS_KEY_ID"),
+            secret_access_key: env("S3_SECRET_ACCESS_KEY"),
             url: ""
         }
     }
@@ -586,15 +586,15 @@ Example:
 
 ```ts config/redis.ts
 const config: Record<string, any> = {
-    default: Bun.env.REDIS_CONNECTION,
+    default: env("REDIS_CONNECTION"),
 
     connections: {
         local: {
-            host: Bun.env.REDIS_HOST,
-            port: Bun.env.REDIS_PORT,
-            password: Bun.env.REDIS_PASSWORD,
-            database: Bun.env.REDIS_DATABASE,
-            maxRetries: Number(Bun.env.REDIS_MAX_RETRIES)
+            host: env("REDIS_HOST"),
+            port: env("REDIS_PORT"),
+            password: env("REDIS_PASSWORD"),
+            database: env("REDIS_DATABASE"),
+            maxRetries: Number(env("REDIS_MAX_RETRIES"))
         }
     }
 };
@@ -667,8 +667,8 @@ const config: Record<string, any> = {
             },
             servers: [
                 {
-                    url: Bun.env.APP_URL,
-                    description: `${Bun.env.APP_ENV} server`
+                    url: env("APP_URL"),
+                    description: `${env("APP_ENV")} server`
                 }
             ],
             paths: {}

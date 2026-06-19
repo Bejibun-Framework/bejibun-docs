@@ -4,7 +4,8 @@ description: "Write structured, color-coded logs with the Bejibun logger."
 icon: "scroll"
 ---
 
-Bejibun ships with `@bejibun/logger` -- a lightweight, color-coded logger used throughout the framework and available to your application code.
+Bejibun ships with `@bejibun/logger` -- a lightweight, color-coded logger used throughout the framework and available
+to your application code.
 
 ## Basic logging
 
@@ -30,12 +31,12 @@ Each line is timestamped and labelled with its level:
 
 ## Log levels
 
-| Method | Use for |
-| --- | --- |
+| Method                  | Use for                                |
+| ----------------------- | -------------------------------------- |
 | `Logger.debug(message)` | Verbose diagnostics during development |
-| `Logger.info(message)` | Normal, expected events |
-| `Logger.warn(message)` | Unexpected but recoverable situations |
-| `Logger.error(message)` | Failures and exceptions |
+| `Logger.info(message)`  | Normal, expected events                |
+| `Logger.warn(message)`  | Unexpected but recoverable situations  |
+| `Logger.error(message)` | Failures and exceptions                |
 
 ## Adding context
 
@@ -62,9 +63,9 @@ try {
 
 ## Formatting helpers
 
-| Method | Effect |
-| --- | --- |
-| `Logger.empty()` | Prints a blank line |
+| Method               | Effect                                         |
+| -------------------- | ---------------------------------------------- |
+| `Logger.empty()`     | Prints a blank line                            |
 | `Logger.separator()` | Prints a dashed line across the terminal width |
 
 ```ts
@@ -73,5 +74,6 @@ Logger.separator();
 ```
 
 <Tip>
-`@bejibun/logger` is a standalone package -- you can use it in scripts and other Bun projects, not just inside a Bejibun app.
+    `@bejibun/logger` is a standalone package -- you can use it in scripts and other Bun projects, not just inside a
+    Bejibun app.
 </Tip>
