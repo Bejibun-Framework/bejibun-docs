@@ -4,20 +4,21 @@ description: "Define HTTP routes, capture parameters, group routes, and resolve 
 icon: "route"
 ---
 
-Bejibun routes are defined with the **`Router` facade** and registered from the files in your `routes/` directory. Every incoming request is matched against these routes and dispatched to a controller method (or an inline handler).
+Bejibun routes are defined with the **`Router` facade** and registered from the files in your `routes/` directory.
+Every incoming request is matched against these routes and dispatched to a controller method (or an inline handler).
 
 ## The routes directory
 
 ```text
 routes/
-├── api.ts          # root API group (required)
 ├── api/            # feature route files
 │   ├── hello.ts
 │   └── test.ts
+├── websocket/
+│   └── chat.ts
+├── api.ts          # root API group (required)
 ├── web.ts          # web routes (required)
-├── websocket.ts    # websocket routes (required)
-└── websocket/
-    └── chat.ts
+└── websocket.ts    # websocket routes (required)
 ```
 
 `routes/api.ts` is the entry point for your API. It groups the feature files under a shared `api` prefix:
@@ -34,7 +35,8 @@ export default Router.prefix("api").group([
 ```
 
 <Note>
-`routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on startup if any is missing.
+    `routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on startup if any is
+    missing.
 </Note>
 
 ## Defining routes
@@ -48,24 +50,24 @@ export default Router.prefix("test").group([
     Router.get("get", "TestController@get"),
     Router.get("detail/:id", "TestController@detail"),
     Router.post("add", "TestController@add"),
-    Router.post("edit", "TestController@edit"),
+    Router.put("edit", "TestController@edit"),
     Router.delete("delete/:id", "TestController@delete")
 ]);
 ```
 
 ### Available HTTP verbs
 
-| Method | Signature |
-| --- | --- |
-| `Router.get(path, handler)` | `GET` |
-| `Router.post(path, handler)` | `POST` |
-| `Router.put(path, handler)` | `PUT` |
-| `Router.patch(path, handler)` | `PATCH` |
-| `Router.delete(path, handler)` | `DELETE` |
-| `Router.head(path, handler)` | `HEAD` |
+| Method                          | Signature |
+| ------------------------------- | --------- |
+| `Router.get(path, handler)`     | `GET`     |
+| `Router.post(path, handler)`    | `POST`    |
+| `Router.put(path, handler)`     | `PUT`     |
+| `Router.patch(path, handler)`   | `PATCH`   |
+| `Router.delete(path, handler)`  | `DELETE`  |
+| `Router.head(path, handler)`    | `HEAD`    |
 | `Router.options(path, handler)` | `OPTIONS` |
 | `Router.connect(path, handler)` | `CONNECT` |
-| `Router.trace(path, handler)` | `TRACE` |
+| `Router.trace(path, handler)`   | `TRACE`   |
 
 Two helpers register several verbs at once:
 
@@ -84,23 +86,23 @@ Router.any("health", "HealthController@check");
 A handler can be a **controller reference string** or an **inline function**.
 
 <CodeGroup>
-```ts Controller reference
-// "ControllerName@method" -- resolved from app/controllers/
-Router.get("users", "UserController@index");
-```
+    ```ts Controller reference
+    // "ControllerName@method" -- resolved from app/controllers/
+    Router.get("users", "UserController@index");
+    ```
 
-```ts Inline handler
-import type {HandlerType} from "@bejibun/core/types";
-
-const handler: HandlerType = async (request) => {
-    return Response.json({ framework: "Bejibun", status: "running" });
-};
-
-Router.get("/", handler);
-```
+    ```ts Inline handler
+    Router.get("/", async (request: Bun.BunRequest): Promise<Response> => {
+        return Response.json({
+            framework: "Bejibun",
+            status: "running"
+        });
+    });
+    ```
 </CodeGroup>
 
-The string form is `"Controller@method"`. Bejibun resolves the controller from the group's namespace (default `app/controllers`) and binds the method. An invalid `Controller@method` reference throws a `RouterException`.
+The string form is `"Controller@method"`. Bejibun resolves the controller from the group's namespace (default `app/controllers`)
+and binds the method. An invalid `Controller@method` reference throws a `RouterException`.
 
 ## Route parameters
 
@@ -336,10 +338,10 @@ See [Models & ORM](/) for the full soft-delete API (`withTrashed`, `onlyTrashed`
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Controllers" icon="gears" href="/guides/http-layer/controllers">
-    Handle requests with controller classes.
-  </Card>
-  <Card title="Middleware" icon="filter" href="/guides/http-layer/middleware">
-    Intercept requests before they hit a controller.
-  </Card>
+    <Card title="Controllers" icon="gears" href="/guides/http-layer/controllers">
+        Handle requests with controller classes.
+    </Card>
+    <Card title="Middleware" icon="filter" href="/guides/http-layer/middleware">
+        Intercept requests before they hit a controller.
+    </Card>
 </CardGroup>
