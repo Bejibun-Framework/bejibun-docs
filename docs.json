@@ -99,9 +99,6 @@
             "group": "HTTP Layer",
             "pages": [
               "guides/http-layer/routing",
-              "guides/http-layer/route-parameters",
-              "guides/http-layer/route-groups",
-              "guides/http-layer/route-model-binding",
               "guides/http-layer/controllers",
               "guides/http-layer/middleware",
               "guides/http-layer/request-object",
