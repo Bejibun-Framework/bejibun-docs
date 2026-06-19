@@ -4,7 +4,8 @@ description: "Handle requests with controller classes built on BaseController."
 icon: "gears"
 ---
 
-Controllers group related request-handling logic into classes. Every Bejibun controller extends **`BaseController`**, which provides request parsing, validation, and the response builder.
+Controllers group related request-handling logic into classes. Every Bejibun controller extends **`BaseController`**,
+which provides request parsing, validation, and the response builder.
 
 ## Creating a controller
 
@@ -40,15 +41,15 @@ Router.get("hello", "HelloController@hello");
 `BaseController` exposes three members:
 
 <CardGroup cols={3}>
-  <Card title="super.parse(request)" icon="inbox">
-    Unified parser for body, route params, query string, and uploaded files.
-  </Card>
-  <Card title="super.validate(...)" icon="circle-check">
-    Run a Vine validator against the parsed input.
-  </Card>
-  <Card title="super.response" icon="paper-plane">
-    The fluent response builder (`setData`, `setMessage`, `setStatus`, `send`).
-  </Card>
+    <Card title="super.parse(request)" icon="inbox">
+        Unified parser for body, route params, query string, and uploaded files.
+    </Card>
+    <Card title="super.validate(...)" icon="circle-check">
+        Run a Vine validator against the parsed input.
+    </Card>
+    <Card title="super.response" icon="paper-plane">
+        The fluent response builder (`setData`, `setMessage`, `setStatus`, `send`).
+    </Card>
 </CardGroup>
 
 ## A complete request flow
@@ -89,15 +90,19 @@ export default class TemplateController extends BaseController {
     public async index(request: Bun.BunRequest): Promise<Response> {
         return super.response.setData().send();
     }
+
     public async store(request: Bun.BunRequest): Promise<Response> {
         return super.response.setData().send();
     }
+
     public async show(request: Bun.BunRequest): Promise<Response> {
         return super.response.setData().send();
     }
+
     public async update(request: Bun.BunRequest): Promise<Response> {
         return super.response.setData().send();
     }
+
     public async destroy(request: Bun.BunRequest): Promise<Response> {
         return super.response.setData().send();
     }
@@ -113,7 +118,14 @@ Annotate a controller method with the global `@ApiDoc` decorator to enrich the g
     description: "Create a test record",
     request: {
         params: [
-            { name: "name", in: "query", required: true, schema: { type: "string" } }
+            {
+                name: "name",
+                in: "query",
+                required: true,
+                schema: {
+                    type: "string"
+                }
+            }
         ]
     }
 })
@@ -121,7 +133,9 @@ public async add(request: Bun.BunRequest): Promise<Response> {
     const body = await super.parse(request);
     await super.validate(TestValidator.add, body);
 
-    return super.response.setData({ name: body.name }).send();
+    return super.response.setData({
+        name: body.name
+    }).send();
 }
 ```
 
