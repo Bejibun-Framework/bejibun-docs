@@ -62,9 +62,9 @@ import TestModel from "@/app/models/TestModel";
 import TestValidator from "@/app/validators/TestValidator";
 
 export default class TestController extends BaseController {
-    public async add(request: Bun.BunRequest): Promise<Response> {
+    public async store(request: Bun.BunRequest): Promise<Response> {
         const body = await super.parse(request);
-        await super.validate(TestValidator.add, body);
+        await super.validate(TestValidator.store, body);
 
         const test = await TestModel.create({
             name: body.name as string
@@ -88,22 +88,32 @@ import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class TemplateController extends BaseController {
     public async index(request: Bun.BunRequest): Promise<Response> {
+        // Your code goes here
+
         return super.response.setData().send();
     }
 
     public async store(request: Bun.BunRequest): Promise<Response> {
+        // Your code goes here
+
         return super.response.setData().send();
     }
 
     public async show(request: Bun.BunRequest): Promise<Response> {
+        // Your code goes here
+
         return super.response.setData().send();
     }
 
     public async update(request: Bun.BunRequest): Promise<Response> {
+        // Your code goes here
+
         return super.response.setData().send();
     }
 
     public async destroy(request: Bun.BunRequest): Promise<Response> {
+        // Your code goes here
+
         return super.response.setData().send();
     }
 }
@@ -129,13 +139,15 @@ Annotate a controller method with the global `@ApiDoc` decorator to enrich the g
         ]
     }
 })
-public async add(request: Bun.BunRequest): Promise<Response> {
+public async store(request: Bun.BunRequest): Promise<Response> {
     const body = await super.parse(request);
-    await super.validate(TestValidator.add, body);
+    await super.validate(TestValidator.store, body);
 
-    return super.response.setData({
-        name: body.name
-    }).send();
+    const test = await TestModel.create({
+        name: body.name as string
+    });
+
+    return super.response.setData(test).send();
 }
 ```
 
