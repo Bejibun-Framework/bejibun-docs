@@ -1,0 +1,81 @@
+---
+title: "The Request"
+description: "Read input from the Bun request with super.parse()."
+icon: "inbox"
+---
+
+Bejibun controllers receive Bun's native `Bun.BunRequest`. Rather than wrapping it in a custom class,
+Bejibun gives you `super.parse(request)` -- a single method that collects **all** request input into one object.
+
+## Reading input
+
+Call `super.parse(request)` inside any controller method:
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
+export default class TestController extends BaseController {
+    public async add(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+
+        // body.name, body.id, body.search ... all available here
+        return super.response.setData(body).send();
+    }
+}
+```
+
+## What `parse()` collects
+
+`parse()` merges several sources into one object, in this order:
+
+<Steps>
+    <Step title="JSON body">
+        For `application/json` requests, the parsed and serialized JSON body.
+    </Step>
+    <Step title="Route parameters">
+        Dynamic segments like `:id` (see [Routing](/guides/http-layer/routing#route-parameters)).
+    </Step>
+    <Step title="Query string">
+        Values from the URL's `?key=value` parameters.
+    </Step>
+    <Step title="Form data">
+        Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including uploaded files.
+    </Step>
+    <Step title="Raw text">
+        A non-empty raw text body is available under the `text` key.
+    </Step>
+</Steps>
+
+<Note>
+    `parse()` never throws -- malformed input is silently skipped. Use a [validator](/guides/validation/introduction) to
+    enforce the shape you expect.
+</Note>
+
+## Accessing the raw request
+
+The native `Bun.BunRequest` is always available in your handler, so standard Web APIs work directly:
+
+```ts
+public async show(request: Bun.BunRequest): Promise<Response> {
+    const method = request.method;             // "GET"
+    const url = new URL(request.url);          // URL object
+    const auth = request.headers.get("authorization");
+
+    return super.response.setData({
+        method,
+        path: url.pathname
+    }).send();
+}
+```
+
+## Validating input
+
+Pair `parse()` with `validate()` to guarantee input integrity before using it:
+
+```ts
+const body = await super.parse(request);
+await super.validate(TestValidator.store, body);
+```
+
+A failed validation throws a `ValidatorException` and short-circuits into an error response. See the validation guide
+for authoring validators.
