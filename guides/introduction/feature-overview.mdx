@@ -74,7 +74,9 @@ Controllers organize request handling into dedicated classes.
 
 Example:
 
-```ts
+```ts app/controllers/UserController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+
 export default class UserController extends BaseController {
     public async index(request: Bun.BunRequest): Promise<Response> {
         //
@@ -122,7 +124,10 @@ Validation ensures incoming data meets application requirements before business 
 
 Example:
 
-```ts
+```ts app/validators/UserValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
+
 export default class UserValidator extends BaseValidator {
     public static get createUser(): ValidatorType {
         return super.validator.create({

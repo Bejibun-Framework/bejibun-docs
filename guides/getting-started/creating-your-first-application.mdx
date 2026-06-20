@@ -47,9 +47,7 @@ Example response:
 
 Although simple, this application demonstrates the most common patterns you'll use in real-world projects.
 
----
-
-# Step 1: Create a New Project
+### Step 1: Create a New Project
 
 If you haven't already created a project:
 
@@ -69,9 +67,7 @@ Start the development server:
 bun dev
 ```
 
----
-
-# Step 2: Generate a User Model
+### Step 2: Generate a User Model
 
 Models represent database tables.
 
@@ -108,9 +104,7 @@ export default class UserModel extends BaseModel {
 
 The model provides an object-oriented interface for interacting with database records.
 
----
-
-# Step 3: Create a Migration
+### Step 3: Create a Migration
 
 Database tables are managed through migrations.
 
@@ -149,9 +143,7 @@ bun ace migrate:latest
 
 This creates the `users` table in your database.
 
----
-
-# Step 4: Generate a Controller
+### Step 4: Generate a Controller
 
 Controllers contain your application's request handling logic.
 
@@ -179,9 +171,7 @@ export default class UserController extends BaseController {
 
 We'll implement functionality shortly.
 
----
-
-# Step 5: Register Routes
+### Step 5: Register Routes
 
 Open your routes file:
 
@@ -191,8 +181,10 @@ routes/api.ts
 
 Register user routes:
 
-```ts
-Router.prefix("users").group([
+```ts routes/api.ts
+import Router from "@bejibun/core/facades/Router";
+
+export default Router.prefix("users").group([
     Router.get("/", "UserController@index"),
 
     Router.get("/:id", "UserController@show"),
@@ -207,9 +199,7 @@ Router.prefix("users").group([
 
 Each route maps an HTTP request to a controller action.
 
----
-
-# Step 6: Implement the Controller
+### Step 6: Implement the Controller
 
 Let's add the controller methods.
 
@@ -266,9 +256,7 @@ export default class UserController extends BaseController {
 
 This controller provides complete CRUD functionality.
 
----
-
-# Step 7: Add Validation
+### Step 7: Add Validation
 
 Accepting user input without validation is dangerous.
 
@@ -322,9 +310,7 @@ export default class UserController extends BaseController {
 
 Now incoming data is validated before reaching your business logic.
 
----
-
-# Step 8: Test the API
+### Step 8: Test the API
 
 Create a user:
 
