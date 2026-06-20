@@ -4,7 +4,9 @@ description: "Receive uploaded files via parse() and persist them with the Stora
 icon: "upload"
 ---
 
-File uploads flow through the same `super.parse(request)` you use for any other input. Uploaded files arrive as native `File` objects, which you then persist with the [`Storage`](/guides/storage/file-storage) facade.
+File uploads flow through the same `super.parse(request)` you use for any other input.
+Uploaded files arrive as native `File` objects,
+which you then persist with the [`Storage`](/guides/storage/file-storage) facade.
 
 ## Receiving an upload
 
@@ -19,13 +21,15 @@ export default class UploadController extends BaseController {
         const body = await super.parse(request);
 
         const file = body.avatar as File;       // the uploaded file
-        const content = await file.arrayBuffer();
 
-        await Storage.disk("public").put(`avatars/${file.name}`, content);
+        await Storage.disk("public").put(`avatars/${file.name}`, file);
 
         return super.response
             .setMessage("Uploaded")
-            .setData({ name: file.name, size: file.size })
+            .setData({
+                name: file.name,
+                size: file.size
+            })
             .send();
     }
 }
@@ -36,22 +40,22 @@ export default class UploadController extends BaseController {
 The `Storage` facade writes to the disks configured in `config/disk.ts` (a `local` and a `public` disk ship by default):
 
 <CodeGroup>
-```ts Default disk
-await Storage.put("uploads/report.pdf", content);
-```
+    ```ts Default disk
+    await Storage.put("uploads/report.pdf", content);
+    ```
 
-```ts Specific disk
-await Storage.disk("public").put("avatars/photo.png", content);
-```
+    ```ts Specific disk
+    await Storage.disk("public").put("avatars/photo.png", content);
+    ```
 
-```ts Ad-hoc disk
-import App from "@bejibun/app";
+    ```ts Ad-hoc disk
+    import App from "@bejibun/app";
 
-await Storage.build({
-    driver: "local",
-    root: App.Path.storagePath("custom")
-}).put("file.txt", content);
-```
+    await Storage.build({
+        driver: "local",
+        root: App.Path.storagePath("custom")
+    }).put("file.txt", content);
+    ```
 </CodeGroup>
 
 The `public` disk is rooted at `storage/app/public` and exposes a public URL via `APP_URL/storage/public`.
@@ -65,13 +69,15 @@ const body = await super.parse(request);
 await super.validate(UploadValidator.store, body);
 
 const file = body.avatar as File;
-await Storage.disk("public").put(`avatars/${file.name}`, await file.arrayBuffer());
+await Storage.disk("public").put(`avatars/${file.name}`, file);
 ```
 
 <Tip>
-For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then call `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
+    For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then call
+    `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
 </Tip>
 
 <Warning>
-Never trust the client-supplied filename directly. Sanitize or generate your own name (and validate the content type / size) before writing to disk.
+    Never trust the client-supplied filename directly.
+    Sanitize or generate your own name (and validate the content type / size) before writing to disk.
 </Warning>

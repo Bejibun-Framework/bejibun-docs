@@ -4,10 +4,12 @@ description: "Read and write cookies using native Bun and Web APIs."
 icon: "cookie"
 ---
 
-Bejibun does not ship a dedicated cookie helper. Because controllers work with the native `Bun.BunRequest` and return standard `Response` objects, you read and write cookies using the platform's Web APIs.
+Bejibun does not ship a dedicated cookie helper. Because controllers work with the native `Bun.BunRequest` and
+return standard `Response` objects, you read and write cookies using the platform's Web APIs.
 
 <Note>
-A first-class cookie API is not yet available. The patterns below use native Bun/Web APIs that are fully supported today.
+    A first-class cookie API is not yet available. The patterns below use native Bun/Web APIs that are fully supported
+    today.
 </Note>
 
 ## Reading cookies
@@ -41,7 +43,8 @@ const sessionId = request.cookies.get("session_id");
 
 ## Writing cookies
 
-Cookies are set through the `Set-Cookie` response header. The `Response` facade builds the JSON body but does not expose header control, so when you need to set a cookie, return a raw `Response`:
+Cookies are set through the `Set-Cookie` response header. The `Response` facade builds the JSON body but
+does not expose header control, so when you need to set a cookie, return a raw `Response`:
 
 ```ts
 public async login(request: Bun.BunRequest): Promise<Response> {
@@ -60,12 +63,14 @@ public async login(request: Bun.BunRequest): Promise<Response> {
 ```
 
 <Warning>
-Always set security attributes on session cookies: `HttpOnly` (block JS access), `Secure` (HTTPS only, in production), and an appropriate `SameSite` value to mitigate CSRF.
+    Always set security attributes on session cookies: `HttpOnly` (block JS access), `Secure` (HTTPS only, in
+    production), and an appropriate `SameSite` value to mitigate CSRF.
 </Warning>
 
 ## Persisting CORS headers
 
-If you return a raw `Response` (instead of `super.response.send()`), remember that CORS headers are no longer applied automatically. Merge them in manually:
+If you return a raw `Response` (instead of `super.response.send()`), remember that CORS headers are no longer
+applied automatically. Merge them in manually:
 
 ```ts
 import Cors from "@bejibun/cors";
