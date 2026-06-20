@@ -98,11 +98,11 @@
           {
             "group": "HTTP Layer",
             "pages": [
+              "guides/http-layer/the-request",
+              "guides/http-layer/the-response",
               "guides/http-layer/routing",
               "guides/http-layer/controllers",
               "guides/http-layer/middleware",
-              "guides/http-layer/the-request",
-              "guides/http-layer/response-object",
               "guides/http-layer/cookies",
               "guides/http-layer/file-uploads"
             ]
