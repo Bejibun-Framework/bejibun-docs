@@ -1,23 +1,148 @@
 ---
 title: "Available Rules"
-description: "Vine.js validation rules plus the framework's exists and unique database rules."
+description: "Every VineJS schema type and validation rule, plus the framework's exists and unique database rules."
 icon: "list-check"
 ---
 
-Validators use the full set of [Vine.js](https://vinejs.dev) rules, and Bejibun adds two database-aware rules: `exists` and `unique`.
+Validators are built on the full VineJS rule set, and Bejibun adds two database-aware rules: `exists` and `unique`. `super.validator` is the VineJS root, so every schema type and rule below is chained from it.
 
-## Vine.js rules
+## Schema types
 
-Common building blocks (see the [Vine.js docs](https://vinejs.dev) for the complete reference):
+Pick a type, then chain rules and [modifiers](#modifiers) onto it. Each type lists the commonly used rules; VineJS ships more (50+ in total) -- the patterns are identical.
+
+### String
+
+`string()` validates string fields. Empty strings pass by default; use `minLength()` or a [modifier](#modifiers) to require a value. Normalizers (`trim`, `escape`, `toUpperCase`...) mutate the output value.
 
 ```ts
-super.validator.string()                      // string
-super.validator.number().min(1)               // number ≥ 1
-super.validator.boolean()
-super.validator.string().email()
-super.validator.string().minLength(8)
-super.validator.string().nullable().optional()
-super.validator.enum(["draft", "published"])
+super.validator.string()                                    // any string
+super.validator.string().minLength(8).maxLength(72)         // length bounds
+super.validator.string().fixedLength(6)                     // exact length
+super.validator.string().email()                            // valid email
+super.validator.string().url({ require_protocol: true })    // valid URL
+super.validator.string().alphaNumeric({ allowUnderscores: true })
+super.validator.string().regex(/^[a-z0-9-]+$/)              // custom pattern
+super.validator.string().in(["draft", "published"])         // allow-list
+super.validator.string().notIn(["admin", "root"])           // deny-list
+super.validator.string().confirmed()                        // needs <field>_confirmation
+super.validator.string().sameAs("password")                 // must equal another field
+super.validator.string().creditCard()                       // valid card number
+super.validator.string().mobile()                           // valid phone number
+
+// normalizers (transform the output)
+super.validator.string().trim()
+super.validator.string().escape()                           // escape HTML
+super.validator.string().toUpperCase()                      // also toLowerCase()
+super.validator.string().email().normalizeEmail({ all_lowercase: true })
+super.validator.string().url().normalizeUrl({ forceHttps: true })
+```
+
+### Number
+
+`number()` accepts numbers or numeric strings; pass `{ strict: true }` to reject coercion.
+
+```ts
+super.validator.number()                                    // number or numeric string
+super.validator.number({ strict: true })                    // no string coercion
+super.validator.number().min(1).max(120)                    // bounds
+super.validator.number().range([1, 5])                      // inclusive range
+super.validator.number().positive()                         // > 0  (also .negative())
+super.validator.number().nonNegative()                      // >= 0
+super.validator.number().withoutDecimals()                  // integers only
+super.validator.number().decimal([0, 2])                    // up to 2 decimal places
+super.validator.number().in([10, 20, 50])                   // allow-list
+```
+
+### Boolean
+
+`boolean()` coerces `"true"`/`"false"`/`0`/`1`. Pass `{ strict: true }` to accept only real booleans.
+
+```ts
+super.validator.boolean()                                   // accepts "true", 1, etc.
+super.validator.boolean({ strict: true })                   // only true / false
+```
+
+### Date
+
+`date()` validates a date string and returns a JS `Date`. Default format is ISO-8601; override with `formats`.
+
+```ts
+super.validator.date()                                      // ISO-8601 -> Date
+super.validator.date({ formats: ["YYYY-MM-DD"] })           // custom format
+super.validator.date().after("today")                       // also .before()
+super.validator.date().afterOrEqual("2024-01-01")
+super.validator.date().afterField("checkin_date")           // compare to sibling field
+super.validator.date().weekday()                            // Mon-Fri only
+```
+
+### Enum & literal
+
+`enum()` restricts a value to a fixed set. Accepts an array (use `as const` for precise types) or a TypeScript enum; a callback computes options at runtime.
+
+```ts
+super.validator.enum(["pending", "active", "banned"] as const)
+super.validator.enum(UserRole)                              // a TS enum
+super.validator.enum((field) =>                             // deferred / dynamic
+  field.parent.device === "mobile" ? ["320px", "640px"] as const : ["1080px"] as const
+)
+super.validator.literal("v1")                               // exactly this value
+```
+
+### Accepted
+
+`accepted()` validates an HTML checkbox -- it passes only when the value is `on`, `1`, `yes`, or `true`, and normalizes the output to `true`.
+
+```ts
+terms: super.validator.accepted()                           // "on" -> true
+```
+
+### Array
+
+`array(member)` validates every element against the member schema.
+
+```ts
+super.validator.array(super.validator.string())             // string[]
+super.validator.array(super.validator.number()).notEmpty()  // at least one item
+super.validator.array(super.validator.string()).minLength(1).maxLength(10)
+super.validator.array(super.validator.number()).distinct()  // no duplicates
+super.validator.array(super.validator.string()).compact()   // drop null/undefined/"" first
+
+// array of objects, unique by a property
+super.validator.array(
+  super.validator.object({ email: super.validator.string().email() })
+).distinct("email")
+```
+
+### Object
+
+`object({...})` validates known properties. Unknown keys are stripped unless you call `allowUnknownProperties()`.
+
+```ts
+super.validator.object({
+  name: super.validator.string(),
+  age: super.validator.number().optional(),
+  address: super.validator.object({                         // nested object
+    city: super.validator.string(),
+  }),
+})
+
+super.validator.object({ name: super.validator.string() }).allowUnknownProperties()
+```
+
+## Modifiers
+
+Modifiers control whether missing or empty values are allowed. The distinction matters:
+
+| Modifier | Accepts | Rejects |
+| --- | --- | --- |
+| `.optional()` | `undefined` (field absent) | `null` |
+| `.nullable()` | `null` | `undefined` |
+| `.nullable().optional()` | both `null` and `undefined` | -- |
+
+```ts
+super.validator.string().optional()                         // string | undefined
+super.validator.string().nullable()                         // string | null
+super.validator.string().nullable().optional()              // string | null | undefined
 ```
 
 ## `exists` -- the value must exist in a table
