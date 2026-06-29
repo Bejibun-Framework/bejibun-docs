@@ -4,39 +4,42 @@ description: "Create, read, update, and delete records with BaseModel helpers."
 icon: "database"
 ---
 
-`BaseModel` provides expressive static helpers for the most common database operations. Each returns an Objection query you `await`.
+`BaseModel` provides expressive static helpers for the most common database operations.
+Each returns an Objection query you `await`.
 
 ## Reading
 
 <CodeGroup>
-```ts All records
-const tests = await TestModel.all();
-```
+    ```ts All records
+    const users = await UserModel.all();
+    ```
 
-```ts Find by ID
-const test = await TestModel.find(id);          // null if not found
-```
+    ```ts Find by ID
+    const user = await UserModel.find(id); // null if not found
+    ```
 
-```ts Find or fail
-const test = await TestModel.findOrFail(id);     // throws ModelNotFoundException
-```
+    ```ts Find or fail
+    const user = await UserModel.findOrFail(id); // throws ModelNotFoundException
+    ```
 </CodeGroup>
 
-```ts app/controllers/TestController.ts
-public async get(request: Bun.BunRequest): Promise<Response> {
-    const tests = await TestModel.all();
-    return super.response.setData(tests).send();
+```ts app/controllers/UserController.ts
+public async index(request: Bun.BunRequest): Promise<Response> {
+    const users = await UserModel.all();
+    
+    return super.response.setData(users).send();
 }
 ```
 
 <Tip>
-Use `findOrFail` in controllers -- the thrown `ModelNotFoundException` is automatically turned into a not-found response.
+    Use `findOrFail` in controllers --
+    the thrown `ModelNotFoundException` is automatically turned into a not-found response.
 </Tip>
 
 ## Creating
 
 ```ts
-const test = await TestModel.create({
+const user = await UserModel.create({
     name: body.name as string
 });
 ```
@@ -46,7 +49,7 @@ const test = await TestModel.create({
 Find the record, then chain `update`:
 
 ```ts
-const test = await TestModel.find(id).update({
+const user = await UserModel.find(id).update({
     name: body.name as string
 });
 ```
@@ -58,25 +61,25 @@ The update returns the matching rows; if nothing matches, it's a no-op.
 By default, `delete()` performs a **soft delete** (it sets `deleted_at`):
 
 ```ts
-await TestModel.find(id).delete();
+await UserModel.find(id).delete();
 ```
 
 For a permanent delete, use `forceDelete()`:
 
 ```ts
-await TestModel.find(id).forceDelete();
+await UserModel.find(id).forceDelete();
 ```
 
 See [Soft Deletes](/guides/database/soft-deletes) for restoring and querying trashed records.
 
 ## Static helper reference
 
-| Helper | Returns | Notes |
-| --- | --- | --- |
-| `Model.all()` | query | All non-trashed rows |
-| `Model.find(id)` | query | `findById(id)` |
-| `Model.findOrFail(id)` | `Promise<T>` | Throws if missing |
-| `Model.create(payload)` | query | Inserts a row |
-| `Model.query()` | query builder | Full Objection API |
+| Helper                  | Returns       | Notes                |
+| ----------------------- | ------------- | -------------------- |
+| `Model.all()`           | query         | All non-trashed rows |
+| `Model.find(id)`        | query         | `findById(id)`       |
+| `Model.findOrFail(id)`  | `Promise<T>`  | Throws if missing    |
+| `Model.create(payload)` | query         | Inserts a row        |
+| `Model.query()`         | query builder | Full Objection API   |
 
 All helpers accept an optional transaction/Knex argument as the last parameter.
