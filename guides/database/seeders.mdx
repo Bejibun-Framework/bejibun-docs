@@ -4,12 +4,13 @@ description: "Populate your database with test or default data."
 icon: "seedling"
 ---
 
-Seeders fill your database with data -- defaults, reference tables, or sample records for development. They live in `database/seeders/` and run through the `ace` CLI.
+Seeders fill your database with data -- defaults, reference tables, or sample records for development.
+They live in `database/seeders/` and run through the `ace` CLI.
 
 ## Creating a seeder
 
 ```bash
-bun ace make:seeder tests_seeder
+bun ace make:seeder seeder_test
 ```
 
 This creates a timestamped file exporting a `seed` function:
@@ -20,13 +21,15 @@ import TestModel from "@/app/models/TestModel";
 
 export async function seed(knex: Knex): Promise<void> {
     for (const name of ["Name 1", "Name 2", "Name 3"]) {
-        await TestModel.query(knex).insert({ name });
+        await TestModel.query(knex).insert({
+            name
+        });
     }
 }
 ```
 
 <Note>
-Pass the `knex` instance to `Model.query(knex)` so inserts run on the seeder's connection.
+    Pass the `knex` instance to `Model.query(knex)` so inserts run on the seeder's connection.
 </Note>
 
 ## Running seeders
@@ -51,12 +54,15 @@ Example output:
 ```ts
 export async function seed(knex: Knex): Promise<void> {
     const existing = await TestModel.query(knex).where("name", "Admin").first();
-    if (!existing) {
-        await TestModel.query(knex).insert({ name: "Admin" });
+
+    if (isEmpty(existing)) {
+        await TestModel.query(knex).insert({
+            name: "Admin"
+        });
     }
 }
 ```
 
 <Tip>
-Combine `migrate:fresh` and `db:seed` for a clean development reset: rebuild the schema, then repopulate it.
+    Combine `migrate:fresh` and `db:seed` for a clean development reset: rebuild the schema, then repopulate it.
 </Tip>
