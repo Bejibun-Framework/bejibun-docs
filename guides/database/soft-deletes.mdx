@@ -4,7 +4,8 @@ description: "Keep records recoverable with deleted_at-based soft deletion."
 icon: "trash-can-arrow-up"
 ---
 
-Bejibun models support **soft deletes** out of the box. Instead of removing a row, `delete()` stamps the `deleted_at` column, and soft-deleted rows are automatically excluded from normal queries.
+Bejibun models support **soft deletes** out of the box. Instead of removing a row,
+`delete()` stamps the `deleted_at` column, and soft-deleted rows are automatically excluded from normal queries.
 
 ## Requirements
 
@@ -25,17 +26,17 @@ declare deleted_at: NullableTimestamp;
 ## Soft deleting
 
 ```ts
-await TestModel.find(id).delete();   // sets deleted_at = now()
+await UserModel.find(id).delete();  // sets deleted_at = now()
 ```
 
-The row stays in the database but disappears from default queries like `TestModel.all()`.
+The row stays in the database but disappears from default queries like `UserModel.all()`.
 
 ## Restoring
 
 Clear `deleted_at` to bring a record back:
 
 ```ts
-await TestModel.find(id).restore();
+await UserModel.find(id).restore();
 ```
 
 ## Permanent deletion
@@ -43,7 +44,7 @@ await TestModel.find(id).restore();
 To remove a row for good, bypass soft deletes with `forceDelete()`:
 
 ```ts
-await TestModel.find(id).forceDelete();
+await UserModel.find(id).forceDelete();
 ```
 
 ## Querying trashed records
@@ -51,40 +52,41 @@ await TestModel.find(id).forceDelete();
 By default queries hide soft-deleted rows. Include or isolate them with:
 
 <CodeGroup>
-```ts With trashed
-const all = await TestModel.withTrashed();    // active + trashed
-```
+    ```ts With trashed
+    const all = await UserModel.withTrashed(); // active + trashed
+    ```
 
-```ts Only trashed
-const trashed = await TestModel.onlyTrashed(); // trashed only
-```
+    ```ts Only trashed
+    const trashed = await UserModel.onlyTrashed(); // trashed only
+    ```
 </CodeGroup>
 
 ## Method reference
 
-| Method | Effect |
-| --- | --- |
-| `.delete()` / `.del()` | Soft delete (set `deleted_at`) |
-| `.forceDelete()` | Permanent delete |
-| `.restore()` | Clear `deleted_at` on trashed rows |
-| `.withTrashed()` | Include trashed rows |
-| `.onlyTrashed()` | Only trashed rows |
+| Method           | Effect                             |
+| ---------------- | ---------------------------------- |
+| `.delete()`      | Soft delete (set `deleted_at`)     |
+| `.forceDelete()` | Permanent delete                   |
+| `.restore()`     | Clear `deleted_at` on trashed rows |
+| `.withTrashed()` | Include trashed rows               |
+| `.onlyTrashed()` | Only trashed rows                  |
 
 ## Validating against trashed rows
 
-The `exists` validation rule can opt into trashed rows -- useful for a restore endpoint that must accept an already-deleted ID:
+The `exists` validation rule can opt into trashed rows --
+useful for a restore endpoint that must accept an already-deleted ID:
 
 ```ts
-id: super.validator.number().min(1).exists(TestModel, "id", true)
+id: super.validator.number().min(1).exists(UserModel, "id", true)
 ```
 
-```ts app/controllers/TestController.ts
+```ts app/controllers/UserController.ts
 public async restore(request: Bun.BunRequest): Promise<Response> {
     const body = await super.parse(request);
-    await super.validate(TestValidator.restore, body);
+    await super.validate(UserValidator.restore, body);
 
-    const test = await TestModel.find(body.id as number | string).restore();
+    const user = await UserModel.find(body.id as number | string).restore();
 
-    return super.response.setData(test).send();
+    return super.response.setData(user).send();
 }
 ```

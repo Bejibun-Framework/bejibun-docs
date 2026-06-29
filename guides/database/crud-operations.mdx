@@ -26,7 +26,7 @@ Each returns an Objection query you `await`.
 ```ts app/controllers/UserController.ts
 public async index(request: Bun.BunRequest): Promise<Response> {
     const users = await UserModel.all();
-    
+
     return super.response.setData(users).send();
 }
 ```
