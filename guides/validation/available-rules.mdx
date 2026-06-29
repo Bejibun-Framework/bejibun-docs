@@ -1,26 +1,29 @@
 ---
 title: "Available Rules"
-description: "Every VineJS schema type and validation rule, plus the framework's exists and unique database rules."
+description: "Every VineJS schema type and validation rule, plus the framework's extended database validation rules."
 icon: "list-check"
 ---
 
-Validators are built on the full VineJS rule set, and Bejibun adds two database-aware rules: `exists` and `unique`. `super.validator` is the VineJS root, so every schema type and rule below is chained from it.
+Validators are built on the full VineJS rule set, and Bejibun adds two database-aware rules: `exists` and `unique`.
+`super.validator` is the VineJS root, so every schema type and rule below is chained from it.
 
 ## Schema types
 
-Pick a type, then chain rules and [modifiers](#modifiers) onto it. Each type lists the commonly used rules; VineJS ships more (50+ in total) -- the patterns are identical.
+Pick a type, then chain rules and [modifiers](#modifiers) onto it. Each type lists the commonly used rules;
+VineJS ships more (50+ in total) -- the patterns are identical.
 
 ### String
 
-`string()` validates string fields. Empty strings pass by default; use `minLength()` or a [modifier](#modifiers) to require a value. Normalizers (`trim`, `escape`, `toUpperCase`...) mutate the output value.
+`string()` validates string fields. Empty strings pass by default; use `minLength()` or a [modifier](#modifiers)
+to require a value. Normalizers (`trim`, `escape`, `toUpperCase`...) mutate the output value.
 
 ```ts
 super.validator.string()                                    // any string
-super.validator.string().minLength(8).maxLength(72)         // length bounds
+super.validator.string().minLength(8).maxLength(64)         // length bounds
 super.validator.string().fixedLength(6)                     // exact length
 super.validator.string().email()                            // valid email
-super.validator.string().url({ require_protocol: true })    // valid URL
-super.validator.string().alphaNumeric({ allowUnderscores: true })
+super.validator.string().url({require_protocol: true})      // valid URL
+super.validator.string().alphaNumeric({allowUnderscores: true})
 super.validator.string().regex(/^[a-z0-9-]+$/)              // custom pattern
 super.validator.string().in(["draft", "published"])         // allow-list
 super.validator.string().notIn(["admin", "root"])           // deny-list
@@ -33,8 +36,8 @@ super.validator.string().mobile()                           // valid phone numbe
 super.validator.string().trim()
 super.validator.string().escape()                           // escape HTML
 super.validator.string().toUpperCase()                      // also toLowerCase()
-super.validator.string().email().normalizeEmail({ all_lowercase: true })
-super.validator.string().url().normalizeUrl({ forceHttps: true })
+super.validator.string().email().normalizeEmail({all_lowercase: true})
+super.validator.string().url().normalizeUrl({forceHttps: true})
 ```
 
 ### Number
@@ -42,15 +45,15 @@ super.validator.string().url().normalizeUrl({ forceHttps: true })
 `number()` accepts numbers or numeric strings; pass `{ strict: true }` to reject coercion.
 
 ```ts
-super.validator.number()                                    // number or numeric string
-super.validator.number({ strict: true })                    // no string coercion
-super.validator.number().min(1).max(120)                    // bounds
-super.validator.number().range([1, 5])                      // inclusive range
-super.validator.number().positive()                         // > 0  (also .negative())
-super.validator.number().nonNegative()                      // >= 0
-super.validator.number().withoutDecimals()                  // integers only
-super.validator.number().decimal([0, 2])                    // up to 2 decimal places
-super.validator.number().in([10, 20, 50])                   // allow-list
+super.validator.number()                    // number or numeric string
+super.validator.number({strict: true})      // no string coercion
+super.validator.number().min(1).max(120)    // bounds
+super.validator.number().range([1, 5])      // inclusive range
+super.validator.number().positive()         // > 0  (also .negative())
+super.validator.number().nonNegative()      // >= 0
+super.validator.number().withoutDecimals()  // integers only
+super.validator.number().decimal([0, 2])    // up to 2 decimal places
+super.validator.number().in([10, 20, 50])   // allow-list
 ```
 
 ### Boolean
@@ -58,8 +61,8 @@ super.validator.number().in([10, 20, 50])                   // allow-list
 `boolean()` coerces `"true"`/`"false"`/`0`/`1`. Pass `{ strict: true }` to accept only real booleans.
 
 ```ts
-super.validator.boolean()                                   // accepts "true", 1, etc.
-super.validator.boolean({ strict: true })                   // only true / false
+super.validator.boolean()                // accepts "true", 1, etc.
+super.validator.boolean({strict: true})  // only true / false
 ```
 
 ### Date
@@ -67,33 +70,35 @@ super.validator.boolean({ strict: true })                   // only true / false
 `date()` validates a date string and returns a JS `Date`. Default format is ISO-8601; override with `formats`.
 
 ```ts
-super.validator.date()                                      // ISO-8601 -> Date
-super.validator.date({ formats: ["YYYY-MM-DD"] })           // custom format
-super.validator.date().after("today")                       // also .before()
+super.validator.date()                             // ISO-8601 -> Date
+super.validator.date({formats: ["YYYY-MM-DD"]})    // custom format
+super.validator.date().after("today")              // also .before()
 super.validator.date().afterOrEqual("2024-01-01")
-super.validator.date().afterField("checkin_date")           // compare to sibling field
-super.validator.date().weekday()                            // Mon-Fri only
+super.validator.date().afterField("checkin_date")  // compare to sibling field
+super.validator.date().weekday()                   // Mon-Fri only
 ```
 
 ### Enum & literal
 
-`enum()` restricts a value to a fixed set. Accepts an array (use `as const` for precise types) or a TypeScript enum; a callback computes options at runtime.
+`enum()` restricts a value to a fixed set. Accepts an array (use `as const` for precise types) or a TypeScript enum;
+a callback computes options at runtime.
 
 ```ts
 super.validator.enum(["pending", "active", "banned"] as const)
-super.validator.enum(UserRole)                              // a TS enum
-super.validator.enum((field) =>                             // deferred / dynamic
-  field.parent.device === "mobile" ? ["320px", "640px"] as const : ["1080px"] as const
+super.validator.enum(UserRole)   // a TS enum
+super.validator.enum((field) =>  // deferred / dynamic
+    field.parent.device === "mobile" ? ["320px", "640px"] as const : ["1080px"] as const
 )
-super.validator.literal("v1")                               // exactly this value
+super.validator.literal("v1")    // exactly this value
 ```
 
 ### Accepted
 
-`accepted()` validates an HTML checkbox -- it passes only when the value is `on`, `1`, `yes`, or `true`, and normalizes the output to `true`.
+`accepted()` validates an HTML checkbox -- it passes only when the value is `on`, `1`, `yes`, or `true`,
+and normalizes the output to `true`.
 
 ```ts
-terms: super.validator.accepted()                           // "on" -> true
+terms: super.validator.accepted()  // "on" -> true
 ```
 
 ### Array
@@ -109,7 +114,9 @@ super.validator.array(super.validator.string()).compact()   // drop null/undefin
 
 // array of objects, unique by a property
 super.validator.array(
-  super.validator.object({ email: super.validator.string().email() })
+    super.validator.object({
+        email: super.validator.string().email()
+    })
 ).distinct("email")
 ```
 
@@ -119,38 +126,40 @@ super.validator.array(
 
 ```ts
 super.validator.object({
-  name: super.validator.string(),
-  age: super.validator.number().optional(),
-  address: super.validator.object({                         // nested object
-    city: super.validator.string(),
-  }),
+    name: super.validator.string(),
+    age: super.validator.number().optional(),
+    address: super.validator.object({  // nested object
+        city: super.validator.string()
+    })
 })
 
-super.validator.object({ name: super.validator.string() }).allowUnknownProperties()
+super.validator.object({
+    name: super.validator.string()
+}).allowUnknownProperties()
 ```
 
 ## Modifiers
 
 Modifiers control whether missing or empty values are allowed. The distinction matters:
 
-| Modifier | Accepts | Rejects |
-| --- | --- | --- |
-| `.optional()` | `undefined` (field absent) | `null` |
-| `.nullable()` | `null` | `undefined` |
-| `.nullable().optional()` | both `null` and `undefined` | -- |
+| Modifier                 | Accepts                     | Rejects     |
+| ------------------------ | --------------------------- | ----------- |
+| `.optional()`            | `undefined` (field absent)  | `null`      |
+| `.nullable()`            | `null`                      | `undefined` |
+| `.nullable().optional()` | both `null` and `undefined` | --          |
 
 ```ts
-super.validator.string().optional()                         // string | undefined
-super.validator.string().nullable()                         // string | null
-super.validator.string().nullable().optional()              // string | null | undefined
+super.validator.string().optional()             // string | undefined
+super.validator.string().nullable()             // string | null
+super.validator.string().nullable().optional()  // string | null | undefined
 ```
 
-## `exists` -- the value must exist in a table
+### `exists` -- the value must exist in a table
 
 Confirms a value matches a row in the database before you query it. Registered on both string and number fields.
 
 ```ts
-id: super.validator.number().min(1).exists(TestModel, "id")
+id: super.validator.number().min(1).exists(UserModel, "id")
 ```
 
 Signature:
@@ -158,24 +167,24 @@ Signature:
 ```ts
 .exists(Model, column?, withTrashed?, nullable?)
 // or, as an options object:
-.exists({ table, column?, withTrashed?, nullable? })
+.exists({table, column?, withTrashed?, nullable?})
 ```
 
-| Argument | Default | Description |
-| --- | --- | --- |
-| `Model` | -- | The model to query |
-| `column` | the field name | Column to match against |
-| `withTrashed` | `false` | Include soft-deleted rows |
-| `nullable` | `false` | Skip the check when the value is null |
+| Argument      | Default        | Description                           |
+| ------------- | -------------- | ------------------------------------- |
+| `Model`       | --             | The model to query                    |
+| `column`      | the field name | Column to match against               |
+| `withTrashed` | `false`        | Include soft-deleted rows             |
+| `nullable`    | `false`        | Skip the check when the value is null |
 
 Default message: `The <field> field doesn't exists`.
 
 ```ts
 // include soft-deleted rows (e.g. for a restore endpoint)
-id: super.validator.number().min(1).exists(TestModel, "id", true)
+id: super.validator.number().min(1).exists(UserModel, "id", true)
 ```
 
-## `unique` -- the value must not already exist
+### `unique` -- the value must not already exist
 
 The inverse of `exists` -- used for sign-up emails, slugs, and other one-of-a-kind values. Same signature as `exists`.
 
@@ -186,9 +195,6 @@ email: super.validator.string().email().unique(UserModel, "email")
 Default message: `The <field> field is already exists`.
 
 <Note>
-Both rules query the model with `Model.query().where(column, value).first()` (or `withTrashed()` first). Pass `nullable: true` to skip the check entirely for empty values.
+    Both rules query the model with `Model.query().where(column, value).first()` (or `withTrashed()` first). Pass
+    `nullable: true` to skip the check entirely for empty values.
 </Note>
-
-## Planned
-
-Field-level **custom validation messages** are not yet surfaced by the framework -- `validate()` returns only the first failing rule's message. Author custom rules with Vine's `vine.createRule` (the same mechanism `exists`/`unique` use).
