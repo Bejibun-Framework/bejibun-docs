@@ -4,55 +4,59 @@ description: "Run validators against incoming requests inside your controllers."
 icon: "arrow-right-to-bracket"
 ---
 
-Once you've defined a [validator](/guides/validation/creating-validators), run it inside a controller with `super.validate()`.
+Once you've defined a [validator](/guides/validation/creating-validators),
+run it inside a controller with `super.validate()`.
 
 ## Validating a request
 
 Parse the request, validate it, then proceed:
 
-```ts app/controllers/TestController.ts
+```ts app/controllers/UserController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
-import TestModel from "@/app/models/TestModel";
-import TestValidator from "@/app/validators/TestValidator";
+import UserModel from "@/app/models/UserModel";
+import UserValidator from "@/app/validators/UserValidator";
 
-export default class TestController extends BaseController {
-    public async add(request: Bun.BunRequest): Promise<Response> {
+export default class UserController extends BaseController {
+    public async store(request: Bun.BunRequest): Promise<Response> {
         const body = await super.parse(request);
-        await super.validate(TestValidator.add, body);
+        await super.validate(UserValidator.store, body);
 
-        const test = await TestModel.create({
+        const user = await UserModel.create({
             name: body.name as string
         });
 
-        return super.response.setData(test).send();
+        return super.response.setData(user).send();
     }
 }
 ```
 
 <Note>
-`validate()` returns the validated data and throws a `ValidatorException` on failure -- there's no need to check a result flag. Execution stops and the [exception handler](/guides/core-concepts/error-handling) formats the error response.
+    `validate()` returns the validated data and throws a `ValidatorException` on failure --
+    there's no need to check a result flag.
+    Execution stops and the [exception handler](/guides/core-concepts/error-handling) formats the error response.
 </Note>
 
 ## Validating route parameters
 
-Route parameters land in the same parsed object, so they validate like any other field. This pairs perfectly with the `exists` rule:
+Route parameters land in the same parsed object, so they validate like any other field.
+This pairs perfectly with the `exists` rule:
 
-```ts app/validators/TestValidator.ts
-public static get detail(): ValidatorType {
+```ts app/validators/UserValidator.ts
+public static get show(): ValidatorType {
     return super.validator.create({
-        id: super.validator.number().min(1).exists(TestModel, "id")
+        id: super.validator.number().min(1).exists(UserModel, "id")
     });
 }
 ```
 
-```ts app/controllers/TestController.ts
-public async detail(request: Bun.BunRequest): Promise<Response> {
+```ts app/controllers/UserController.ts
+public async show(request: Bun.BunRequest): Promise<Response> {
     const body = await super.parse(request);
-    await super.validate(TestValidator.detail, body);
+    await super.validate(UserValidator.show, body);
 
-    const test = await TestModel.findOrFail(body.id as number | string);
+    const user = await UserModel.findOrFail(body.id as number | string);
 
-    return super.response.setData(test).send();
+    return super.response.setData(user).send();
 }
 ```
 
@@ -60,13 +64,14 @@ public async detail(request: Bun.BunRequest): Promise<Response> {
 
 Each controller action references its matching schema:
 
-| Action | Validator | Typical rules |
-| --- | --- | --- |
-| `store` / `add` | `Validator.add` | required fields |
-| `show` / `detail` | `Validator.detail` | `id` + `exists` |
-| `update` / `edit` | `Validator.edit` | `id` + `exists`, fields |
-| `destroy` / `delete` | `Validator.delete` | `id` + `exists` |
+| Action    | Validator          | Typical rules           |
+| --------- | ------------------ | ----------------------- |
+| `store`   | `Validator.store`  | required fields         |
+| `show`    | `Validator.show`   | `id` + `exists`         |
+| `update`  | `Validator.edit`   | `id` + `exists`, fields |
+| `destroy` | `Validator.delete` | `id` + `exists`         |
 
 <Tip>
-Validate **before** touching the database. Combined with `exists`, you get a clean validation error instead of a deeper failure when a referenced record is missing.
+    Validate **before** touching the database. Combined with `exists`, you get a clean validation error instead of a
+    deeper failure when a referenced record is missing.
 </Tip>
