@@ -4,7 +4,8 @@ description: "Run commands on a schedule with an expressive, cron-backed API."
 icon: "clock"
 ---
 
-The scheduler runs `ace` commands on a recurring schedule using a fluent, Laravel-style API -- no need to edit system crontabs.
+Build reliable automated workflows with an expressive, cron-powered scheduler. Define recurring tasks using a fluent API,
+keep schedules centralized, and eliminate the need to maintain system crontab entries.
 
 ## Defining schedules
 
@@ -35,18 +36,23 @@ Run this as a long-lived daemon (one per deployment) and it dispatches due comma
 ## Frequency methods
 
 <AccordionGroup>
-  <Accordion title="Seconds" icon="stopwatch">
-    `everySecond`, `everyTwoSeconds`, `everyFiveSeconds`, `everyTenSeconds`, `everyFifteenSeconds`, `everyTwentySeconds`, `everyThirtySeconds`
-  </Accordion>
-  <Accordion title="Minutes" icon="clock">
-    `everyMinute`, `everyTwoMinutes`, `everyThreeMinutes`, `everyFourMinutes`, `everyFiveMinutes`, `everyTenMinutes`, `everyFifteenMinutes`, `everyThirtyMinutes`
-  </Accordion>
-  <Accordion title="Hours" icon="hourglass">
-    `hourly`, `hourlyAt(minute)`, `everyOddHour(minute?)`, `everyTwoHours(minute?)`, `everyThreeHours`, `everyFourHours`, `everySixHours`
-  </Accordion>
-  <Accordion title="Days, weeks, months, years" icon="calendar">
-    `daily`, `dailyAt("HH:mm")`, `twiceDaily(h1, h2)`, `twiceDailyAt(h1, h2, minute)`, `weekly`, `weeklyOn(day, "HH:mm")`, `monthly`, `monthlyOn(day, "HH:mm")`, `twiceMonthly(d1, d2, "HH:mm")`, `yearly`, `yearlyOn(month, day, "HH:mm")`
-  </Accordion>
+    <Accordion title="Seconds" icon="stopwatch">
+        `everySecond`, `everyTwoSeconds`, `everyFiveSeconds`, `everyTenSeconds`, `everyFifteenSeconds`,
+        `everyTwentySeconds`, `everyThirtySeconds`
+    </Accordion>
+    <Accordion title="Minutes" icon="clock">
+        `everyMinute`, `everyTwoMinutes`, `everyThreeMinutes`, `everyFourMinutes`, `everyFiveMinutes`,
+        `everyTenMinutes`, `everyFifteenMinutes`, `everyThirtyMinutes`
+    </Accordion>
+    <Accordion title="Hours" icon="hourglass">
+        `hourly`, `hourlyAt(minute)`, `everyOddHour(minute?)`, `everyTwoHours(minute?)`, `everyThreeHours`,
+        `everyFourHours`, `everySixHours`
+    </Accordion>
+    <Accordion title="Days, weeks, months, years" icon="calendar">
+        `daily`, `dailyAt("HH:mm")`, `twiceDaily(h1, h2)`, `twiceDailyAt(h1, h2, minute)`, `weekly`,
+        `weeklyOn(day, "HH:mm")`, `monthly`, `monthlyOn(day, "HH:mm")`, `twiceMonthly(d1, d2, "HH:mm")`, `yearly`,
+        `yearlyOn(month, day, "HH:mm")`
+    </Accordion>
 </AccordionGroup>
 
 ## Timezone and raw cron
@@ -60,5 +66,5 @@ schedule.command("custom").cron("0 */15 * * * *"); // 6-field, seconds-precision
 ```
 
 <Note>
-Cron expressions are **6-field** (seconds first): `second minute hour day month weekday`.
+    Cron expressions are **6-field** (seconds first): `second minute hour day month weekday`.
 </Note>
