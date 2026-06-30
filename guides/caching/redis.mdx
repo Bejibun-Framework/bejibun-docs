@@ -1,10 +1,11 @@
 ---
 title: "Redis"
-description: "Talk to Redis directly with @bejibun/redis -- keys, counters, pipelines, and pub/sub."
+description: "Talk to Redis directly with **@bejibun/redis** -- keys, counters, pipelines, and pub/sub."
 icon: "layer-group"
 ---
 
-`@bejibun/redis` wraps Bun's native Redis client with a convenient facade. It powers the Redis cache driver and is also available directly for keys, counters, pipelines, and pub/sub.
+`@bejibun/redis` wraps Bun's native Redis client with a convenient facade.
+It powers the Redis cache driver and is also available directly for keys, counters, pipelines, and pub/sub.
 
 ## Installation
 
@@ -28,7 +29,7 @@ REDIS_CONNECTION=local
 ```ts
 import Redis from "@bejibun/redis";
 
-await Redis.set("session:1", token, 3600);   // value with TTL (seconds)
+await Redis.set("session:1", token, 3600);          // value with TTL (seconds)
 const value = await Redis.get("session:1");
 await Redis.del("session:1");
 
@@ -63,7 +64,7 @@ await Redis.subscribe("orders", (message) => {
     // handle incoming message
 });
 
-await Redis.publish("orders", JSON.stringify(order));
+await Redis.publish("orders", order);
 ```
 
 ## Multiple connections
@@ -76,16 +77,30 @@ await Redis.connection("analytics").incr("events");
 
 ## API reference
 
-| Method | Purpose |
-| --- | --- |
-| `set` / `get` / `del` / `exists` / `keys` | Key operations |
-| `incr` / `decr` / `incrBy` / `decrBy` | Counters |
-| `ttl` / `expire` | Expiry |
-| `publish` / `subscribe` | Pub/Sub |
-| `pipeline(fn)` | Batched commands |
-| `connect` / `disconnect` | Connection lifecycle |
-| `on(event, fn)` / `off(event, fn)` | `"connect"`, `"disconnect"`, `"error"` events |
+| Method           | Purpose                                                                        |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `setClient`      | Register a Redis client configuration, optionally with a connection name.      |
+| `connection`     | Retrieve the registered Redis client instance by connection name.              |
+| `connect`        | Establish a Redis connection.                                                  |
+| `disconnect`     | Close an active Redis connection.                                              |
+| `set`            | Store a value by key, with an optional TTL.                                    |
+| `get`            | Retrieve the value of a key.                                                   |
+| `del`            | Delete a key from Redis.                                                       |
+| `exists`         | Check whether a key exists.                                                    |
+| `keys`           | Return all keys matching a pattern.                                            |
+| `incr`           | Increment a numeric value by 1.                                                |
+| `decr`           | Decrement a numeric value by 1.                                                |
+| `incrBy`         | Increment a numeric value by the specified amount.                             |
+| `decrBy`         | Decrement a numeric value by the specified amount.                             |
+| `ttl`            | Get the remaining time-to-live of a key.                                       |
+| `expire`         | Set or update the expiration time of a key.                                    |
+| `publish`        | Publish a message to a Pub/Sub channel.                                        |
+| `subscribe`      | Subscribe to a Pub/Sub channel and receive messages.                           |
+| `pipeline(fn)`   | Execute multiple Redis commands in a single pipeline for improved performance. |
+| `on(event, fn)`  | Register an event listener for `connect`, `disconnect`, or `error` events.     |
+| `off(event, fn)` | Remove a previously registered event listener.                                 |
 
 <Tip>
-Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off operations on a specific connection.
+    Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off operations on a specific
+    connection.
 </Tip>
