@@ -75,13 +75,13 @@ export default class TestController extends BaseController {
 }
 ```
 
-- **`parse`** merges the request body, route parameters, query string, and uploaded files into one object. See [The Request](/guides/http-layer/the-request).
+- **`parse`** merges the request body, route parameters, query string, and uploaded files into one object. See [The Request](/v0.4/guides/http-layer/the-request).
 - **`validate`** throws a `ValidatorException` on failure (returned as a structured error). See the validation guide.
-- **`response`** builds the standard JSON envelope. See [The Response](/guides/http-layer/the-response).
+- **`response`** builds the standard JSON envelope. See [The Response](/v0.4/guides/http-layer/the-response).
 
 ## Resource controllers
 
-Controllers created with `make:controller` include the five resource actions, ready to pair with [`Router.resource`](/guides/http-layer/routing#resource-routes):
+Controllers created with `make:controller` include the five resource actions, ready to pair with [`Router.resource`](/v0.4/guides/http-layer/routing#resource-routes):
 
 ```ts
 import BaseController from "@bejibun/core/bases/BaseController";

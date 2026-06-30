@@ -7,7 +7,7 @@ Bejibun generates an OpenAPI specification directly from your routes. As your AP
 
 ## How it works
 
-Annotate controller methods with the global [`@ApiDoc`](/guides/api-development/openapi) decorator to describe each endpoint. At startup, the server collects this metadata, builds an OpenAPI document, and writes it to `public/apis.json`.
+Annotate controller methods with the global [`@ApiDoc`](/v0.4/guides/api-development/openapi) decorator to describe each endpoint. At startup, the server collects this metadata, builds an OpenAPI document, and writes it to `public/apis.json`.
 
 ```ts
 @ApiDoc({

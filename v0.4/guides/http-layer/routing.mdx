@@ -155,12 +155,12 @@ export default class TestController extends BaseController {
 
 <Note>
     `parse()` merges **route parameters**, **query-string values**, and the **request body** into a single object. See
-    [The Request](/guides/http-layer/the-request) for the full precedence.
+    [The Request](/v0.4/guides/http-layer/the-request) for the full precedence.
 </Note>
 
 ### Validating parameters
 
-Because parameters arrive in the same object as the body, you validate them with a normal [validator](/guides/http-layer/controllers).
+Because parameters arrive in the same object as the body, you validate them with a normal [validator](/v0.4/guides/http-layer/controllers).
 The built-in `exists` rule is ideal for confirming a record exists before you query it:
 
 ```ts app/validators/TestValidator.ts
@@ -202,7 +202,7 @@ export default class TestController extends BaseController {
 ### Parameters in OpenAPI
 
 When generating the OpenAPI/Swagger spec, Bejibun rewrites `:param` segments to the `{param}` form automatically.
-Document the parameter explicitly with the [`@ApiDoc`](/guides/http-layer/controllers) decorator:
+Document the parameter explicitly with the [`@ApiDoc`](/v0.4/guides/http-layer/controllers) decorator:
 
 ```ts
 @ApiDoc({
@@ -259,11 +259,11 @@ export default Router.prefix("test")
 | `Router.prefix(path)`     | Prepend a path segment to every route in the group                                                        |
 | `Router.middleware(...m)` | Attach middleware instances to the group                                                                  |
 | `Router.namespace(dir)`   | Override the controller resolution directory (default `app/controllers`)                                  |
-| `Router.x402(config?)`    | Gate the group behind an [x402 payment](/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
+| `Router.x402(config?)`    | Gate the group behind an [x402 payment](/v0.4/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
 
 <Note>
     Middleware runs in the order listed: the **first** middleware is the outermost wrapper and executes first on the
-    way in. See [Middleware](/guides/http-layer/middleware).
+    way in. See [Middleware](/v0.4/guides/http-layer/middleware).
 </Note>
 
 ### Nesting groups
@@ -340,7 +340,7 @@ controller. This keeps resolution predictable and type-safe.
 
 Declare a route parameter, then load the record with `findOrFail`. If no record matches, a `ModelNotFoundException`
 is thrown and converted into a `404`-style JSON response by the [exception
-handler](/guides/core-concepts/error-handling).
+handler](/v0.4/guides/core-concepts/error-handling).
 
 ```ts routes/api/test.ts
 Router.get("/tests/:id", "TestController@show");
@@ -378,15 +378,15 @@ id: super.validator.number().min(1).exists(TestModel, "id", true)
 await TestModel.withTrashed().find(body.id as number | string).restore();
 ```
 
-See [Models & ORM](/guides/database/models) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).
+See [Models & ORM](/v0.4/guides/database/models) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).
 
 ## Next steps
 
 <CardGroup cols={2}>
-    <Card title="Controllers" icon="gears" href="/guides/http-layer/controllers">
+    <Card title="Controllers" icon="gears" href="/v0.4/guides/http-layer/controllers">
         Handle requests with controller classes.
     </Card>
-    <Card title="Middleware" icon="filter" href="/guides/http-layer/middleware">
+    <Card title="Middleware" icon="filter" href="/v0.4/guides/http-layer/middleware">
         Intercept requests before they hit a controller.
     </Card>
 </CardGroup>

@@ -4,7 +4,7 @@ description: "Run validators against incoming requests inside your controllers."
 icon: "arrow-right-to-bracket"
 ---
 
-Once you've defined a [validator](/guides/validation/creating-validators),
+Once you've defined a [validator](/v0.4/guides/validation/creating-validators),
 run it inside a controller with `super.validate()`.
 
 ## Validating a request
@@ -33,7 +33,7 @@ export default class UserController extends BaseController {
 <Note>
     `validate()` returns the validated data and throws a `ValidatorException` on failure --
     there's no need to check a result flag.
-    Execution stops and the [exception handler](/guides/core-concepts/error-handling) formats the error response.
+    Execution stops and the [exception handler](/v0.4/guides/core-concepts/error-handling) formats the error response.
 </Note>
 
 ## Validating route parameters

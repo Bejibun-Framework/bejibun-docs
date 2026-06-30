@@ -20,8 +20,8 @@
     "default": "system"
   },
   "logo": {
-    "light": "/logo/bejibun.png",
-    "dark": "/logo/bejibun.png"
+    "light": "/logo/bejibun-with-text-light.png",
+    "dark": "/logo/bejibun-with-text-dark.png"
   },
   "banner": {
     "content": "\uD83C\uDF31 Help us scale. Your contribution funds developer hiring, better documentation, and a stronger ecosystem for everyone. [Donate](https://donatr.ee/bejibun-framework)",
@@ -61,136 +61,141 @@
     ]
   },
   "navigation": {
-    "tabs": [
+    "versions": [
       {
-        "tab": "Guides",
-        "groups": [
+        "version": "v0.4",
+        "tabs": [
           {
-            "group": "Introduction",
-            "pages": [
-              "guides/introduction/what-is-bejibun",
-              "guides/introduction/why-bejibun",
-              "guides/introduction/framework-philosophy",
-              "guides/introduction/feature-overview",
-              "guides/introduction/release-cycle"
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Introduction",
+                "pages": [
+                  "v0.4/guides/introduction/what-is-bejibun",
+                  "v0.4/guides/introduction/why-bejibun",
+                  "v0.4/guides/introduction/framework-philosophy",
+                  "v0.4/guides/introduction/feature-overview",
+                  "v0.4/guides/introduction/release-cycle"
+                ]
+              },
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "v0.4/guides/getting-started/installation",
+                  "v0.4/guides/getting-started/creating-your-first-application",
+                  "v0.4/guides/getting-started/project-structure",
+                  "v0.4/guides/getting-started/configuration",
+                  "v0.4/guides/getting-started/environment-variables",
+                  "v0.4/guides/getting-started/deployment-overview"
+                ]
+              },
+              {
+                "group": "Core Concepts",
+                "pages": [
+                  "v0.4/guides/core-concepts/request-lifecycle",
+                  "v0.4/guides/core-concepts/configuration-system",
+                  "v0.4/guides/core-concepts/logging",
+                  "v0.4/guides/core-concepts/error-handling"
+                ]
+              },
+              {
+                "group": "HTTP Layer",
+                "pages": [
+                  "v0.4/guides/http-layer/the-request",
+                  "v0.4/guides/http-layer/the-response",
+                  "v0.4/guides/http-layer/routing",
+                  "v0.4/guides/http-layer/controllers",
+                  "v0.4/guides/http-layer/middleware",
+                  "v0.4/guides/http-layer/cookies",
+                  "v0.4/guides/http-layer/file-uploads"
+                ]
+              },
+              {
+                "group": "Validation",
+                "pages": [
+                  "v0.4/guides/validation/introduction",
+                  "v0.4/guides/validation/creating-validators",
+                  "v0.4/guides/validation/available-rules",
+                  "v0.4/guides/validation/request-validation"
+                ]
+              },
+              {
+                "group": "Database & ORM",
+                "pages": [
+                  "v0.4/guides/database/models",
+                  "v0.4/guides/database/crud-operations",
+                  "v0.4/guides/database/soft-deletes",
+                  "v0.4/guides/database/migrations",
+                  "v0.4/guides/database/seeders"
+                ]
+              },
+              {
+                "group": "Caching",
+                "pages": [
+                  "v0.4/guides/caching/cache",
+                  "v0.4/guides/caching/redis"
+                ]
+              },
+              {
+                "group": "Storage",
+                "pages": [
+                  "v0.4/guides/storage/file-storage"
+                ]
+              },
+              {
+                "group": "Background Processing",
+                "pages": [
+                  "v0.4/guides/background/queues",
+                  "v0.4/guides/background/scheduler"
+                ]
+              },
+              {
+                "group": "Realtime",
+                "pages": [
+                  "v0.4/guides/realtime/websockets"
+                ]
+              },
+              {
+                "group": "Security",
+                "pages": [
+                  "v0.4/guides/security/cors",
+                  "v0.4/guides/security/rate-limiting"
+                ]
+              },
+              {
+                "group": "API Development",
+                "pages": [
+                  "v0.4/guides/api-development/openapi",
+                  "v0.4/guides/api-development/x402-payments"
+                ]
+              },
+              {
+                "group": "CLI & Helpers",
+                "pages": [
+                  "v0.4/guides/cli/ace",
+                  "v0.4/guides/packages/utils"
+                ]
+              }
             ]
           },
           {
-            "group": "Getting Started",
-            "pages": [
-              "guides/getting-started/installation",
-              "guides/getting-started/creating-your-first-application",
-              "guides/getting-started/project-structure",
-              "guides/getting-started/configuration",
-              "guides/getting-started/environment-variables",
-              "guides/getting-started/deployment-overview"
-            ]
-          },
-          {
-            "group": "Core Concepts",
-            "pages": [
-              "guides/core-concepts/request-lifecycle",
-              "guides/core-concepts/configuration-system",
-              "guides/core-concepts/logging",
-              "guides/core-concepts/error-handling"
-            ]
-          },
-          {
-            "group": "HTTP Layer",
-            "pages": [
-              "guides/http-layer/the-request",
-              "guides/http-layer/the-response",
-              "guides/http-layer/routing",
-              "guides/http-layer/controllers",
-              "guides/http-layer/middleware",
-              "guides/http-layer/cookies",
-              "guides/http-layer/file-uploads"
-            ]
-          },
-          {
-            "group": "Validation",
-            "pages": [
-              "guides/validation/introduction",
-              "guides/validation/creating-validators",
-              "guides/validation/available-rules",
-              "guides/validation/request-validation"
-            ]
-          },
-          {
-            "group": "Database & ORM",
-            "pages": [
-              "guides/database/models",
-              "guides/database/crud-operations",
-              "guides/database/soft-deletes",
-              "guides/database/migrations",
-              "guides/database/seeders"
-            ]
-          },
-          {
-            "group": "Caching",
-            "pages": [
-              "guides/caching/cache",
-              "guides/caching/redis"
-            ]
-          },
-          {
-            "group": "Storage",
-            "pages": [
-              "guides/storage/file-storage"
-            ]
-          },
-          {
-            "group": "Background Processing",
-            "pages": [
-              "guides/background/queues",
-              "guides/background/scheduler"
-            ]
-          },
-          {
-            "group": "Realtime",
-            "pages": [
-              "guides/realtime/websockets"
-            ]
-          },
-          {
-            "group": "Security",
-            "pages": [
-              "guides/security/cors",
-              "guides/security/rate-limiting"
-            ]
-          },
-          {
-            "group": "API Development",
-            "pages": [
-              "guides/api-development/openapi",
-              "guides/api-development/x402-payments"
-            ]
-          },
-          {
-            "group": "CLI & Helpers",
-            "pages": [
-              "guides/cli/ace",
-              "guides/packages/utils"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+            "tab": "API reference",
+            "groups": [
+              {
+                "group": "API documentation",
+                "pages": [
+                  "v0.4/api-reference/introduction"
+                ]
+              },
+              {
+                "group": "Endpoint examples",
+                "pages": [
+                  "v0.4/api-reference/endpoint/get",
+                  "v0.4/api-reference/endpoint/create",
+                  "v0.4/api-reference/endpoint/delete",
+                  "v0.4/api-reference/endpoint/webhook"
+                ]
+              }
             ]
           }
         ]
