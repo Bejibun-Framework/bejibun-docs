@@ -4,29 +4,31 @@ description: "Read and write files across local and S3 disks with the Storage fa
 icon: "folder-open"
 ---
 
-The `Storage` facade gives you a single API for working with files, whether they live on the local filesystem or in S3-compatible object storage. Disks are configured once and selected by name.
+The `Storage` facade gives you a single API for working with files,
+whether they live on the local filesystem or in S3-compatible object storage.
+Disks are configured once and selected by name.
 
 ## The Storage API
 
 ```ts
 import Storage from "@bejibun/core/facades/Storage";
 
-await Storage.exists("path/to/file.ext");   // boolean
-await Storage.missing("path/to/file.ext");  // boolean
-await Storage.get("path/to/file.ext");      // file contents
+await Storage.exists("path/to/file.ext");       // boolean
+await Storage.missing("path/to/file.ext");      // boolean
+await Storage.get("path/to/file.ext");          // file contents
 await Storage.put("path/to/file.ext", content);
 await Storage.delete("path/to/file.ext");
 ```
 
-| Method | Returns | Description |
-| --- | --- | --- |
-| `exists(path)` | `Promise<boolean>` | File exists |
-| `missing(path)` | `Promise<boolean>` | File does not exist |
-| `get(path)` | `Promise<any>` | Read file contents |
-| `put(path, content, options?)` | `Promise<void>` | Write a file |
-| `delete(path)` | `Promise<any>` | Delete a file |
-| `disk(name)` | builder | Select a configured disk |
-| `build(disk)` | builder | Define an ad-hoc disk at runtime |
+| Method                         | Returns            | Description                      |
+| ------------------------------ | ------------------ | -------------------------------- |
+| `exists(path)`                 | `Promise<boolean>` | File exists                      |
+| `missing(path)`                | `Promise<boolean>` | File does not exist              |
+| `get(path)`                    | `Promise<any>`     | Read file contents               |
+| `put(path, content, options?)` | `Promise<void>`    | Write a file                     |
+| `delete(path)`                 | `Promise<any>`     | Delete a file                    |
+| `disk(name)`                   | builder            | Select a configured disk         |
+| `build(disk)`                  | builder            | Define an ad-hoc disk at runtime |
 
 ## Disks
 
@@ -36,25 +38,28 @@ Disks are defined in `config/disk.ts`. A `local`, a `public`, and an `s3` disk s
 import App from "@bejibun/app";
 import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
 
-const config = {
+const config: Record<string, any> = {
     default: "local",
+
     disks: {
         local: {
             driver: DiskDriverEnum.Local,
             root: App.Path.storagePath("app")
         },
+
         public: {
             driver: DiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${Bun.env.APP_URL}/storage/public`
+            url: `${env("APP_URL")}/storage/public`
         },
+
         s3: {
             driver: DiskDriverEnum.S3,
-            endpoint: Bun.env.S3_ENDPOINT,
-            region: Bun.env.S3_REGION,
-            bucket: Bun.env.S3_BUCKET,
-            access_key_id: Bun.env.S3_ACCESS_KEY_ID,
-            secret_access_key: Bun.env.S3_SECRET_ACCESS_KEY,
+            endpoint: env("S3_ENDPOINT"),
+            region: env("S3_REGION"),
+            bucket: env("S3_BUCKET"),
+            access_key_id: env("S3_ACCESS_KEY_ID"),
+            secret_access_key: env("S3_SECRET_ACCESS_KEY"),
             url: ""
         }
     }
@@ -76,9 +81,10 @@ Build a disk on the fly without adding it to the config:
 
 ```ts
 import App from "@bejibun/app";
+import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
 
 await Storage.build({
-    driver: "local",
+    driver: DiskDriverEnum.Local,
     root: App.Path.storagePath("custom")
 }).put("file.txt", content);
 ```
@@ -86,18 +92,16 @@ await Storage.build({
 ## Drivers
 
 <CardGroup cols={2}>
-  <Card title="Local" icon="hard-drive">
-    Backed by `Bun.file()` / `Bun.write()`, resolved against the disk's `root`. Requires `root`.
-  </Card>
-  <Card title="S3" icon="cloud">
-    Backed by `Bun.S3Client`. Requires `endpoint`, `access_key_id`, and `secret_access_key`. Supports ACLs, storage classes, and multipart options.
-  </Card>
+    <Card title="Local" icon="hard-drive">
+        Backed by `Bun.file()` / `Bun.write()`, resolved against the disk's `root`. Requires `root`.
+    </Card>
+    <Card title="S3" icon="cloud">
+        Backed by `Bun.S3Client`. Requires `endpoint`, `access_key_id`, and `secret_access_key`.
+        Supports ACLs, storage classes, and multipart options.
+    </Card>
 </CardGroup>
 
 <Tip>
-The local and S3 drivers share the same method signatures -- switching a disk from `local` to `s3` requires no code changes, only config.
+    The local and S3 drivers share the same method signatures --
+    switching a disk from `local` to `s3` requires no code changes, only config.
 </Tip>
-
-## Planned
-
-**Cross-disk** copy/move, **archive** support, and **signed URLs** are on the roadmap and not yet available.
