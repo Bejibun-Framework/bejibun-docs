@@ -4,20 +4,26 @@ description: "Defer work to background jobs processed by a queue worker."
 icon: "list-ol"
 ---
 
-Queues let you move slow work -- sending email, processing uploads, calling third-party APIs -- out of the request cycle. You dispatch a **job**, and a **queue worker** processes it in the background.
+Queues let you move slow work -- sending email, processing uploads, calling third-party APIs -- out of the request cycle.
+You dispatch a **job**, and a **queue worker** processes it in the background.
 
 ## Defining a job
 
 ```bash
-bun ace make:job TestJob
+bun ace make:job SendEmailJob
 ```
 
-```ts app/jobs/TestJob.ts
+```ts app/jobs/SendEmailJob.ts
 import BaseJob from "@bejibun/core/bases/BaseJob";
 
-export default class TestJob extends BaseJob {
+export default class SendEmailJob extends BaseJob {
+    /**
+     * Execute the job.
+     *
+     * @var $arguments Array<any>
+     */
     public async handle(args: Array<any>): Promise<void> {
-        // the work to perform; receives the dispatched arguments
+        // ...
     }
 }
 ```
@@ -28,26 +34,27 @@ Call `dispatch()` with any arguments, then `send()` to enqueue:
 
 ```ts
 // run as soon as a worker picks it up
-await TestJob.dispatch(payload).send();
+await SendEmailJob.dispatch(payload).send();
 
 // delay execution (seconds)
-await TestJob.dispatch(payload).delay(60 * 10).send();   // 10 minutes
+await SendEmailJob.dispatch(payload).delay(60 * 10).send();   // 10 minutes
 ```
 
 The dispatched arguments arrive as the `args` array in `handle(args)`.
 
-| Method | Effect |
-| --- | --- |
-| `dispatch(...args)` | Queue the job with arguments |
-| `delay(seconds)` | Delay availability by N seconds |
-| `send()` | Persist the job (await this) |
+| Method              | Effect                          |
+| ------------------- | ------------------------------- |
+| `dispatch(...args)` | Queue the job with arguments    |
+| `delay(seconds)`    | Delay availability by N seconds |
+| `send()`            | Persist the job (await this)    |
 
 ## How jobs are stored
 
-Jobs are persisted to a `jobs` table (created by the `00010101_000001_jobs` migration). Each row records the queue, the JSON payload, the available-at time, and attempt bookkeeping.
+Jobs are persisted to a `jobs` table (created by the `00010101_000001_jobs` migration).
+Each row records the queue, the JSON payload, the available-at time, and attempt bookkeeping.
 
 <Note>
-Run `bun ace migrate:latest` so the `jobs` table exists before dispatching.
+    Run `bun ace migrate:latest` so the `jobs` table exists before dispatching.
 </Note>
 
 ## Running the worker
@@ -59,9 +66,6 @@ bun ace queue:flush    # flush all failed jobs
 ```
 
 <Tip>
-In production, run `queue:work` under a process manager (PM2, systemd, or a container restart policy) so it stays alive.
+    In production, run `queue:work` under a process manager (PM2, systemd, or a container restart policy)
+    so it stays alive.
 </Tip>
-
-## Planned
-
-The current queue is **database-backed**. Additional queue **drivers** and a **monitoring** dashboard are on the roadmap.
