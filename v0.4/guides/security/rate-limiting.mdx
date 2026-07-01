@@ -4,14 +4,15 @@ description: "Throttle requests globally and per action to protect your API."
 icon: "gauge-high"
 ---
 
-Bejibun throttles traffic with a built-in rate limiter applied per client IP, plus a `RateLimiter` facade for limiting specific actions.
+Bejibun throttles traffic with a built-in rate limiter applied per client IP,
+plus a `RateLimiter` facade for limiting specific actions.
 
 ## Global rate limiting
 
 The `RateLimiterMiddleware` is applied to all routes when enabled in `config/performance.ts`:
 
 ```ts config/performance.ts
-const config = {
+const config: Record<string, any> = {
     middlewares: {
         limiter: true,
         maintenance: true
@@ -24,7 +25,7 @@ export default config;
 Tune the threshold in `config/limiter.ts`:
 
 ```ts config/limiter.ts
-const config = {
+const config: Record<string, any> = {
     limit: 30,
     duration: 60 // seconds
 };
@@ -32,7 +33,8 @@ const config = {
 export default config;
 ```
 
-A client exceeding the limit receives a `RateLimiterException` response (too many requests). Limits are keyed per client IP and backed by the [cache](/v0.4/guides/caching/cache) layer.
+A client exceeding the limit receives a `RateLimiterException` response (too many requests).
+Limits are keyed per client IP and backed by the [cache](/v0.4/guides/caching/cache) layer.
 
 ## Limiting specific actions
 
@@ -53,16 +55,17 @@ const blocked = await RateLimiter.tooManyAttempts("send-otp:user-1", 5);
 await RateLimiter.clear("send-otp:user-1");
 ```
 
-| Method | Description |
-| --- | --- |
+| Method                                     | Description                       |
+| ------------------------------------------ | --------------------------------- |
 | `attempt(key, limit, callback, duration?)` | Run `callback` if under the limit |
-| `tooManyAttempts(key, limit, duration?)` | Whether the limit is exceeded |
-| `clear(key)` | Reset the counter for a key |
+| `tooManyAttempts(key, limit, duration?)`   | Whether the limit is exceeded     |
+| `clear(key)`                               | Reset the counter for a key       |
 
 <Note>
-When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.
+    When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.
 </Note>
 
 <Tip>
-Choose a key that identifies the actor and action together (for example `login:{email}`), so limits are scoped precisely.
+    Choose a key that identifies the actor and action together (for example `login:{email}`),
+    so limits are scoped precisely.
 </Tip>

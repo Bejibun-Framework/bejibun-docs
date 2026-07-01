@@ -102,7 +102,7 @@ You can also rate-limit specific actions with the `RateLimiter` facade:
 ```ts
 import RateLimiter from "@bejibun/core/facades/RateLimiter";
 
-await RateLimiter.attempt("send-otp:user-1", 5, () => {
+await RateLimiter.attempt("send-otp:user-1", 5, async () => {
     // runs only if under the limit (5 attempts)
 });
 
