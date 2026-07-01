@@ -4,7 +4,8 @@ description: "Configure Cross-Origin Resource Sharing headers for your API."
 icon: "globe"
 ---
 
-`@bejibun/cors` manages Cross-Origin Resource Sharing. Headers are computed once at startup and merged into every response automatically.
+`@bejibun/cors` manages Cross-Origin Resource Sharing. Headers are computed once at startup and
+merged into every response automatically.
 
 ## Installation
 
@@ -29,29 +30,47 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-| Option | Description |
-| --- | --- |
-| `origin` | Allowed origin(s) |
-| `methods` | Allowed HTTP methods |
-| `allowedHeaders` | Headers the client may send |
-| `exposedHeaders` | Headers exposed to the client |
-| `credentials` | Allow cookies / credentials |
-| `maxAge` | Preflight cache duration (seconds) |
+| Option           | Description                        |
+| ---------------- | ---------------------------------- |
+| `origin`         | Allowed origin(s)                  |
+| `methods`        | Allowed HTTP methods               |
+| `allowedHeaders` | Headers the client may send        |
+| `exposedHeaders` | Headers exposed to the client      |
+| `credentials`    | Allow cookies / credentials        |
+| `maxAge`         | Preflight cache duration (seconds) |
 
 ## How it applies
 
-You normally don't touch CORS per request. The configured headers are applied to every response built with the `Response` facade (both `send()` and `stream()`).
+You normally don't touch CORS per request.
+The configured headers are applied to every response built with the `Response` facade (both `send()` and `stream()`).
 
 When returning a raw `Response`, merge the headers in manually:
 
-```ts
-import Cors from "@bejibun/cors";
+<CodeGroup>
+    ```ts Standalone
+    import Cors from "@bejibun/cors";
 
-return Response.json(payload, {
-    headers: { ...Cors.init }
-});
-```
+    return Response.json(payload, {
+        headers: {
+            ...Cors.init
+        }
+    });
+    ```
+
+    ```ts Using Bejibun
+    import CorsLoader from "@bejibun/core/loader/CorsLoader";
+    import Cors from "@bejibun/cors";
+
+    return Response.json(payload, {
+        headers: {
+            ...CorsLoader.cors
+        }
+    });
+    ```
+</CodeGroup>
 
 <Warning>
-The defaults (`origin: "*"`, `allowedHeaders: "*"`) are permissive for getting started. In production, replace `*` with an explicit allowlist of trusted origins and headers, and only enable `credentials` when you actually need cookies or authorization headers across origins.
+    The defaults (`origin: "*"`, `allowedHeaders: "*"`) are permissive for getting started.
+    In production, replace `*` with an explicit allowlist of trusted origins and headers,
+    and only enable `credentials` when you actually need cookies or authorization headers across origins.
 </Warning>
