@@ -6,7 +6,7 @@ icon: "table"
 
 Models are the heart of Bejibun's data layer. Each model maps to a database table and extends `BaseModel`,
 which builds on Objection.js and adds soft deletes and automatic timestamps. Everything you need to
-work with models is documented on this page — no need to leave for external docs.
+work with models is documented on this page.
 
 ## Defining a model
 
@@ -64,20 +64,36 @@ write and parsed back on read.
 static get jsonSchema() {
     return {
         type: "object",
-        required: ["name", "email"],                      // ignored on patch (partial updates)
+        required: ["name", "email"],        // ignored on patch (partial updates)
         properties: {
-            id: {type: "integer"},
-            name: {type: "string", minLength: 1, maxLength: 255},
-            email: {type: "string", minLength: 1, maxLength: 255},
-            age: {type: ["integer", "null"]},             // nullable column
-            address: {                                    // object -> JSON string in DB
+            id: {
+                type: "integer"
+            },
+            name: {
+                type: "string",
+                minLength: 1,
+                maxLength: 255
+            },
+            email: {
+                type: "string",
+                minLength: 1,
+                maxLength: 255
+            },
+            age: {
+                type: ["integer", "null"]
+            },                              // nullable column
+            address: {                      // object -> JSON string in DB
                 type: "object",
                 properties: {
-                    street: {type: "string"},
-                    city: {type: "string"},
-                },
-            },
-        },
+                    street: {
+                        type: "string"
+                    },
+                    city: {
+                        type: "string"
+                    }
+                }
+            }
+        }
     };
 }
 ```
@@ -91,46 +107,65 @@ static get jsonSchema() {
 Declare relations in a static `relationMappings` getter — each entry sets the relation type, related
 `modelClass`, and `join` columns. `require` the related model inside the getter to avoid require loops.
 
-| Relation | Use for |
-| --- | --- |
+| Relation               | Use for                                                 |
+| ---------------------- | ------------------------------------------------------- |
 | `BelongsToOneRelation` | This model holds the foreign key (e.g. `posts.user_id`) |
-| `HasManyRelation` | The related model holds the foreign key (one-to-many) |
-| `HasOneRelation` | Like `HasMany` but a single related row (one-to-one) |
-| `ManyToManyRelation` | Rows joined through a pivot/join table |
+| `HasManyRelation`      | The related model holds the foreign key (one-to-many)   |
+| `HasOneRelation`       | Like `HasMany` but a single related row (one-to-one)    |
+| `ManyToManyRelation`   | Rows joined through a pivot/join table                  |
 
 ```ts app/models/UserModel.ts
-import {Model} from "objection";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+import PostModel from "@/app/models/PostModel";
+import ProfileModel from "@/app/models/ProfileModel";
+import RoleModel from "@/app/models/RoleModel";
+import UserModel from "@/app/models/UserModel";
 
 static get relationMappings() {
     return {
         // one-to-many: posts.user_id -> users.id
         posts: {
-            relation: Model.HasManyRelation,
-            modelClass: require("./PostModel").default,
-            join: {from: "users.id", to: "posts.user_id"},
-        },
-        // one-to-one: profiles.user_id -> users.id
-        profile: {
-            relation: Model.HasOneRelation,
-            modelClass: require("./ProfileModel").default,
-            join: {from: "users.id", to: "profiles.user_id"},
-        },
-        // many-to-many through a join table
-        roles: {
-            relation: Model.ManyToManyRelation,
-            modelClass: require("./RoleModel").default,
+            relation: BaseModel.HasManyRelation,
+            modelClass: PostModel,
             join: {
                 from: "users.id",
-                through: {from: "role_user.user_id", to: "role_user.role_id"}, // + modelClass for a join model
-                to: "roles.id",
-            },
+                to: "posts.user_id"
+            }
         },
+
+        // one-to-one: profiles.user_id -> users.id
+        profile: {
+            relation: BaseModel.HasOneRelation,
+            modelClass: ProfileModel,
+            join: {
+                from: "users.id",
+                to: "profiles.user_id"
+            }
+        },
+
+        // many-to-many through a join table
+        roles: {
+            relation: BaseModel.ManyToManyRelation,
+            modelClass: RoleModel,
+            join: {
+                from: "users.id",
+                through: {
+                    from: "role_user.user_id",
+                    to: "role_user.role_id"
+                }, // + modelClass for a join model
+                to: "roles.id"
+            }
+        },
+
         // inverse: this model holds the FK
         author: {
-            relation: Model.BelongsToOneRelation,
-            modelClass: require("./UserModel").default,
-            join: {from: "posts.user_id", to: "users.id"},
-        },
+            relation: BaseModel.BelongsToOneRelation,
+            modelClass: UserModel,
+            join: {
+                from: "posts.user_id",
+                to: "users.id"
+            }
+        }
     };
 }
 ```
@@ -198,17 +233,30 @@ inserted, and existing related rows **missing from the graph are deleted**.
 // insert a user with two new posts
 UserModel.query().insertGraph({
     name: "Jane", email: "jane@x.io",
-    posts: [{title: "First"}, {title: "Second"}],
+    posts: [
+        {
+            title: "First"
+        },
+        {
+            title: "Second"
+        }
+    ]
 })
 
 // sync a graph (add *AndFetch to get full rows back)
 UserModel.query().upsertGraph({
     id: 1, name: "Janet",
     posts: [
-        {id: 10, title: "Updated"},   // has id  -> updated
-        {title: "Brand new"},         // no id   -> inserted
+        {
+            id: 10,
+            title: "Updated"
+        },  // has id  -> updated
+        {
+            title: "Brand new"
+        }   // no id   -> inserted
+
         // any other post linked to user 1 -> deleted
-    ],
+    ]
 })
 ```
 
@@ -225,7 +273,8 @@ soft deletes, so overrides **must** call `super` first or that behavior breaks. 
 
 ```ts app/models/UserModel.ts
 async $beforeInsert(queryContext) {
-    await super.$beforeInsert(queryContext);   // keep automatic timestamps working
+    await super.$beforeInsert(queryContext);    // keep automatic timestamps working
+
     this.email = this.email.toLowerCase();
 }
 
@@ -248,7 +297,7 @@ relation expressions (`"posts(published)"` above).
 static get modifiers() {
     return {
         active: (builder) => builder.where("is_active", true),
-        byName: (builder, name) => builder.where("name", name),
+        byName: (builder, name) => builder.where("name", name)
     };
 }
 ```
@@ -264,15 +313,19 @@ UserModel.query().modify("byName", "Jane")    // with arguments
 whole transaction back.
 
 ```ts
-import {Model} from "objection";
+import BaseModel from "@bejibun/core/bases/BaseModel";
+import UserModel from "@/app/models/UserModel";
 
-await Model.transaction(async (trx) => {
-    const user = await UserModel.query(trx).insert({name: "Jane", email: "jane@x.io"});
-    await user.$relatedQuery("posts", trx).insert({title: "First post"});
+await BaseModel.transaction(async (trx) => {
+    const user = await UserModel.query(trx)
+        .insert({
+            name: "Jane",
+            email: "jane@x.io"
+        });
+
+    await user.$relatedQuery("posts", trx)
+        .insert({
+            title: "First post"
+        });
 });
 ```
-
-## Roadmap
-
-Everything above works today through the underlying Objection builder. BaseModel-native sugar —
-first-class **scopes**, **mutators**, and **model events** — is still on the roadmap.

@@ -5,8 +5,7 @@ icon: "layer-group"
 ---
 
 Migrations are version control for your database schema. Bejibun uses Knex.js migrations,
-managed through the `ace` CLI. The full schema-builder reference is on this page — no need to leave
-for external docs.
+managed through the `ace` CLI. The full schema-builder reference is on this page.
 
 ## Configuration
 
@@ -137,15 +136,16 @@ knex.schema.createTable("users", (table) => {
 
 Chain modifiers onto any column definition.
 
-| Modifier | Effect |
-| --- | --- |
-| `.notNullable()` / `.nullable()` | `NOT NULL` / allow null (default) |
-| `.defaultTo(value)` | Column default |
-| `.unique()` | Unique constraint |
-| `.primary()` | Mark as primary key |
-| `.unsigned()` | Unsigned integer |
-| `.index()` | Create an index on the column |
-| `.comment("...")` | Column comment |
+| Modifier            | Effect |
+| ------------------- | ----------------------------- |
+| `.notNullable()`    | `NOT NULL`                    |
+| `.nullable()`       | allow null (default)          |
+| `.defaultTo(value)` | Column default                |
+| `.unique()`         | Unique constraint             |
+| `.primary()`        | Mark as primary key           |
+| `.unsigned()`       | Unsigned integer              |
+| `.index()`          | Create an index on the column |
+| `.comment("...")`   | Column comment                |
 
 ```ts
 table.string("email").notNullable().unique();
@@ -188,7 +188,7 @@ Use `alterTable` to add, change, rename, or drop columns. `.alter()` marks a col
 export function up(knex: Knex): Knex.SchemaBuilder {
     return knex.schema.alterTable("users", (table) => {
         table.string("phone");                              // add column
-        table.string("name", 35).notNullable().alter();    // change type + nullability
+        table.string("name", 35).notNullable().alter();     // change type + nullability
         table.integer("age").alter({alterNullable: false}); // keep current nullability
         table.renameColumn("bio", "about");                 // rename
         table.dropColumn("legacy_flag");                    // drop column
@@ -203,9 +203,9 @@ Chain these on `knex.schema` in `up`/`down`. `hasTable`/`hasColumn` return a boo
 
 ```ts
 knex.schema.dropTable("users");
-knex.schema.dropTableIfExists("users");     // safe in `down`
+knex.schema.dropTableIfExists("users");         // safe in `down`
 knex.schema.renameTable("users", "members");
-await knex.schema.hasTable("users");        // -> boolean
+await knex.schema.hasTable("users");            // -> boolean
 await knex.schema.hasColumn("users", "email");
 knex.schema.raw("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"");
 ```
