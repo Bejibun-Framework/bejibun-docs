@@ -5,7 +5,8 @@ icon: "table"
 ---
 
 Models are the heart of Bejibun's data layer. Each model maps to a database table and extends `BaseModel`,
-which builds on [Objection.js](https://vincit.github.io/objection.js) and adds soft deletes and automatic timestamps.
+which builds on Objection.js and adds soft deletes and automatic timestamps. Everything you need to
+work with models is documented on this page — no need to leave for external docs.
 
 ## Defining a model
 
@@ -52,22 +53,226 @@ The `Timestamp` type is `Luxon.DateTime | Date | string`; `NullableTimestamp` ad
 
 You don't need to set these columns manually.
 
-## Querying
+## Input validation with `jsonSchema`
 
-Use the static helpers (covered in [CRUD Operations](/v0.4/guides/database/crud-operations)) or
-drop down to the underlying Objection query builder for anything more advanced:
+A static `jsonSchema` getter validates model data on every `insert`/`patch`; a failed check rejects
+with a `ValidationError`. It's a standard JSON Schema for input only — **not** the database schema,
+no tables or columns are generated from it. Object/array properties are auto-serialized to JSON on
+write and parsed back on read.
 
-```ts
-const user = await UserModel.query()
-    .where("name", "like", "A%")
-    .orderBy("created_at", "desc");
+```ts app/models/UserModel.ts
+static get jsonSchema() {
+    return {
+        type: "object",
+        required: ["name", "email"],                      // ignored on patch (partial updates)
+        properties: {
+            id: {type: "integer"},
+            name: {type: "string", minLength: 1, maxLength: 255},
+            email: {type: "string", minLength: 1, maxLength: 255},
+            age: {type: ["integer", "null"]},             // nullable column
+            address: {                                    // object -> JSON string in DB
+                type: "object",
+                properties: {
+                    street: {type: "string"},
+                    city: {type: "string"},
+                },
+            },
+        },
+    };
+}
 ```
 
 <Note>
-    `Model.query()` returns a full Objection query builder, so the entire Objection/Knex query API is available.
+    `raw`, subqueries, and field expressions in the update object are **not** validated.
 </Note>
 
-## Planned
+## Relationships
 
-Model **relationships**, **eager loading**, **scopes**, **mutators**, and **model events**
-are on the roadmap (relations targeted for Q3 2026) and are not yet exposed by the framework.
+Declare relations in a static `relationMappings` getter — each entry sets the relation type, related
+`modelClass`, and `join` columns. `require` the related model inside the getter to avoid require loops.
+
+| Relation | Use for |
+| --- | --- |
+| `BelongsToOneRelation` | This model holds the foreign key (e.g. `posts.user_id`) |
+| `HasManyRelation` | The related model holds the foreign key (one-to-many) |
+| `HasOneRelation` | Like `HasMany` but a single related row (one-to-one) |
+| `ManyToManyRelation` | Rows joined through a pivot/join table |
+
+```ts app/models/UserModel.ts
+import {Model} from "objection";
+
+static get relationMappings() {
+    return {
+        // one-to-many: posts.user_id -> users.id
+        posts: {
+            relation: Model.HasManyRelation,
+            modelClass: require("./PostModel").default,
+            join: {from: "users.id", to: "posts.user_id"},
+        },
+        // one-to-one: profiles.user_id -> users.id
+        profile: {
+            relation: Model.HasOneRelation,
+            modelClass: require("./ProfileModel").default,
+            join: {from: "users.id", to: "profiles.user_id"},
+        },
+        // many-to-many through a join table
+        roles: {
+            relation: Model.ManyToManyRelation,
+            modelClass: require("./RoleModel").default,
+            join: {
+                from: "users.id",
+                through: {from: "role_user.user_id", to: "role_user.role_id"}, // + modelClass for a join model
+                to: "roles.id",
+            },
+        },
+        // inverse: this model holds the FK
+        author: {
+            relation: Model.BelongsToOneRelation,
+            modelClass: require("./UserModel").default,
+            join: {from: "posts.user_id", to: "users.id"},
+        },
+    };
+}
+```
+
+## Eager loading
+
+Load relations with a relation expression. `withGraphFetched` runs separate queries (default choice);
+`withGraphJoined` uses SQL joins so you can filter/order by related columns from the root query.
+
+```ts
+UserModel.query().withGraphFetched("[posts.comments, profile]")   // nested, separate queries
+UserModel.query().withGraphFetched("posts(published)")            // apply a modifier (see below)
+UserModel.query()
+    .withGraphJoined("posts")                                     // single joined query...
+    .where("posts.published", true)                               // ...so you can filter/order
+    .orderBy("posts.created_at", "desc")                          //    on the related table
+```
+
+## Relation queries
+
+Query a relation without eager loading. Static `relatedQuery(name).for(ids)` targets one or more
+parents; instance `$relatedQuery(name)` targets a loaded model. Both return a full query builder, so
+insert/patch/delete through the relation too (foreign keys set for you).
+
+```ts
+UserModel.relatedQuery("posts").for([1, 2])                       // posts of users 1 and 2
+user.$relatedQuery("posts").where("published", true)              // posts of a loaded user
+UserModel.relatedQuery("posts").for(1).insert({title: "Hello"})   // insert related row
+```
+
+## Query-builder CRUD
+
+`Model.query()` returns the full Objection/Knex query builder.
+
+```ts
+// read
+UserModel.query().findById(1)
+UserModel.query().where("name", "like", "A%").orderBy("created_at", "desc")
+
+// create — returns given props + id only (no extra SELECT)
+UserModel.query().insert({name: "Jane", email: "jane@x.io"})
+UserModel.query().insertAndFetch({name: "Jane", email: "jane@x.io"})  // full row back (any DB)
+UserModel.query().insert({name: "Jane"}).returning("*")               // full row back (Postgres)
+
+// update — patch returns the number of affected rows
+UserModel.query().patch({name: "Janet"}).where("id", 1)
+UserModel.query().patchAndFetchById(1, {name: "Janet"})
+
+// delete
+UserModel.query().deleteById(1)
+```
+
+<Note>
+    `BaseModel.query()` applies the soft-delete scope and fills timestamps automatically — see
+    [Soft Deletes](/v0.4/guides/database/soft-deletes).
+</Note>
+
+## Nested writes
+
+Write an object graph in one call. `insertGraph` inserts a model and its related rows.
+`upsertGraph` syncs a graph by presence of `id`: rows with an `id` are updated, rows without are
+inserted, and existing related rows **missing from the graph are deleted**.
+
+```ts
+// insert a user with two new posts
+UserModel.query().insertGraph({
+    name: "Jane", email: "jane@x.io",
+    posts: [{title: "First"}, {title: "Second"}],
+})
+
+// sync a graph (add *AndFetch to get full rows back)
+UserModel.query().upsertGraph({
+    id: 1, name: "Janet",
+    posts: [
+        {id: 10, title: "Updated"},   // has id  -> updated
+        {title: "Brand new"},         // no id   -> inserted
+        // any other post linked to user 1 -> deleted
+    ],
+})
+```
+
+<Note>
+    `upsertGraph` deletion is not recursive unless the database enforces `ON DELETE CASCADE`.
+</Note>
+
+## Lifecycle hooks
+
+Objection calls instance hooks around writes. `BaseModel` uses them internally for timestamps and
+soft deletes, so overrides **must** call `super` first or that behavior breaks. Available hooks:
+`$beforeInsert`, `$afterInsert`, `$beforeUpdate`, `$afterUpdate`, `$beforeDelete`, `$afterDelete`,
+`$afterFind`.
+
+```ts app/models/UserModel.ts
+async $beforeInsert(queryContext) {
+    await super.$beforeInsert(queryContext);   // keep automatic timestamps working
+    this.email = this.email.toLowerCase();
+}
+
+async $beforeUpdate(opt, queryContext) {
+    await super.$beforeUpdate(opt, queryContext);
+}
+```
+
+<Note>
+    Starting a query inside a hook? Pass `queryContext.transaction` as its connection so it joins the
+    parent transaction.
+</Note>
+
+## Reusable query modifiers
+
+Named query fragments in a static `modifiers` getter, applied with `.modify()` — including inside
+relation expressions (`"posts(published)"` above).
+
+```ts app/models/UserModel.ts
+static get modifiers() {
+    return {
+        active: (builder) => builder.where("is_active", true),
+        byName: (builder, name) => builder.where("name", name),
+    };
+}
+```
+
+```ts
+UserModel.query().modify("active")            // apply directly
+UserModel.query().modify("byName", "Jane")    // with arguments
+```
+
+## Transactions
+
+`Model.transaction` groups writes; pass `trx` to every query that takes part. Any throw rolls the
+whole transaction back.
+
+```ts
+import {Model} from "objection";
+
+await Model.transaction(async (trx) => {
+    const user = await UserModel.query(trx).insert({name: "Jane", email: "jane@x.io"});
+    await user.$relatedQuery("posts", trx).insert({title: "First post"});
+});
+```
+
+## Roadmap
+
+Everything above works today through the underlying Objection builder. BaseModel-native sugar —
+first-class **scopes**, **mutators**, and **model events** — is still on the roadmap.
