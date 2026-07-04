@@ -24,7 +24,7 @@
     "dark": "/logo/bejibun-with-text-dark.png"
   },
   "banner": {
-    "content": "\uD83C\uDF31 Help us scale. Your contribution funds developer hiring, better documentation, and a stronger ecosystem for everyone. [Donate](https://donatr.ee/bejibun-framework)",
+    "content": "\uD83C\uDF31 Help us scale. Your contribution funds developer hiring, better documentation, and a stronger ecosystem for everyone. [Donate](https://donate.bejibun.com)",
     "dismissible": false
   },
   "metadata": {
