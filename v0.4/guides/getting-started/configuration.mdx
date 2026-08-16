@@ -346,7 +346,7 @@ import App from "@bejibun/app";
 import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
 
 const config: Record<string, any> = {
-    default: "local",
+    default: env("FILESYSTEM_DISK", "local"),
 
     disks: {
         local: {
@@ -357,7 +357,7 @@ const config: Record<string, any> = {
         public: {
             driver: DiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${env("APP_URL")}/storage/public`
+            url: `${env(APP_URL)}/storage/public`
         },
 
         s3: {

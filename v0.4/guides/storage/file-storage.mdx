@@ -22,31 +22,31 @@ await Storage.move("path/to/file.ext", "path/to/new.ext");
 await Storage.delete("path/to/file.ext");
 ```
 
-| Method                                     | Returns                        | Description                      |
-| ------------------------------------------ | ------------------------------ | -------------------------------- |
-| `exists(path)`                             | `Promise<boolean>`             | File exists                      |
-| `missing(path)`                            | `Promise<boolean>`             | File does not exist              |
-| `get(path)`                                | `Promise<Bun.BunFile \| Bun.S3File>` | Retrieve a file instance    |
-| `put(path, content, options?)`             | `Promise<void>`                | Write a file                     |
-| `copy(source, destination, options?)`      | `Promise<void>`                | Copy a file                      |
-| `move(source, destination, options?)`      | `Promise<void>`                | Move a file                      |
-| `delete(path)`                             | `Promise<any>`                 | Delete a file                    |
-| `metadata(path)`                           | `Promise<Stats \| Bun.S3Stats>` | File metadata and statistics     |
-| `size(path)`                               | `Promise<number>`              | File size in bytes               |
-| `mimeType(path)`                           | `Promise<string>`              | File MIME type                   |
-| `lastModified(path)`                       | `Promise<Date>`                | Last modification date           |
-| `disk(name)`                               | builder                        | Select a configured disk         |
-| `build(disk)`                              | builder                        | Define an ad-hoc disk at runtime |
+| Method                                | Returns                              | Description                      |
+| ------------------------------------- | ------------------------------------ | -------------------------------- |
+| `exists(path)`                        | `Promise<boolean>`                   | File exists                      |
+| `missing(path)`                       | `Promise<boolean>`                   | File does not exist              |
+| `get(path)`                           | `Promise<Bun.BunFile \| Bun.S3File>` | Retrieve a file instance         |
+| `put(path, content, options?)`        | `Promise<void>`                      | Write a file                     |
+| `copy(source, destination, options?)` | `Promise<void>`                      | Copy a file                      |
+| `move(source, destination, options?)` | `Promise<void>`                      | Move a file                      |
+| `delete(path)`                        | `Promise<any>`                       | Delete a file                    |
+| `metadata(path)`                      | `Promise<Stats \| Bun.S3Stats>`      | File metadata and statistics     |
+| `size(path)`                          | `Promise<number>`                    | File size in bytes               |
+| `mimeType(path)`                      | `Promise<string>`                    | File MIME type                   |
+| `lastModified(path)`                  | `Promise<Date>`                      | Last modification date           |
+| `disk(name)`                          | builder                              | Select a configured disk         |
+| `build(disk)`                         | builder                              | Define an ad-hoc disk at runtime |
 
 ## File metadata
 
 Inspect files without reading their contents:
 
 ```ts
-const metadata = await Storage.metadata("uploads/avatar.png");    // full stats
-const size = await Storage.size("uploads/avatar.png");            // bytes
-const mimeType = await Storage.mimeType("uploads/avatar.png");    // e.g. "image/png"
-const lastModified = await Storage.lastModified("uploads/avatar.png"); // Date
+const metadata = await Storage.metadata("uploads/avatar.png");          // full stats
+const size = await Storage.size("uploads/avatar.png");                  // bytes
+const mimeType = await Storage.mimeType("uploads/avatar.png");          // e.g. "image/png"
+const lastModified = await Storage.lastModified("uploads/avatar.png");  // Date
 ```
 
 These helpers work on every disk and resolve to the same values across local and S3 storage.
@@ -70,7 +70,7 @@ import App from "@bejibun/app";
 import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
 
 const config: Record<string, any> = {
-    default: "local",
+    default: env("FILESYSTEM_DISK", "local"),
 
     disks: {
         local: {
@@ -81,7 +81,7 @@ const config: Record<string, any> = {
         public: {
             driver: DiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${env("APP_URL")}/storage/public`
+            url: `${env(APP_URL)}/storage/public`
         },
 
         s3: {

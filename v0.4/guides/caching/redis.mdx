@@ -98,29 +98,29 @@ await Redis.connection("analytics").incr("events");
 
 ## API reference
 
-| Method           | Purpose                                                                        |
-| ---------------- | ------------------------------------------------------------------------------ |
-| `setClient`      | Register a Redis client configuration, optionally with a connection name.      |
-| `connection`     | Retrieve the registered Redis client instance by connection name.              |
-| `connect`        | Establish a Redis connection.                                                  |
-| `disconnect`     | Close an active Redis connection.                                              |
+| Method           | Purpose                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `setClient`      | Register a Redis client configuration, optionally with a connection name.           |
+| `connection`     | Retrieve the registered Redis client instance by connection name.                   |
+| `connect`        | Establish a Redis connection.                                                       |
+| `disconnect`     | Close an active Redis connection.                                                   |
 | `ping`           | Send a `PING` to the Redis server to check connectivity, optionally with a message. |
-| `set`            | Store a value by key, with an optional TTL.                                    |
-| `get`            | Retrieve the value of a key.                                                   |
-| `del`            | Delete a key from Redis.                                                       |
-| `exists`         | Check whether a key exists.                                                    |
-| `keys`           | Return all keys matching a pattern.                                            |
-| `incr`           | Increment a numeric value by 1.                                                |
-| `decr`           | Decrement a numeric value by 1.                                                |
-| `incrBy`         | Increment a numeric value by the specified amount.                             |
-| `decrBy`         | Decrement a numeric value by the specified amount.                             |
-| `ttl`            | Get the remaining time-to-live of a key.                                       |
-| `expire`         | Set or update the expiration time of a key.                                    |
-| `publish`        | Publish a message to a Pub/Sub channel.                                        |
-| `subscribe`      | Subscribe to a Pub/Sub channel and receive messages.                           |
-| `pipeline(fn)`   | Execute multiple Redis commands in a single pipeline for improved performance. |
-| `on(event, fn)`  | Register an event listener for `connect`, `disconnect`, or `error` events.     |
-| `off(event, fn)` | Remove a previously registered event listener.                                 |
+| `set`            | Store a value by key, with an optional TTL.                                         |
+| `get`            | Retrieve the value of a key.                                                        |
+| `del`            | Delete a key from Redis.                                                            |
+| `exists`         | Check whether a key exists.                                                         |
+| `keys`           | Return all keys matching a pattern.                                                 |
+| `incr`           | Increment a numeric value by 1.                                                     |
+| `decr`           | Decrement a numeric value by 1.                                                     |
+| `incrBy`         | Increment a numeric value by the specified amount.                                  |
+| `decrBy`         | Decrement a numeric value by the specified amount.                                  |
+| `ttl`            | Get the remaining time-to-live of a key.                                            |
+| `expire`         | Set or update the expiration time of a key.                                         |
+| `publish`        | Publish a message to a Pub/Sub channel.                                             |
+| `subscribe`      | Subscribe to a Pub/Sub channel and receive messages.                                |
+| `pipeline(fn)`   | Execute multiple Redis commands in a single pipeline for improved performance.      |
+| `on(event, fn)`  | Register an event listener for `connect`, `disconnect`, or `error` events.          |
+| `off(event, fn)` | Remove a previously registered event listener.                                      |
 
 <Tip>
     Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off operations on a specific
