@@ -46,6 +46,16 @@ await Redis.decr("stock:42");
 await Redis.expire("page:views", 86400);
 ```
 
+## Connectivity
+
+Check the health of a Redis connection with `ping()`:
+
+```ts
+await Redis.ping();                              // "PONG"
+await Redis.ping("hello");                       // echoes back "hello"
+await Redis.ping("hello", "analytics", false);   // named connection, keep it open
+```
+
 ## Pipelines
 
 Batch multiple commands in one round trip:
@@ -53,9 +63,20 @@ Batch multiple commands in one round trip:
 ```ts
 await Redis.pipeline((pipe) => {
     pipe.set("a", 1);
-    pipe.set("b", 2);
+    pipe.get("b");
+    pipe.del("c");
+    pipe.incr("visitors");
+    pipe.incrBy("visitors", 10);
+    pipe.decr("stock");
+    pipe.decrBy("stock", 3);
+    pipe.exists("session:123");
+    pipe.expire("session:123", 3600);
+    pipe.keys("cache:*");
+    pipe.ttl("session:123");
 });
 ```
+
+Supported pipeline operations: `set`, `get`, `del`, `incr`, `incrBy`, `decr`, `decrBy`, `exists`, `expire`, `keys`, and `ttl`.
 
 ## Pub/Sub
 
@@ -83,6 +104,7 @@ await Redis.connection("analytics").incr("events");
 | `connection`     | Retrieve the registered Redis client instance by connection name.              |
 | `connect`        | Establish a Redis connection.                                                  |
 | `disconnect`     | Close an active Redis connection.                                              |
+| `ping`           | Send a `PING` to the Redis server to check connectivity, optionally with a message. |
 | `set`            | Store a value by key, with an optional TTL.                                    |
 | `get`            | Retrieve the value of a key.                                                   |
 | `del`            | Delete a key from Redis.                                                       |
