@@ -254,12 +254,12 @@ export default Router.prefix("test")
 
 ### Available modifiers
 
-| Modifier                  | Purpose                                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `Router.prefix(path)`     | Prepend a path segment to every route in the group                                                        |
-| `Router.middleware(...m)` | Attach middleware instances to the group                                                                  |
-| `Router.namespace(dir)`   | Override the controller resolution directory (default `app/controllers`)                                  |
-| `Router.x402(config?)`    | Gate the group behind an [x402 payment](/v0.5/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
+| Modifier                                   | Purpose                                                                                                        |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `Router.prefix(path)`                      | Prepend a path segment to every route in the group                                                             |
+| `Router.middleware(...m)`                  | Attach middleware instances to the group                                                                       |
+| `Router.namespace(dir)`                    | Override the controller resolution directory (default `app/controllers`)                                       |
+| `Router.x402(facilitator?, routePayment?)` | Gate the group behind an [x402 payment](/v0.5/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
 
 <Note>
     Middleware runs in the order listed: the **first** middleware is the outermost wrapper and executes first on the
