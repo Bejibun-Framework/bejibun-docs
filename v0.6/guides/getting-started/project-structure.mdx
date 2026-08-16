@@ -326,11 +326,11 @@ config/
 ├── command.ts
 ├── cors.ts
 ├── database.ts
-├── disk.ts
 ├── limiter.ts
 ├── performance.ts
 ├── redis.ts
 ├── route.ts
+├── storage.ts
 ├── websocket.ts
 └── x402.ts
 ```
@@ -468,39 +468,45 @@ const config: Knex.Config = {
 export default config;
 ```
 
-### Disk Configuration
+### Storage Configuration
+
+<Note>
+    As of v0.6.0, storage ships as the standalone [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package
+    (`bun ace install @bejibun/storage`), rather than being built into `@bejibun/core`. The old `config/disk.ts` is
+    now `config/storage.ts`.
+</Note>
 
 Configure disk connections and storage drivers.
 
 Disk settings are stored in:
 
 ```text
-config/disk.ts
+config/storage.ts
 ```
 
 Example:
 
-```ts config/disk.ts
+```ts config/storage.ts
 import App from "@bejibun/app";
-import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
+import StorageDiskDriverEnum from "@bejibun/storage/enums/StorageDiskDriverEnum";
 
 const config: Record<string, any> = {
     default: env("FILESYSTEM_DISK", "local"),
 
     disks: {
         local: {
-            driver: DiskDriverEnum.Local,
+            driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app")
         },
 
         public: {
-            driver: DiskDriverEnum.Local,
+            driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
             url: `${env(APP_URL)}/storage/public`
         },
 
         s3: {
-            driver: DiskDriverEnum.S3,
+            driver: StorageDiskDriverEnum.S3,
             endpoint: env("S3_ENDPOINT"),
             region: env("S3_REGION"),
             bucket: env("S3_BUCKET"),
@@ -515,6 +521,13 @@ export default config;
 ```
 
 ### Rate Limiter Configuration
+
+<Note>
+    As of v0.6.0, the `RateLimiter` facade ships as the standalone
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting)
+    package. `config/limiter.ts`'s shape is unchanged, and `RateLimiterMiddleware` (still exported from
+    `@bejibun/core`) works exactly as before.
+</Note>
 
 Defines request throttling and rate-limiting rules.
 

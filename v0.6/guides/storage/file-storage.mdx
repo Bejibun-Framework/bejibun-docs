@@ -4,14 +4,28 @@ description: "Read and write files across local and S3 disks with the Storage fa
 icon: "folder-open"
 ---
 
+<Note>
+    As of v0.6.0, storage lives in the standalone
+    [`@bejibun/storage`](https://github.com/Bejibun-Framework/bejibun-storage)
+    package rather than `@bejibun/core`. Install it separately and import `Storage` from `@bejibun/storage`.
+</Note>
+
 The `Storage` facade gives you a single API for working with files,
 whether they live on the local filesystem or in S3-compatible object storage.
 Disks are configured once and selected by name.
 
+## Installation
+
+```bash
+bun ace install @bejibun/storage
+```
+
+This installs the package and drops `config/storage.ts`.
+
 ## The Storage API
 
 ```ts
-import Storage from "@bejibun/core/facades/Storage";
+import Storage from "@bejibun/storage";
 
 await Storage.exists("path/to/file.ext");       // boolean
 await Storage.missing("path/to/file.ext");      // boolean
@@ -63,29 +77,29 @@ These helpers work on every disk and resolve to the same values across local and
 
 ## Disks
 
-Disks are defined in `config/disk.ts`. A `local`, a `public`, and an `s3` disk ship by default:
+Disks are defined in `config/storage.ts`. A `local`, a `public`, and an `s3` disk ship by default:
 
-```ts config/disk.ts
+```ts config/storage.ts
 import App from "@bejibun/app";
-import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
+import StorageDiskDriverEnum from "@bejibun/storage/enums/StorageDiskDriverEnum";
 
 const config: Record<string, any> = {
     default: env("FILESYSTEM_DISK", "local"),
 
     disks: {
         local: {
-            driver: DiskDriverEnum.Local,
+            driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app")
         },
 
         public: {
-            driver: DiskDriverEnum.Local,
+            driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
             url: `${env(APP_URL)}/storage/public`
         },
 
         s3: {
-            driver: DiskDriverEnum.S3,
+            driver: StorageDiskDriverEnum.S3,
             endpoint: env("S3_ENDPOINT"),
             region: env("S3_REGION"),
             bucket: env("S3_BUCKET"),
@@ -98,6 +112,12 @@ const config: Record<string, any> = {
 
 export default config;
 ```
+
+<Warning>
+    **Breaking change (v0.6.0):** move your disk config from `config/disk.ts` to `config/storage.ts`, and update
+    imports from `@bejibun/core/facades/Storage` / `@bejibun/core/enums/DiskDriverEnum` to `@bejibun/storage` /
+    `@bejibun/storage/enums/StorageDiskDriverEnum`. `DiskException` moves with it.
+</Warning>
 
 ### Using a specific disk
 
@@ -112,10 +132,10 @@ Build a disk on the fly without adding it to the config:
 
 ```ts
 import App from "@bejibun/app";
-import DiskDriverEnum from "@bejibun/core/enums/DiskDriverEnum";
+import StorageDiskDriverEnum from "@bejibun/storage/enums/StorageDiskDriverEnum";
 
 await Storage.build({
-    driver: DiskDriverEnum.Local,
+    driver: StorageDiskDriverEnum.Local,
     root: App.Path.storagePath("custom")
 }).put("file.txt", content);
 ```

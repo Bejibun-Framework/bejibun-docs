@@ -74,10 +74,12 @@ export default config;
         Limits requests per client IP. Configure the threshold in `config/limiter.ts`:
 
         ```ts config/limiter.ts
-        const config: Record<string, any> = {
-            limit: 30,
-            duration: 60 // seconds
-        };
+        const config: Record
+        <string
+        , any> = {
+        limit: 30,
+        duration: 60 // seconds
+    };
 
         export default config;
         ```
@@ -89,18 +91,19 @@ export default config;
         Toggle it with the CLI:
 
         ```bash
-        bun ace maintenance:down    # enter maintenance mode
-        bun ace maintenance:up      # return to live
+        bun ace maintenance:down # enter maintenance mode
+        bun ace maintenance:up # return to live
         ```
     </Accordion>
 </AccordionGroup>
 
 ## Rate limiting manually
 
-You can also rate-limit specific actions with the `RateLimiter` facade:
+You can also rate-limit specific actions with the `RateLimiter` facade, from the standalone `@bejibun/limiter`
+package:
 
 ```ts
-import RateLimiter from "@bejibun/core/facades/RateLimiter";
+import RateLimiter from "@bejibun/limiter";
 
 await RateLimiter.attempt("send-otp:user-1", 5, async () => {
     // runs only if under the limit (5 attempts)

@@ -43,6 +43,11 @@ export default class UserModel extends BaseModel {
 
 The `Timestamp` type is `Luxon.DateTime | Date | string`; `NullableTimestamp` adds `null`.
 
+<Tip>
+    As of v0.6.0, `EpochTimestamps` is exported from the package root: `import { EpochTimestamps } from "@bejibun/core";`.
+    It existed internally before v0.6.0 but wasn't part of the public API.
+</Tip>
+
 ## Automatic timestamps
 
 `BaseModel` fills timestamps for you:

@@ -22,23 +22,30 @@ export default config;
 
 The scaffold ships these files:
 
-| File             | Configures                        |
-| ---------------- | --------------------------------- |
-| `cache.ts`       | Cache driver & connections        |
-| `command.ts`     | Extra `ace` command package paths |
-| `cors.ts`        | CORS headers                      |
-| `database.ts`    | Database connection               |
-| `disk.ts`        | Storage disks                     |
-| `limiter.ts`     | Rate limiting                     |
-| `performance.ts` | Toggle feature                    |
-| `redis.ts`       | Redis connections                 |
-| `route.ts`       | OpenAPI / Swagger template        |
-| `websocket.ts`   | WebSocket server options          |
-| `x402.ts`        | x402 payments                     |
+| File             | Configures                             |
+| ---------------- | -------------------------------------- |
+| `cache.ts`       | Cache driver & connections             |
+| `command.ts`     | Extra `ace` command package paths      |
+| `cors.ts`        | CORS headers                           |
+| `database.ts`    | Database connection                    |
+| `limiter.ts`     | Rate limiting                          |
+| `performance.ts` | Toggle feature                         |
+| `redis.ts`       | Redis connections                      |
+| `route.ts`       | OpenAPI / Swagger template             |
+| `storage.ts`     | Storage disks (via `@bejibun/storage`) |
+| `websocket.ts`   | WebSocket server options               |
+| `x402.ts`        | x402 payments                          |
 
 <Note>
-    The core provides built-in defaults for `cache`, `cors`, `disk`, `limiter`, `redis`, and `websocket`.
-    If you delete a project file, the bundled default is used.
+    The core provides built-in defaults for `cache`, `cors`, `limiter`, `redis`, and `websocket`. If you delete a
+    project file, the bundled default is used.
+</Note>
+
+<Note>
+    As of v0.6.0, `storage.ts` (formerly `disk.ts`) and `limiter.ts` are sourced from the standalone
+    [`@bejibun/storage`](/v0.6/guides/storage/file-storage) and
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting)
+    packages rather than `@bejibun/core` itself, though `limiter.ts`'s shape (`limit` / `duration`) is unchanged.
 </Note>
 
 ## Reading configuration
@@ -46,7 +53,7 @@ The scaffold ships these files:
 The global `config()` function reads values using dot notation -- the first segment is the file name:
 
 ```ts
-config("disk.default");                 // "local"
+config("storage.default");              // "local"
 config("limiter.limit");                // 30
 config("cache.connections.redis.host"); // 127.0.0.1
 ```

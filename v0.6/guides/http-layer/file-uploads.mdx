@@ -14,7 +14,7 @@ For a `multipart/form-data` request, `parse()` includes uploaded files alongside
 
 ```ts app/controllers/UploadController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
-import Storage from "@bejibun/core/facades/Storage";
+import Storage from "@bejibun/storage";
 
 export default class UploadController extends BaseController {
     public async store(request: Bun.BunRequest): Promise<Response> {
@@ -37,7 +37,8 @@ export default class UploadController extends BaseController {
 
 ## Storing files
 
-The `Storage` facade writes to the disks configured in `config/disk.ts` (a `local` and a `public` disk ship by default):
+The `Storage` facade (from the standalone `@bejibun/storage` package) writes to the disks configured in
+`config/storage.ts` (a `local` and a `public` disk ship by default):
 
 <CodeGroup>
     ```ts Default disk
@@ -52,9 +53,9 @@ The `Storage` facade writes to the disks configured in `config/disk.ts` (a `loca
     import App from "@bejibun/app";
 
     await Storage.build({
-        driver: "local",
-        root: App.Path.storagePath("custom")
-    }).put("file.txt", content);
+    driver: "local",
+    root: App.Path.storagePath("custom")
+}).put("file.txt", content);
     ```
 </CodeGroup>
 
@@ -73,7 +74,7 @@ await Storage.disk("public").put(`avatars/${file.name}`, file);
 ```
 
 <Tip>
-    For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then call
+    For cloud storage, configure the `s3` disk in `config/storage.ts` with your S3 credentials, then call
     `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
 </Tip>
 

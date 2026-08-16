@@ -34,13 +34,19 @@ to a response:
 
 | Error                       | Response status                     |
 | --------------------------- | ----------------------------------- |
-| `DiskException`             | its `.code` (disk error)            |
 | `ModelNotFoundException`    | its `.code` (not found)             |
 | `RateLimiterException`      | its `.code` (too many requests)     |
 | `RouterException`           | its `.code`                         |
 | `RuntimeException`          | its `.code`                         |
 | `ValidatorException`        | its `.code` (validation failed)     |
 | Any other error             | `500` -- `"Internal server error."` |
+
+<Note>
+    As of `@bejibun/core` v0.6.0, `DiskException` moved to the standalone
+    [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package alongside the `Storage` facade --
+    it's still caught and mapped the same way, just imported from a different package.
+    `RateLimiterException` similarly now ships with [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting).
+</Note>
 
 Every error response uses the standard envelope:
 
@@ -83,6 +89,11 @@ if (!allowed) {
     throw new RuntimeException("You are not allowed to do that.");
 }
 ```
+
+<Tip>
+    As of v0.6.0, `RuntimeException` is also exported from the package root: `import {RuntimeException} from
+    "@bejibun/core";`.
+</Tip>
 
 To customize behavior -- for example, to report errors to an external service -- add logic in `Handler.handle()` before
 calling `super.handle(error)`.

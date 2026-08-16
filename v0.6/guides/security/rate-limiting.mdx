@@ -7,6 +7,13 @@ icon: "gauge-high"
 Bejibun throttles traffic with a built-in rate limiter applied per client IP,
 plus a `RateLimiter` facade for limiting specific actions.
 
+<Note>
+    As of v0.6.0, the `RateLimiter` facade lives in the standalone
+    [`@bejibun/limiter`](https://github.com/Bejibun-Framework/bejibun-limiter) package rather than `@bejibun/core`.
+    `RateLimiterMiddleware` is unaffected -- it's still exported from `@bejibun/core` and works exactly as before,
+    now using `@bejibun/limiter` internally.
+</Note>
+
 ## Global rate limiting
 
 The `RateLimiterMiddleware` is applied to all routes when enabled in `config/performance.ts`:
@@ -38,10 +45,15 @@ Limits are keyed per client IP and backed by the [cache](/v0.6/guides/caching/ca
 
 ## Limiting specific actions
 
-Use the `RateLimiter` facade to throttle a particular operation -- for example, OTP sends or login attempts:
+Install the standalone package, then use the `RateLimiter` facade to throttle a particular operation -- for
+example, OTP sends or login attempts:
+
+```bash
+bun ace install @bejibun/limiter
+```
 
 ```ts
-import RateLimiter from "@bejibun/core/facades/RateLimiter";
+import RateLimiter from "@bejibun/limiter";
 
 // run the callback only if under the limit
 await RateLimiter.attempt("send-otp:user-1", 5, async () => {
@@ -69,3 +81,9 @@ await RateLimiter.clear("send-otp:user-1");
     Choose a key that identifies the actor and action together (for example `login:{email}`),
     so limits are scoped precisely.
 </Tip>
+
+<Warning>
+    **Breaking change (v0.6.0):** if you're importing `RateLimiter` from `@bejibun/core/facades/RateLimiter`, switch
+    to `import RateLimiter from "@bejibun/limiter";`. `config/limiter.ts` keeps its existing `limit` / `duration`
+    shape, so no config changes are needed.
+</Warning>

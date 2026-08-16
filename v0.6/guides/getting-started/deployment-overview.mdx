@@ -142,12 +142,13 @@ Only run seeders when required by your application.
 
 ## Storage Configuration
 
-Bejibun provides a storage abstraction layer that supports multiple storage drivers.
+Bejibun provides a storage abstraction layer that supports multiple storage drivers, via the standalone
+[`@bejibun/storage`](/v0.6/guides/storage/file-storage) package (as of v0.6.0).
 
 Configuration is defined in:
 
 ```text
-config/disk.ts
+config/storage.ts
 ```
 
 Available storage options may include:
