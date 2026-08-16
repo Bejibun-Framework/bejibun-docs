@@ -1,0 +1,91 @@
+---
+title: "Cache"
+description: "Cache values effortlessly using local or Redis storage with **@bejibun/cache**."
+icon: "bolt"
+---
+
+`@bejibun/cache` is a modern, driver-based caching library featuring a simple, expressive API.
+Choose between **local** (file-based) or **Redis** drivers to fit your application's needs.
+
+## Installation
+
+```bash
+bun ace install @bejibun/cache
+```
+
+This installs the package and drops `config/cache.ts`.
+
+## Configuration
+
+```ts config/cache.ts
+import App from "@bejibun/app";
+import CacheDriverEnum from "@bejibun/cache/enums/CacheDriverEnum";
+
+const config: Record<string, any> = {
+    default: "local",
+
+    connections: {
+        local: {
+            driver: CacheDriverEnum.Local,
+            path: App.Path.storagePath("cache") // absolute path
+        },
+
+        redis: {
+            driver: CacheDriverEnum.Redis,
+            host: env("REDIS_HOST"),
+            port: env("REDIS_PORT"),
+            password: env("REDIS_PASSWORD"),
+            database: env("REDIS_DATABASE")
+        }
+    }
+};
+
+export default config;
+```
+
+| Driver  | Backing store                                       |
+| ------- | --------------------------------------------------- |
+| `Local` | Files under `storage/cache`                         |
+| `Redis` | A Redis server (see [Redis](/v0.6/guides/caching/redis)) |
+
+## Usage
+
+```ts
+import Cache from "@bejibun/cache";
+
+// fetch from cache or compute and store
+const user = await Cache.remember(
+    "user:1",                                   // key
+    async () => await UserModel.findOrFail(1),  // callback
+    300                                         // ttl
+);
+
+await Cache.put("hits", 0);                     // store with optional TTL
+await Cache.increment("hits");                  // bump a counter
+const value = await Cache.get("hits");
+await Cache.forget("hits");                     // delete
+```
+
+## API reference
+
+| Method                          | Description                                |
+| ------------------------------- | ------------------------------------------ |
+| `remember(key, callback, ttl?)` | Return cached value, or compute + store it |
+| `get(key)`                      | Retrieve a value                           |
+| `has(key)`                      | Whether the key exists                     |
+| `add(key, value, ttl?)`         | Store only if absent                       |
+| `put(key, value, ttl?)`         | Store / overwrite with TTL                 |
+| `forget(key)`                   | Delete a key                               |
+| `increment(key, ttl?)`          | Increment a counter by 1                   |
+| `decrement(key, ttl?)`          | Decrement a counter by 1                   |
+| `incrementBy(key, n, ttl?)`     | Increment a counter by `n`                 |
+| `decrementBy(key, n, ttl?)`     | Decrement a counter by `n`                 |
+| `connection(name)`              | Use a non-default connection               |
+
+```ts
+await Cache.connection("local").put("tmp", "value", 60);
+```
+
+<Note>
+    TTL values are in **seconds**. The default connection is `local`.
+</Note>

@@ -1,0 +1,392 @@
+---
+title: "Routing"
+description: "Define HTTP routes, capture parameters, group routes, and resolve models -- all with the Router facade."
+icon: "route"
+---
+
+Bejibun routes are defined with the **`Router` facade** and registered from the files in your `routes/` directory.
+Every incoming request is matched against these routes and dispatched to a controller method (or an inline handler).
+
+## The routes directory
+
+```text
+routes/
+├── api/            # feature route files
+│   ├── hello.ts
+│   └── test.ts
+├── websocket/
+│   └── chat.ts
+├── api.ts          # root API group (required)
+├── web.ts          # web routes (required)
+└── websocket.ts    # websocket routes (required)
+```
+
+`routes/api.ts` is the entry point for your API. It groups the feature files under a shared `api` prefix:
+
+```ts routes/api.ts
+import Router from "@bejibun/core/facades/Router";
+import hello from "@/routes/api/hello";
+import test from "@/routes/api/test";
+
+export default Router.prefix("api").group([
+    hello,
+    test
+]);
+```
+
+<Note>
+    `routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on startup if any is
+    missing.
+</Note>
+
+## Defining routes
+
+Import the `Router` facade and call a verb method. Each takes a **path** and a **handler**:
+
+```ts routes/api/test.ts
+import Router from "@bejibun/core/facades/Router";
+
+export default Router.prefix("tests").group([
+    Router.get("/", "TestController@index"),
+
+    Router.get("/:id", "TestController@show"),
+
+    Router.post("/", "TestController@store"),
+
+    Router.put("/:id", "TestController@update"),
+
+    Router.delete("/:id", "TestController@destroy"),
+
+    Router.patch("/:id", "TestController@restore")
+]);
+```
+
+### Available HTTP verbs
+
+| Method                          | Signature |
+| ------------------------------- | --------- |
+| `Router.get(path, handler)`     | `GET`     |
+| `Router.post(path, handler)`    | `POST`    |
+| `Router.put(path, handler)`     | `PUT`     |
+| `Router.patch(path, handler)`   | `PATCH`   |
+| `Router.delete(path, handler)`  | `DELETE`  |
+| `Router.head(path, handler)`    | `HEAD`    |
+| `Router.options(path, handler)` | `OPTIONS` |
+| `Router.connect(path, handler)` | `CONNECT` |
+| `Router.trace(path, handler)`   | `TRACE`   |
+
+Two helpers register several verbs at once:
+
+```ts
+// respond to a specific set of methods
+Router.match([HttpMethodEnum.Get, HttpMethodEnum.Post], "search", "SearchController@run");
+
+// respond to every HTTP method
+Router.any("health", "HealthController@check");
+```
+
+`HttpMethodEnum` is exported from `@bejibun/utils/enums/HttpMethodEnum`.
+
+## Handlers
+
+A handler can be a **controller reference string** or an **inline function**.
+
+<CodeGroup>
+    ```ts Controller reference
+    // "ControllerName@method" -- resolved from app/controllers/
+    Router.get("tests", "TestController@index");
+    ```
+
+    ```ts Inline handler
+    Router.get("/", async (request: Bun.BunRequest): Promise<Response> => {
+        return Response.json({
+            framework: "Bejibun",
+            status: "running"
+        });
+    });
+    ```
+</CodeGroup>
+
+The string form is `"Controller@method"`. Bejibun resolves the controller from the group's namespace (default `app/controllers`)
+and binds the method. An invalid `Controller@method` reference throws a `RouterException`.
+
+## Route parameters
+
+Routes often need to capture segments of the URL -- for example, the ID of the record you want to fetch.
+Prefix a path segment with a colon to make it dynamic:
+
+```ts routes/api/test.ts
+import Router from "@bejibun/core/facades/Router";
+
+export default Router.prefix("test").group([
+    Router.get("/:id", "TestController@show"),
+
+    Router.put("/:id", "TestController@update"),
+
+    Router.delete("/:id", "TestController@destroy")
+]);
+```
+
+You can use multiple parameters in a single path:
+
+```ts
+Router.get("posts/:postId/comments/:commentId", "CommentController@show");
+```
+
+### Reading parameters
+
+Route parameters are merged into the parsed request body by `super.parse(request)`.
+Call it in your controller and read the values by name:
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+
+export default class TestController extends BaseController {
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+
+        const test = await TestModel.findOrFail(body.id);
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+<Note>
+    `parse()` merges **route parameters**, **query-string values**, and the **request body** into a single object. See
+    [The Request](/v0.6/guides/http-layer/the-request) for the full precedence.
+</Note>
+
+### Validating parameters
+
+Because parameters arrive in the same object as the body, you validate them with a normal [validator](/v0.6/guides/http-layer/controllers).
+The built-in `exists` rule is ideal for confirming a record exists before you query it:
+
+```ts app/validators/TestValidator.ts
+import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
+import BaseValidator from "@bejibun/core/bases/BaseValidator";
+import TestModel from "@/app/models/TestModel";
+
+export default class TestValidator extends BaseValidator {
+    public static get show(): ValidatorType {
+        return super.validator.create({
+            id: super.validator.number().min(1).exists(TestModel, "id")
+        });
+    }
+}
+```
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+import TestValidator from "@/app/validators/TestValidator";
+
+export default class TestController extends BaseController {
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(TestValidator.show, body);
+
+        const test = await TestModel.findOrFail(body.id);
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+<Tip>
+    Pass `true` as the third argument to `exists` (`exists(TestModel, "id", true)`) to include **soft-deleted** rows
+    -- useful for a `restore` endpoint.
+</Tip>
+
+### Parameters in OpenAPI
+
+When generating the OpenAPI/Swagger spec, Bejibun rewrites `:param` segments to the `{param}` form automatically.
+Document the parameter explicitly with the [`@ApiDoc`](/v0.6/guides/http-layer/controllers) decorator:
+
+```ts
+@ApiDoc({
+    description: "Get a test by ID",
+    request: {
+        params: [
+            {
+                name: "id",
+                in: "path",
+                required: true,
+                schema: {
+                    type: "number"
+                }
+            }
+        ]
+    }
+})
+public async show(request: Bun.BunRequest): Promise<Response> {
+    // ...
+}
+```
+
+## Route groups
+
+Route groups let you apply shared attributes -- a URL **prefix**, **middleware**, or a controller **namespace** --
+to many routes at once. Chain modifiers on the `Router` facade, then call `.group([...])` with your routes:
+
+```ts routes/api/test.ts
+import Router from "@bejibun/core/facades/Router";
+import TestMiddleware from "@/app/middlewares/TestMiddleware";
+import LoggerMiddleware from "@/app/middlewares/LoggerMiddleware";
+
+export default Router.prefix("test")
+    .middleware(new TestMiddleware(), new LoggerMiddleware())
+    .group([
+        Router.get("/", "TestController@index"),
+
+        Router.get("/:id", "TestController@show"),
+
+        Router.post("/", "TestController@store"),
+
+        Router.put("/:id", "TestController@update"),
+
+        Router.delete("/:id", "TestController@destroy"),
+
+        Router.patch("/:id", "TestController@restore")
+    ]);
+```
+
+### Available modifiers
+
+| Modifier                                   | Purpose                                                                                                        |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `Router.prefix(path)`                      | Prepend a path segment to every route in the group                                                             |
+| `Router.middleware(...m)`                  | Attach middleware instances to the group                                                                       |
+| `Router.namespace(dir)`                    | Override the controller resolution directory (default `app/controllers`)                                       |
+| `Router.x402(facilitator?, routePayment?)` | Gate the group behind an [x402 payment](/v0.6/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
+
+<Note>
+    Middleware runs in the order listed: the **first** middleware is the outermost wrapper and executes first on the
+    way in. See [Middleware](/v0.6/guides/http-layer/middleware).
+</Note>
+
+### Nesting groups
+
+`routes/api.ts` is itself a group. Compose feature files under a shared prefix:
+
+```ts routes/api.ts
+import Router from "@bejibun/core/facades/Router";
+import hello from "@/routes/api/hello";
+import test from "@/routes/api/test";
+
+// Everything is served under /api
+export default Router.prefix("api").group([
+    hello,
+    test
+]);
+```
+
+### Resource routes
+
+`Router.resource()` generates the five conventional RESTful routes from a controller in one line:
+
+```ts
+import Router from "@bejibun/core/facades/Router";
+import YourController from "@/app/controllers/YourController";
+
+Router.resource("path", YourController);
+```
+
+This registers:
+
+| Verb     | URI         | Controller action |
+| -------- | ----------- | ----------------- |
+| `GET`    | `/path`     | `index`           |
+| `POST`   | `/path`     | `store`           |
+| `GET`    | `/path/:id` | `show`            |
+| `PUT`    | `/path/:id` | `update`          |
+| `DELETE` | `/path/:id` | `destroy`         |
+
+Only actions that actually exist as methods on the controller are registered.
+
+Use `only` or `except` to register a subset:
+
+```ts
+// register only index + store
+Router.resource("path", YourController, {
+    only: ["index", "store"]
+});
+
+// register everything except index + store
+Router.resource("path", YourController, {
+    except: ["index", "store"]
+});
+```
+
+Valid actions: `"index"`, `"store"`, `"show"`, `"update"`, `"destroy"`.
+
+<Tip>
+    `bun ace make:controller YourController` scaffolds a controller with all five resource actions ready to fill in.
+</Tip>
+
+## Route model binding
+
+A common pattern is to resolve a model directly from a route parameter. Bejibun does **not** perform implicit
+(automatic) model binding the way some frameworks do -- instead you resolve the model explicitly inside your
+controller. This keeps resolution predictable and type-safe.
+
+<Note>
+    Automatic route–model binding is **not yet available**. The recommended pattern below uses the verified
+    `findOrFail` and validator `exists` APIs.
+</Note>
+
+### Resolving a model with `findOrFail`
+
+Declare a route parameter, then load the record with `findOrFail`. If no record matches, a `ModelNotFoundException`
+is thrown and converted into a `404`-style JSON response by the [exception
+handler](/v0.6/guides/core-concepts/error-handling).
+
+```ts routes/api/test.ts
+Router.get("/tests/:id", "TestController@show");
+```
+
+```ts app/controllers/TestController.ts
+import BaseController from "@bejibun/core/bases/BaseController";
+import TestModel from "@/app/models/TestModel";
+import TestValidator from "@/app/validators/TestValidator";
+
+export default class TestController extends BaseController {
+    public async show(request: Bun.BunRequest): Promise<Response> {
+        const body = await super.parse(request);
+        await super.validate(TestValidator.show, body);
+
+        // resolves the model or throws ModelNotFoundException
+        const test = await TestModel.findOrFail(body.id);
+
+        return super.response.setData(test).send();
+    }
+}
+```
+
+### Binding soft-deleted records
+
+To resolve records that have been soft-deleted (for example, a `restore` endpoint), include trashed rows:
+
+```ts
+// validator: allow trashed rows to pass the exists check
+id: super.validator.number().min(1).exists(TestModel, "id", true)
+```
+
+```ts
+// controller: load including trashed, then restore
+await TestModel.withTrashed().find(body.id as number | string).restore();
+```
+
+See [Models & ORM](/v0.6/guides/database/models) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).
+
+## Next steps
+
+<CardGroup cols={2}>
+    <Card title="Controllers" icon="gears" href="/v0.6/guides/http-layer/controllers">
+        Handle requests with controller classes.
+    </Card>
+    <Card title="Middleware" icon="filter" href="/v0.6/guides/http-layer/middleware">
+        Intercept requests before they hit a controller.
+    </Card>
+</CardGroup>

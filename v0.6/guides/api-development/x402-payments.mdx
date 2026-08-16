@@ -1,0 +1,210 @@
+---
+title: "x402 Payments"
+description: "Gate API resources behind HTTP-native crypto payments with **@bejibun/x402**."
+icon: "money-bill-transfer"
+---
+
+`@bejibun/x402` implements the **x402** protocol -- HTTP-native payments built on the `402 Payment Required` status code.
+Clients submit a crypto payment (verified by a facilitator) before they can access a protected resource.
+It supports **EVM chains** (Base, Polygon, Arbitrum, World Chain, and others) **and Solana** simultaneously on the
+same route, matching `@x402/express` behavior.
+
+<Note>
+    As of `@bejibun/x402` v0.2.0, payment verification and settlement delegate to `@x402/core`'s
+    `x402HTTPResourceServer` (via a new `BunAdapter` implementing `@x402/core`'s `HTTPAdapter` against
+    `Bun.BunRequest`), replacing the earlier hand-rolled verify/settle/decode chain.
+    The underlying dependency moved from `x402` to `@coinbase/x402`, `@x402/core`, `@x402/evm`, and `@x402/svm`.
+</Note>
+
+## Installation
+
+```bash
+bun ace install @bejibun/x402
+```
+
+This installs the package and drops `config/x402.ts`.
+
+## Configuration
+
+```ts config/x402.ts
+import type {TFacilitator, TNetwork, TPrice, TScheme} from "@bejibun/x402/types";
+import {facilitator} from "@coinbase/x402";
+
+const config: Record<string, any> = {
+    scheme: "exact" as TScheme,
+    price: "$1" as TPrice,
+    networks: [
+        {
+            network: "eip155:8453" as TNetwork,
+            payTo: "0xdABe8750061410D35cE52EB2a418c8cB004788B3"
+        },
+        {
+            network: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" as TNetwork,
+            payTo: "GAnoyvy9p3QFyxikWDh9hA3fmSk2uiPLNWyQ579cckMn"
+        }
+    ],
+    facilitator: facilitator as TFacilitator
+};
+
+export default config;
+```
+
+| Option        | Type           | Description                                                                                    |
+| ------------- | -------------- | ---------------------------------------------------------------------------------------------- |
+| `facilitator` | `TFacilitator` | Plain `{ url?, createAuthHeaders? }` object. Defaults to the Coinbase facilitator when omitted |
+| `networks`    | `TRoutePayment`| Config-wide `accepts` array used as a fallback for routes without their own payment options    |
+
+<Info>
+    Types are imported from `@bejibun/x402/types`, not `@bejibun/x402`.
+</Info>
+
+### Payment resolution order
+
+When a request hits a gated route, the network/price/payout used to build the `402` challenge is resolved with a
+4-level priority cascade:
+
+1. An explicit `accepts` array passed to `Router.x402()` for that route
+2. A route-level `network` + `payTo` shorthand passed to `Router.x402()`
+3. The config-wide `networks` block in `config/x402.ts`
+4. Built-in defaults -- Base, Polygon, Arbitrum, and World Chain for EVM; Solana mainnet for SVM
+
+## Gating a route group
+
+Chain `Router.x402()` onto a route group to require payment for everything inside it.
+The signature is `x402(facilitator?, routePayment?)`:
+
+```ts routes/api/premium.ts
+import Router from "@bejibun/core/facades/Router";
+
+export default Router.prefix("premium")
+    .x402({
+        url: "https://facilitator.example.com"
+    }, {
+        accepts: [
+            {
+                network: "eip155:8453",
+                price: "$1.00",
+                payTo: "0x..."
+            }
+        ]
+    })
+    .group([
+        Router.get("report", "ReportController@paid")
+    ]);
+```
+
+`routePayment` (`TRoutePayment`) supports a full `accepts` array for per-network control --
+each entry can set its own `scheme`, `price`, `network`, `payTo`, `description`, and `mimeType`.
+Omit `facilitator` and/or `routePayment` to fall back to `config/x402.ts` and the built-in defaults.
+
+<Note>
+    `Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.
+</Note>
+
+<Warning>
+    **Breaking change (v0.6.0):** `Router.x402(config, facilitatorConfig, paywallConfig)` has been replaced by
+    `Router.x402(facilitator, routePayment)`. `TRoutePayment` replaces `TX402Config`, and existing calls must be
+    updated to the new two-argument form.
+</Warning>
+
+## Programmatic usage
+
+For finer control, use the `X402` facade directly inside a handler. `.setConfig()` and `.setPaywall()` have been
+removed in favor of `.setFacilitator()` and `.setRoutePayment()`:
+
+```ts
+import X402 from "@bejibun/x402";
+import type { TFacilitator, TRoutePayment } from "@bejibun/x402/types";
+
+return X402
+    .setFacilitator()    // optional -- defaults to the Coinbase facilitator
+    .setRoutePayment()   // optional -- accepts array / network + payTo shorthand
+    .setRequest(request) // required -- provides the request headers
+    .middleware(() => {
+        // your paid resource here
+    });
+```
+
+<Warning>
+    Never commit production payout addresses or facilitator secrets to source control.
+    When going live, make sure every network in your `accepts` array (or config-wide `networks` block) points at a real,
+    production payout address.
+</Warning>
+
+<a
+    href="https://x402.bejibun.com"
+    target="_blank"
+    rel="noopener"
+    style={{
+        display: "block",
+        textDecoration: "none",
+        borderRadius: "12px",
+        padding: "1rem 1.25rem",
+        margin: "2rem 0 0",
+        border: "1px solid rgba(255, 108, 2, 0.35)",
+        background: "linear-gradient(120deg, rgba(255, 108, 2, 0.08), rgba(255, 108, 2, 0.02))"
+    }}
+>
+    <div
+        style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: "1rem"
+        }}
+    >
+        <div
+            style={{
+                fontSize: "1.5rem",
+                lineHeight: 1
+            }}
+        >
+            ⚡
+        </div>
+
+        <div
+            style={{
+                flex: "1 1 240px",
+                minWidth: 0
+            }}
+        >
+            <div
+                style={{
+                    fontSize: "0.95rem",
+                    fontWeight: 600,
+                    color: "#FF6C02",
+                    margin: "0 0 0.15rem"
+                }}
+            >
+                Try the live x402 demo
+            </div>
+            <div
+                style={{
+                    fontSize: "0.85rem",
+                    lineHeight: 1.5,
+                    opacity: 0.75
+                }}
+            >
+                Hit a paywalled endpoint, pay with crypto, and unlock the resource right in your browser.
+                No setup required.
+            </div>
+        </div>
+
+        <div
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                fontWeight: 600,
+                fontSize: "0.85rem",
+                color: "#fff",
+                background: "#FF6C02",
+                padding: "0.5rem 1rem",
+                borderRadius: "8px",
+                whiteSpace: "nowrap"
+            }}
+        >
+            Launch demo →
+        </div>
+    </div>
+</a>
