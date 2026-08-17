@@ -63,6 +63,7 @@ config/
 ├── database.ts
 ├── limiter.ts
 ├── performance.ts
+├── queue.ts
 ├── redis.ts
 ├── route.ts
 ├── storage.ts
@@ -457,6 +458,53 @@ These settings help optimize application performance.
 
 ---
 
+# Queue Configuration
+
+Defines the queue connection used by `queue:work` and `queue:retry`,
+including how long a worker waits between polls and how long a job stays reserved before another worker can reclaim it.
+
+Queue settings are stored in:
+
+```text
+config/queue.ts
+```
+
+Example:
+
+```ts config/queue.ts
+import QueueDriverEnum from "@bejibun/core/enums/QueueDriverEnum";
+import JobModel from "@bejibun/core/models/JobModel";
+
+const config: Record<string, any> = {
+    default: env("QUEUE_DRIVER", "database"),
+
+    connections: {
+        database: {
+            driver: QueueDriverEnum.Database,
+            table: JobModel.tableName,
+            retry_after: 60
+        }
+    }
+};
+
+export default config;
+```
+
+| Option        | Description                                                                                                                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `driver`      | The queue driver for this connection. Currently only `QueueDriverEnum.Database` is supported.                                                                                                |
+| `table`       | The table jobs are read from and written to.                                                                                                                                                 |
+| `retry_after` | Seconds a worker waits between polls when idle, waits before retrying a failed job, and how long a job stays reserved by a worker before it's considered abandoned and reclaimed by another. |
+
+<Note>
+    If `config/queue.ts` isn't present in your application, the package's built-in default (shown above) is used.
+</Note>
+
+These settings help control how background jobs are processed and how workers coordinate with each other.
+See [Queues & Jobs](/v0.6/guides/background/queues) for how dispatching and worker concurrency work.
+
+---
+
 # Redis Configuration
 
 Defines Redis connection settings.
@@ -712,6 +760,7 @@ config/
 ├── database.ts
 ├── limiter.ts
 ├── performance.ts
+├── queue.ts
 ├── redis.ts
 ├── route.ts
 ├── storage.ts

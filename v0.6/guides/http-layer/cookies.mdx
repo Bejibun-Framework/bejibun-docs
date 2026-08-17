@@ -1,84 +1,131 @@
 ---
 title: "Cookies"
-description: "Read and write cookies using native Bun and Web APIs."
+description: "Read and write cookies using the Response facade and Bun's native CookieMap."
 icon: "cookie"
 ---
 
-Bejibun does not ship a dedicated cookie helper. Because controllers work with the native `Bun.BunRequest` and
-return standard `Response` objects, you read and write cookies using the platform's Web APIs.
-
-<Note>
-    A first-class cookie API is not yet available. The patterns below use native Bun/Web APIs that are fully supported
-    today.
-</Note>
+Bejibun reads cookies through Bun's native `request.cookies` and
+writes them through dedicated methods on the**`Response` facade** -- no manual header juggling required.
 
 ## Reading cookies
 
-Cookies arrive in the `Cookie` request header. Parse them from the raw request:
+`Bun.BunRequest` exposes `request.cookies`, a `CookieMap` built from the incoming `Cookie` header:
 
 ```ts app/controllers/SessionController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class SessionController extends BaseController {
     public async show(request: Bun.BunRequest): Promise<Response> {
-        const header = request.headers.get("cookie") ?? "";
+        const sessionId = request.cookies.get("session_id");
 
-        const cookies = Object.fromEntries(
-            header.split(";").map((pair) => {
-                const [key, ...rest] = pair.trim().split("=");
-                return [key, decodeURIComponent(rest.join("="))];
-            }).filter(([key]) => key)
-        );
-
-        return super.response.setData({ session: cookies.session_id }).send();
+        return super.response.setData({
+            session: sessionId
+        }).send();
     }
 }
 ```
 
-Bun also exposes `request.cookies` (a `CookieMap`) on `Bun.BunRequest`:
-
-```ts
-const sessionId = request.cookies.get("session_id");
-```
+`CookieMap` behaves like a regular `Map` -- `.get()`, `.has()`, `.size`, and `for...of` all work as expected.
 
 ## Writing cookies
 
-Cookies are set through the `Set-Cookie` response header. The `Response` facade builds the JSON body but
-does not expose header control, so when you need to set a cookie, return a raw `Response`:
+Set cookies with `setCookie()`, chained the same way as `setData()` or `setMessage()`.
+It's applied as a`Set-Cookie` header automatically on `.send()` and `.stream()`, alongside your existing CORS headers.
 
-```ts
+```ts app/controllers/SessionController.ts
 public async login(request: Bun.BunRequest): Promise<Response> {
     const body = await super.parse(request);
 
-    return Response.json(
-        { data: null, message: "Logged in", status: 200 },
-        {
-            status: 200,
-            headers: {
-                "Set-Cookie": `session_id=${crypto.randomUUID()}; HttpOnly; Path=/; SameSite=Lax; Max-Age=3600`
-            }
-        }
-    );
+    return super.response
+        .setMessage("Logged in")
+        .setCookie("session_id", crypto.randomUUID(), {
+            httpOnly: true,
+            secure: true,
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60
+        })
+        .send();
 }
 ```
 
 <Warning>
-    Always set security attributes on session cookies: `HttpOnly` (block JS access), `Secure` (HTTPS only, in
-    production), and an appropriate `SameSite` value to mitigate CSRF.
+    Always set security attributes on session cookies: `httpOnly` (block JS access),
+    `secure` (HTTPS only, in production), and an appropriate `sameSite` value to mitigate CSRF.
 </Warning>
 
-## Persisting CORS headers
-
-If you return a raw `Response` (instead of `super.response.send()`), remember that CORS headers are no longer
-applied automatically. Merge them in manually:
+Set multiple cookies in one call with `setCookies()` -- each entry can carry its own options:
 
 ```ts
-import Cors from "@bejibun/cors";
-
-return Response.json(payload, {
-    headers: {
-        ...Cors.init,
-        "Set-Cookie": "session_id=...; HttpOnly; Path=/"
-    }
-});
+return super.response
+    .setCookies([
+        {
+            key: "session_id",
+            value: sessionId,
+            options: {
+                httpOnly: true,
+                secure: true
+            }
+        },
+        {
+            key: "theme",
+            value: "dark",
+            options: {
+                maxAge: 60 * 60 * 24 * 30
+            }
+        }
+    ])
+    .send();
 ```
+
+## Deleting cookies
+
+`deleteCookie()` expires a cookie. It only accepts `domain` and `path` --
+these must match the values the cookie was originally set with,
+or the browser will treat it as a different cookie and won't clear it.
+
+```ts
+public async logout(request: Bun.BunRequest): Promise<Response> {
+    return super.response
+        .setMessage("Logged out")
+        .deleteCookie("session_id", {
+            path: "/"
+        })
+        .send();
+}
+```
+
+`deleteCookies()` clears several at once:
+
+```ts
+return super.response
+    .deleteCookies([
+        {
+            key: "session_id",
+            options: {
+                path: "/"
+            }
+        },
+        {
+            key: "theme"
+        }
+    ])
+    .send();
+```
+
+### Available methods
+
+| Method                            | Effect                                                       |
+| --------------------------------- | ------------------------------------------------------------ |
+| `setCookie(key, value, options?)` | Set a single cookie                                          |
+| `setCookies(cookies)`             | Set multiple cookies, each with its own options              |
+| `deleteCookie(key, options?)`     | Expire a single cookie (`domain` / `path` only)              |
+| `deleteCookies(cookies)`          | Expire multiple cookies, each with its own `domain` / `path` |
+
+`options` accepts Bun's native `CookieInit` shape --
+`domain`, `path`, `expires`, `maxAge`, `httpOnly`, `secure`,`sameSite`, and `partitioned`.
+
+<Tip>
+    Cookies are applied on top of CORS headers automatically, on both `send()` and `stream()`.
+    You no longer need to return a raw `Response` or merge headers by hand to set a cookie.
+</Tip>

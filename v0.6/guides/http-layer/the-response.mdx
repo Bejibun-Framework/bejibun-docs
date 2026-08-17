@@ -50,14 +50,18 @@ export default class TestController extends BaseController {
 
 ### Available methods
 
-| Method                | Effect                                         |
-| --------------------- | ---------------------------------------------- |
-| `setData(data?)`      | Set the `data` payload                         |
-| `setMessage(message)` | Set the `message` field                        |
-| `setStatus(status)`   | Set the HTTP status code                       |
-| `setCustom(obj?)`     | Merge extra top-level fields into the envelope |
-| `send()`              | Build and return the JSON response             |
-| `stream(options?)`    | Stream a file response                         |
+| Method                            | Effect                                                       |
+| --------------------------------- | ------------------------------------------------------------ |
+| `setData(data?)`                  | Set the `data` payload                                       |
+| `setMessage(message)`             | Set the `message` field                                      |
+| `setStatus(status)`               | Set the HTTP status code                                     |
+| `setCustom(obj?)`                 | Merge extra top-level fields into the envelope               |
+| `setCookie(key, value, options?)` | Set a single response cookie                                 |
+| `setCookies(cookies)`             | Set multiple response cookies, each with its own options     |
+| `deleteCookie(key, options?)`     | Expire a single cookie (`domain` / `path` only)              |
+| `deleteCookies(cookies)`          | Expire multiple cookies, each with its own `domain` / `path` |
+| `send()`                          | Build and return the JSON response                           |
+| `stream(options?)`                | Stream a file response                                       |
 
 ### Custom fields and status
 
@@ -102,6 +106,8 @@ public async download(request: Bun.BunRequest): Promise<Response> {
 ```
 
 <Tip>
-    CORS headers are loaded once at startup and merged into **every** response -- `send()` and `stream()` both apply
-    them. Configure them in `config/cors.ts`.
+    CORS headers are loaded once at startup and merged into **every** response --
+    `send()` and `stream()` both apply them.
+    Configure them in `config/cors.ts`. Cookies set with `setCookie()` / `setCookies()` are merged in the same way --
+    see [Cookies](/v0.6/guides/http-layer/cookies).
 </Tip>

@@ -51,7 +51,8 @@ The dispatched arguments arrive as the `args` array in `handle(args)`.
 ## How jobs are stored
 
 Jobs are persisted to a `jobs` table (created by the `00010101_000001_jobs` migration).
-Each row records the queue, the JSON payload, the available-at time, and attempt bookkeeping.
+Each row records the queue, the JSON payload, the available-at time, attempt bookkeeping,
+and a `reserved_at` timestamp used to claim the job while it's being processed.
 
 <Note>
     Run `bun ace migrate:latest` so the `jobs` table exists before dispatching.
@@ -60,12 +61,56 @@ Each row records the queue, the JSON payload, the available-at time, and attempt
 ## Running the worker
 
 ```bash
-bun ace queue:work     # process jobs as a long-running daemon
-bun ace queue:retry    # retry a failed job
-bun ace queue:flush    # flush all failed jobs
+bun ace queue:work    # process jobs as a long-running daemon
+bun ace queue:retry   # retry a failed job
+bun ace queue:flush   # flush all failed jobs
 ```
 
 <Tip>
     In production, run `queue:work` under a process manager (PM2, systemd, or a container restart policy)
     so it stays alive.
 </Tip>
+
+## Running multiple workers
+
+You can safely run more than one `queue:work` process against the same queue --
+each worker atomically claims a job (via `reserved_at`) before processing it,
+so two workers can never pick up the same job at once.
+
+If a worker crashes mid-job, its reservation isn't held forever: once `retry_after` seconds have passed,
+`queue:work` treats the job as abandoned and another worker will reclaim it.
+`queue:retry` uses the same atomic claiming to avoid double-processing a failed job,
+so it's safe to run alongside `queue:work` or another `queue:retry` --
+though it doesn't reclaim stale reservations itself,
+so a job that crashes mid-retry stays reserved until you run `queue:retry` again.
+
+## Configuring retry and reservation timing
+
+Both the idle-poll delay and the reservation timeout come from `retry_after` in `config/queue.ts`:
+
+```ts config/queue.ts
+import QueueDriverEnum from "@bejibun/core/enums/QueueDriverEnum";
+import JobModel from "@bejibun/core/models/JobModel";
+
+const config: Record<string, any> = {
+    default: env("QUEUE_DRIVER", "database"),
+
+    connections: {
+        database: {
+            driver: QueueDriverEnum.Database,
+            table: JobModel.tableName,
+            retry_after: 60
+        }
+    }
+};
+
+export default config;
+```
+
+| Behavior                                                         | Driven by     |
+| ---------------------------------------------------------------- | ------------- |
+| How long a worker waits before polling again when idle           | `retry_after` |
+| How long a worker waits before retrying after a failed attempt   | `retry_after` |
+| How long a job stays reserved before another worker can claim it | `retry_after` |
+
+See [Configuration](/v0.6/guides/getting-started/configuration#queue-configuration) for the full config reference.

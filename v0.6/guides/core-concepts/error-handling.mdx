@@ -35,6 +35,7 @@ to a response:
 | Error                       | Response status                     |
 | --------------------------- | ----------------------------------- |
 | `ModelNotFoundException`    | its `.code` (not found)             |
+| `QueueException`            | its `.code`                         |
 | `RateLimiterException`      | its `.code` (too many requests)     |
 | `RouterException`           | its `.code`                         |
 | `RuntimeException`          | its `.code`                         |
@@ -46,6 +47,8 @@ to a response:
     [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package alongside the `Storage` facade --
     it's still caught and mapped the same way, just imported from a different package.
     `RateLimiterException` similarly now ships with [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting).
+    `QueueException` was added in v0.6.1 for queue configuration and job-handling failures -- see
+    [Queues & Jobs](/v0.6/guides/background/queues).
 </Note>
 
 Every error response uses the standard envelope:
@@ -75,6 +78,10 @@ Every error response uses the standard envelope:
     <Accordion title="RateLimiterException" icon="gauge-high">
         Thrown when a client exceeds the configured rate limit (see
         [config](/v0.6/guides/getting-started/configuration#rate-limiter-configuration)).
+    </Accordion>
+    <Accordion title="QueueException" icon="list-ol">
+        Thrown by `queue:work` / `queue:retry` when no queue config can be resolved (neither `config/queue.ts` nor
+        the package default is available).
     </Accordion>
 </AccordionGroup>
 
