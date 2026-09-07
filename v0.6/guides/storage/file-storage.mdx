@@ -4,15 +4,13 @@ description: "Read and write files across local and S3 disks with the Storage fa
 icon: "folder-open"
 ---
 
-<Note>
-    As of v0.6.0, storage lives in the standalone
-    [`@bejibun/storage`](https://github.com/Bejibun-Framework/bejibun-storage)
-    package rather than `@bejibun/core`. Install it separately and import `Storage` from `@bejibun/storage`.
-</Note>
+As of v0.6.0, storage lives in the standalone
+[`@bejibun/storage`](https://github.com/Bejibun-Framework/bejibun-storage) package rather than `@bejibun/core`.
+Install it separately and import the `Storage` facade from `@bejibun/storage`.
 
-The `Storage` facade gives you a single API for working with files,
-whether they live on the local filesystem or in S3-compatible object storage.
-Disks are configured once and selected by name.
+The `Storage` facade provides one API for working with files whether they live on the local filesystem or in
+S3-compatible object storage. Disks are configured once and selected by name, so switching the backing store does not
+change your application code.
 
 ## Installation
 
@@ -20,41 +18,53 @@ Disks are configured once and selected by name.
 bun ace install @bejibun/storage
 ```
 
-This installs the package and drops `config/storage.ts`.
+The command installs the package and copies its configuration file into `config/storage.ts`.
 
-## The Storage API
+## The Storage facade
+
+Import `Storage` from the package root and call a method directly. Every operation runs against the default disk unless
+you select one with `disk()`:
 
 ```ts
 import Storage from "@bejibun/storage";
 
-await Storage.exists("path/to/file.ext");       // boolean
-await Storage.missing("path/to/file.ext");      // boolean
-await Storage.get("path/to/file.ext");          // BunFile | S3File
+await Storage.exists("path/to/file.ext");       // Promise<boolean>
+await Storage.missing("path/to/file.ext");      // Promise<boolean>
+await Storage.get("path/to/file.ext");          // Promise<Bun.BunFile | Bun.S3File>
 await Storage.put("path/to/file.ext", content);
 await Storage.copy("path/to/file.ext", "path/to/copy.ext");
 await Storage.move("path/to/file.ext", "path/to/new.ext");
 await Storage.delete("path/to/file.ext");
 ```
 
-| Method                                | Returns                              | Description                      |
-| ------------------------------------- | ------------------------------------ | -------------------------------- |
-| `exists(path)`                        | `Promise<boolean>`                   | File exists                      |
-| `missing(path)`                       | `Promise<boolean>`                   | File does not exist              |
-| `get(path)`                           | `Promise<Bun.BunFile \| Bun.S3File>` | Retrieve a file instance         |
-| `put(path, content, options?)`        | `Promise<void>`                      | Write a file                     |
-| `copy(source, destination, options?)` | `Promise<void>`                      | Copy a file                      |
-| `move(source, destination, options?)` | `Promise<void>`                      | Move a file                      |
-| `delete(path)`                        | `Promise<any>`                       | Delete a file                    |
-| `metadata(path)`                      | `Promise<Stats \| Bun.S3Stats>`      | File metadata and statistics     |
-| `size(path)`                          | `Promise<number>`                    | File size in bytes               |
-| `mimeType(path)`                      | `Promise<string>`                    | File MIME type                   |
-| `lastModified(path)`                  | `Promise<Date>`                      | Last modification date           |
-| `disk(name)`                          | builder                              | Select a configured disk         |
-| `build(disk)`                         | builder                              | Define an ad-hoc disk at runtime |
+| Method                                | Returns                              | Description                          |
+| ------------------------------------- | ------------------------------------ | ------------------------------------ |
+| `exists(path)`                        | `Promise<boolean>`                   | Whether the file exists              |
+| `missing(path)`                       | `Promise<boolean>`                   | Whether the file does not exist      |
+| `get(path)`                           | `Promise<Bun.BunFile \| Bun.S3File>` | Retrieve a file instance             |
+| `put(path, content, options?)`        | `Promise<void>`                      | Write content to a path              |
+| `copy(source, destination, options?)` | `Promise<void>`                      | Copy a file to a new location        |
+| `move(source, destination, options?)` | `Promise<void>`                      | Move a file to a new location        |
+| `delete(path)`                        | `Promise<void>`                      | Delete a file                        |
+| `metadata(path)`                      | `Promise<Stats \| Bun.S3Stats>`      | Return file statistics               |
+| `size(path)`                          | `Promise<number>`                    | Return the file size in bytes        |
+| `mimeType(path)`                      | `Promise<string>`                    | Return the file MIME type            |
+| `lastModified(path)`                  | `Promise<Date>`                      | Return the last modification date    |
+| `disk(name)`                          | `StorageBuilder`                     | Select a configured disk by name     |
+| `build(disk)`                         | `StorageBuilder`                     | Use an ad-hoc disk for one operation |
+
+`disk()` and `build()` return a builder, so they must be called before the terminal file operation and can be chained:
+
+```ts
+await Storage.disk("s3").put("reports/q2.pdf", content);
+```
+
+Public URLs are not generated by the facade. They come from the `url` key on the disk configuration (see
+[`Disks`](#disks)); the facade itself has no `url()` method.
 
 ## File metadata
 
-Inspect files without reading their contents:
+Inspect a file without reading its contents:
 
 ```ts
 const metadata = await Storage.metadata("uploads/avatar.png");          // full stats
@@ -63,11 +73,11 @@ const mimeType = await Storage.mimeType("uploads/avatar.png");          // e.g. 
 const lastModified = await Storage.lastModified("uploads/avatar.png");  // Date
 ```
 
-These helpers work on every disk and resolve to the same values across local and S3 storage.
+These helpers work on every driver and resolve to the same values on local and S3 storage.
 
 <Note>
-    `get()` returns a file instance (`Bun.BunFile` or `Bun.S3File`), not the raw contents.
-    Read the contents with `.text()`, `.json()`, or `.arrayBuffer()`:
+    `get()` returns a file instance (`Bun.BunFile` or `Bun.S3File`), not the raw contents. Read the contents with
+    `.text()`, `.json()`, or `.arrayBuffer()`:
 
     ```ts
     const file = await Storage.get("path/to/file.ext");
@@ -95,7 +105,7 @@ const config: Record<string, any> = {
         public: {
             driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${env(APP_URL)}/storage/public`
+            url: `${env("APP_URL")}/storage/public`
         },
 
         s3: {
@@ -113,13 +123,18 @@ const config: Record<string, any> = {
 export default config;
 ```
 
+The `default` key names the disk used when no disk is selected. `StorageDiskDriverEnum` exposes `Local` and `S3`,
+whose string values match the `driver` keys shown above.
+
 <Warning>
     **Breaking change (v0.6.0):** move your disk config from `config/disk.ts` to `config/storage.ts`, and update
-    imports from `@bejibun/core/facades/Storage` / `@bejibun/core/enums/DiskDriverEnum` to `@bejibun/storage` /
-    `@bejibun/storage/enums/StorageDiskDriverEnum`. `DiskException` moves with it.
+    imports from `@bejibun/core/facades/Storage` and `@bejibun/core/enums/DiskDriverEnum` to `@bejibun/storage` and
+    `@bejibun/storage/enums/StorageDiskDriverEnum`. `StorageException` moves with it.
 </Warning>
 
-### Using a specific disk
+### Selecting a disk
+
+Pass a disk name to `disk()` to run operations against that disk:
 
 ```ts
 await Storage.disk("public").put("avatars/photo.png", content);
@@ -128,7 +143,7 @@ await Storage.disk("s3").get("reports/q2.pdf");
 
 ### Ad-hoc disks
 
-Build a disk on the fly without adding it to the config:
+Build a disk at runtime without adding it to the config:
 
 ```ts
 import App from "@bejibun/app";
@@ -144,15 +159,20 @@ await Storage.build({
 
 <CardGroup cols={2}>
     <Card title="Local" icon="hard-drive">
-        Backed by `Bun.file()` / `Bun.write()`, resolved against the disk's `root`. Requires `root`.
+        Backed by `Bun.file()` and `Bun.write()`, resolved against the disk's `root`. Requires `root`.
     </Card>
     <Card title="S3" icon="cloud">
-        Backed by `Bun.S3Client`. Requires `endpoint`, `access_key_id`, and `secret_access_key`.
-        Supports ACLs, storage classes, and multipart options.
+        Backed by `Bun.S3Client`. Requires `endpoint`, `access_key_id`, and `secret_access_key`. Supports ACLs,
+        storage classes, and multipart options.
     </Card>
 </CardGroup>
 
 <Tip>
-    The local and S3 drivers share the same method signatures --
-    switching a disk from `local` to `s3` requires no code changes, only config.
+    The local and S3 drivers share the same method signatures, so switching a disk from `local` to `s3` requires no
+    code changes, only configuration.
 </Tip>
+
+## Next steps
+
+See the [file uploads](/v0.6/guides/http-layer/file-uploads) guide for handling uploads in controllers, and the
+[cache](/v0.6/guides/caching/cache) guide for another disk-backed abstraction.

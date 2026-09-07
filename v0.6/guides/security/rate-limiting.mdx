@@ -9,14 +9,16 @@ plus a `RateLimiter` facade for limiting specific actions.
 
 <Note>
     As of v0.6.0, the `RateLimiter` facade lives in the standalone
-    [`@bejibun/limiter`](https://github.com/Bejibun-Framework/bejibun-limiter) package rather than `@bejibun/core`.
-    `RateLimiterMiddleware` is unaffected -- it's still exported from `@bejibun/core` and works exactly as before,
-    now using `@bejibun/limiter` internally.
+    [`@bejibun/limiter`](https://github.com/Bejibun-Framework/bejibun-limiter)
+    package rather than `@bejibun/core`. `RateLimiterMiddleware` is unaffected --
+    it is still exported from `@bejibun/core` and works exactly as before, now
+    using `@bejibun/limiter` internally.
 </Note>
 
 ## Global rate limiting
 
-The `RateLimiterMiddleware` is applied to all routes when enabled in `config/performance.ts`:
+The `RateLimiterMiddleware` is applied to all routes when enabled in
+`config/performance.ts`:
 
 ```ts config/performance.ts
 const config: Record<string, any> = {
@@ -29,7 +31,8 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-Tune the threshold in `config/limiter.ts`:
+The middleware limits every request by its client IP, so all routes share one
+window per IP. Tune the threshold in `config/limiter.ts`:
 
 ```ts config/limiter.ts
 const config: Record<string, any> = {
@@ -40,13 +43,14 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-A client exceeding the limit receives a `RateLimiterException` response (too many requests).
-Limits are keyed per client IP and backed by the [cache](/v0.6/guides/caching/cache) layer.
+A client exceeding the limit receives a `RateLimiterException` response (too
+many requests). The counter is backed by the [cache](/v0.6/guides/caching/cache)
+layer, with the IP converted to a filesystem-safe key per client request.
 
 ## Limiting specific actions
 
-Install the standalone package, then use the `RateLimiter` facade to throttle a particular operation -- for
-example, OTP sends or login attempts:
+Install the standalone package, then use the `RateLimiter` facade to throttle a
+particular operation, such as OTP sends or login attempts:
 
 ```bash
 bun ace install @bejibun/limiter
@@ -55,7 +59,7 @@ bun ace install @bejibun/limiter
 ```ts
 import RateLimiter from "@bejibun/limiter";
 
-// run the callback only if under the limit
+// run the callback only if still under the limit
 await RateLimiter.attempt("send-otp:user-1", 5, async () => {
     await sendOtp();
 }, 60);
@@ -73,17 +77,23 @@ await RateLimiter.clear("send-otp:user-1");
 | `tooManyAttempts(key, limit, duration?)`   | Whether the limit is exceeded     |
 | `clear(key)`                               | Reset the counter for a key       |
 
+`attempt` increments the counter for `key` first, then runs the callback while
+the count stays within `limit`; once the count exceeds `limit` it throws
+`RateLimiterException`. `tooManyAttempts` only inspects the current count.
+
 <Note>
-    When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.
+    When omitted, `limit` and `duration` default to `60` and `60` seconds
+    respectively.
 </Note>
 
 <Tip>
-    Choose a key that identifies the actor and action together (for example `login:{email}`),
-    so limits are scoped precisely.
+    Choose a key that identifies the actor and action together (for example
+    `login:{email}`), so limits are scoped precisely.
 </Tip>
 
 <Warning>
-    **Breaking change (v0.6.0):** if you're importing `RateLimiter` from `@bejibun/core/facades/RateLimiter`, switch
-    to `import RateLimiter from "@bejibun/limiter";`. `config/limiter.ts` keeps its existing `limit` / `duration`
-    shape, so no config changes are needed.
+    **Breaking change (v0.6.0):** if you're importing `RateLimiter` from
+    `@bejibun/core/facades/RateLimiter`, switch to
+    `import RateLimiter from "@bejibun/limiter";`. `config/limiter.ts` keeps its
+    existing `limit` / `duration` shape, so no config changes are needed.
 </Warning>

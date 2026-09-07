@@ -4,12 +4,13 @@ description: "Write structured, color-coded logs with the Bejibun logger."
 icon: "scroll"
 ---
 
-Bejibun ships with `@bejibun/logger` -- a lightweight, color-coded logger used throughout the framework and available
-to your application code.
+Bejibun ships `@bejibun/logger`, a lightweight, color-coded logger used throughout the framework and available to
+your application code. It provides a fluent `Logger` facade with level methods for common cases and a builder for
+adding context or error traces.
 
 ## Basic logging
 
-Import the logger and call a level method:
+Import the `Logger` facade and call a level method:
 
 ```ts
 import Logger from "@bejibun/logger";
@@ -29,6 +30,8 @@ Each line is timestamped and labelled with its level:
 2025-10-16 16:00:00.000 [ERROR]: This is an ERROR message.
 ```
 
+Levels are color-coded on a terminal that supports ANSI output.
+
 ## Log levels
 
 | Method                  | Use for                                |
@@ -40,18 +43,21 @@ Each line is timestamped and labelled with its level:
 
 ## Adding context
 
-Use `setContext()` to replace the level label with a custom tag -- useful for identifying the subsystem that produced a log:
+Use `setContext()` to replace the level label with a custom tag, which is useful for identifying the subsystem that
+produced a log:
 
 ```ts
 Logger.setContext("Payment").info("Charge succeeded.");
 // 2025-10-16 16:00:00.000 [Payment]: Charge succeeded.
 ```
 
-This is the same mechanism the framework uses internally (`[Router]`, `[WebSocket]`, `[APP]`, …).
+`setContext()` returns a builder, so the level method must follow it. The framework uses the same mechanism
+internally (`[Router]`, `[WebSocket]`, `[APP]`, and others).
 
-## Logging errors with a stack trace
+## Logging an error trace
 
-`trace()` logs an error together with its stack -- the idiom for caught exceptions:
+`trace()` is a builder method that writes an error (or string) to stderr. Chain it after a level method to log the
+message and the error together, which is the standard idiom for caught exceptions:
 
 ```ts
 try {
@@ -61,6 +67,8 @@ try {
 }
 ```
 
+`trace()` writes to stderr and returns `void`, so it must be the last call in the chain.
+
 ## Formatting helpers
 
 | Method               | Effect                                         |
@@ -68,12 +76,18 @@ try {
 | `Logger.empty()`     | Prints a blank line                            |
 | `Logger.separator()` | Prints a dashed line across the terminal width |
 
+Both methods return `void`, so they cannot be chained:
+
 ```ts
 Logger.info("Starting migration");
 Logger.separator();
 ```
 
 <Tip>
-    `@bejibun/logger` is a standalone package -- you can use it in scripts and other Bun projects, not just inside a
+    `@bejibun/logger` is a standalone package, so you can use it in scripts and other Bun projects, not just inside a
     Bejibun app.
 </Tip>
+
+## Next steps
+
+See [error handling](/v0.6/guides/core-concepts/error-handling) for how framework exceptions are reported.

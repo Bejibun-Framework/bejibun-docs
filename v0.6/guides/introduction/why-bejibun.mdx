@@ -4,23 +4,13 @@ description: Discover the challenges Bejibun solves and why it was designed as a
 icon: "circle-question"
 ---
 
-# Why Bejibun?
+Building backend applications in TypeScript often comes with a hidden cost. Many projects begin by selecting a runtime, then a router, an ORM, a validation library, a dependency injection container, a documentation generator, a cache layer, a queue system, and countless supporting packages. This flexibility is powerful, but it can lead to fragmented architectures, inconsistent patterns, and unnecessary complexity.
 
-Building backend applications in TypeScript has never been easier--but it often comes with a hidden cost.
-
-Many projects begin by selecting a runtime, then a router, an ORM, a validation library, a dependency injection container,
-a documentation generator, a cache layer, a queue system, and countless supporting packages.
-
-While this flexibility is powerful, it can also lead to fragmented architectures, inconsistent patterns, and unnecessary complexity.
-
-Bejibun was created to provide a cohesive development experience where the most common backend requirements work together
-from the start.
-
----
+Bejibun provides a cohesive development experience where the most common backend requirements work together from the start.
 
 ## The Modern TypeScript Problem
 
-A typical backend project often begins like this:
+A typical backend project begins like this:
 
 ```text
 Runtime
@@ -36,71 +26,15 @@ Runtime
  └── Logging
 ```
 
-Each tool may have:
-
-- Different conventions
-- Different configuration styles
-- Different release cycles
-- Different documentation
-- Different maintenance requirements
-
-As applications grow, managing integrations becomes increasingly difficult.
-
----
+Each tool brings its own conventions, configuration style, release cycle, documentation, and maintenance requirements. As applications grow, managing these integrations becomes increasingly difficult.
 
 ## One Framework, One Experience
 
-Bejibun provides a unified ecosystem.
-
-Instead of assembling unrelated libraries, developers work within a framework designed around consistent patterns.
-
-```text
-📁 Application
-├── 📁 app
-│   ├── controllers/
-│   ├── exceptions/
-│   ├── jobs/
-│   ├── middlewares/
-│   ├── models/
-│   ├── validators/
-│   └── websockets/
-├── 📁 commands
-├── 📁 config
-├── 📁 database
-│   ├── migrations/
-│   └── seeders/
-├── 📁 public
-├── 📁 resources
-├── 📁 routes
-├── 📁 storage
-│   ├── app/
-│   ├── cache/
-│   └── framework/
-├── 📁 tests
-├── .env
-├── Dockerfile
-├── ace.ts
-├── bootstrap.ts
-├── bunfig.toml
-├── package.json
-└── server.ts
-```
-
-Every component follows the same architectural principles.
-
-This consistency reduces cognitive overhead and helps teams move faster.
-
----
+Bejibun provides a unified ecosystem where every component follows the same architectural principles. Instead of assembling unrelated libraries, developers work within a framework designed around consistent patterns -- reducing cognitive overhead.
 
 ## Built Specifically for Bun
 
-Many frameworks support Bun as an alternative runtime.
-
-Bejibun takes a different approach.
-
-It is designed specifically for Bun from the beginning.
-
-Benefits include:
+Many frameworks support Bun as an alternative runtime. Bejibun is designed specifically for Bun from the beginning, rather than adapting an existing ecosystem to it:
 
 - Faster startup times
 - Optimized runtime performance
@@ -108,49 +42,17 @@ Benefits include:
 - Simpler tooling
 - Reduced dependency overhead
 
-Instead of adapting an existing ecosystem to Bun, Bejibun embraces Bun as its foundation.
-
----
-
 ## Productivity Without Sacrificing Structure
 
-Rapid development should not come at the expense of maintainability.
-
-Bejibun encourages organized application architecture through:
-
-- MVC patterns
-- Dependency injection
-- Centralized configuration
-- Modular configuration
-- Clear project structure
-
-This allows applications to remain maintainable as they scale.
-
----
+Rapid development should not come at the expense of maintainability. Bejibun encourages organized application architecture through MVC patterns, dependency injection, centralized and modular configuration, and a clear project structure.
 
 ## TypeScript First
 
-Type safety is a core part of the developer experience.
-
-With Bejibun, TypeScript is integrated throughout the framework rather than layered on afterward.
-
-Benefits include:
-
-- Strong typing
-- Better IDE support
-- Safer refactoring
-- Earlier error detection
-- Improved maintainability
-
-Large codebases become easier to manage when contracts are enforced by the compiler.
-
----
+Type safety is a core part of the developer experience. TypeScript is integrated throughout the framework rather than layered on afterward, delivering strong typing, better IDE support, safer refactoring, earlier error detection, and improved maintainability.
 
 ## Batteries Included
 
-Modern applications require more than routing.
-
-Bejibun includes many commonly needed capabilities out of the box.
+Bejibun includes many commonly needed capabilities out of the box:
 
 ```text
 Framework
@@ -172,165 +74,41 @@ Framework
 └── Storage
 ```
 
-Developers spend less time integrating infrastructure and more time building products.
-
----
-
 ## Consistent Application Architecture
 
-One of the most common problems in large projects is inconsistency.
-
-Different developers may structure code differently, making maintenance difficult.
-
-Bejibun provides conventions that encourage predictable organization.
-
-```text
-app/
-├── controllers/
-├── exceptions/
-├── jobs/
-├── middlewares/
-├── models/
-├── validators/
-└── websockets/
-```
-
-A consistent structure makes applications easier to understand, onboard, and maintain.
-
----
+Inconsistency is one of the most common problems in large projects. Bejibun provides conventions that encourage predictable organization, so `app/` always contains `controllers/`, `exceptions/`, `jobs/`, `middlewares/`, `models/`, `validators/`, and `websockets/`. A consistent structure makes applications easier to understand, onboard, and maintain.
 
 ## Developer Experience Matters
 
-Performance is important, but developer experience is equally valuable.
-
-Bejibun focuses on making common tasks straightforward.
-
-Examples include:
-
-- Creating routes
-- Building controllers
-- Defining validation rules
-- Managing database migrations
-- Generating API documentation
-- Working with WebSockets
-- Integrating caching
-
-The framework aims to minimize boilerplate and maximize productivity.
-
----
+Performance is important, but developer experience is equally valuable. Bejibun minimizes boilerplate for common tasks such as creating routes, building controllers, defining validation rules, managing database migrations, generating API documentation, working with WebSockets, and integrating caching.
 
 ## Built for Modern APIs
 
-Most modern applications rely heavily on APIs.
-
-Bejibun includes features designed for API development:
-
-- Request validation
-- OpenAPI generation
-- Middleware pipelines
-- Authentication support
-- Rate limiting
-- Structured error handling
-
-These capabilities help teams build reliable APIs faster.
-
----
+Most modern applications rely heavily on APIs. Bejibun includes features designed for API development: request validation, OpenAPI generation, middleware pipelines, authentication support, rate limiting, and structured error handling.
 
 ## Real-Time Ready
 
-Many applications require real-time communication.
-
-Examples include:
-
-- Chat systems
-- Live dashboards
-- Notifications
-- Collaborative applications
-- Monitoring platforms
-
-Bejibun includes WebSocket support as part of the framework ecosystem, reducing the need for external solutions.
-
----
+Bejibun includes WebSocket support as part of the framework ecosystem, reducing the need for external solutions for chat systems, live dashboards, notifications, collaborative applications, and monitoring platforms.
 
 ## Production-Oriented
 
-Building an application is only the beginning.
-
-Operating it reliably in production is equally important.
-
-Bejibun includes tools and patterns that support production workloads:
-
-- Logging
-- Error handling
-- Redis integration
-- Caching
-- Rate limiting
-- Queue processing
-- Configuration management
-
-These features help applications remain stable as usage grows.
-
----
+Building an application is only the beginning; operating it reliably in production is equally important. Bejibun includes logging, error handling, Redis integration, caching, rate limiting, queue processing, and configuration management to support production workloads.
 
 ## Extensible by Design
 
-No framework can predict every use case.
-
-Bejibun is designed to be extended when necessary.
-
-Developers can:
-
-- Create custom middleware
-- Build reusable packages
-- Extend validation behavior
-- Add custom commands
-- Integrate external systems
-
-The framework provides strong defaults while remaining flexible.
-
----
+No framework can predict every use case. Bejibun is designed to be extended: developers can create custom middleware, build reusable packages, extend validation behavior, add custom commands, and integrate external systems.
 
 ## Familiar, Yet Modern
 
-Bejibun borrows proven ideas from established frameworks while embracing modern TypeScript development.
-
-Developers coming from frameworks such as:
-
-- Laravel
-- AdonisJS
-- NestJS
-- Express
-- Fastify
-
-Will find many familiar concepts while benefiting from Bun's modern runtime capabilities.
-
----
+Bejibun borrows proven ideas from established frameworks while embracing modern TypeScript development. Developers coming from Laravel, AdonisJS, NestJS, Express, or Fastify will find familiar concepts alongside Bun's modern runtime capabilities.
 
 ## Why Teams Choose Bejibun
 
-Teams often adopt Bejibun because they want:
-
-### Less Configuration
-
-Spend less time wiring libraries together.
-
-### Faster Development
-
-Focus on application logic rather than infrastructure setup.
-
-### Consistent Architecture
-
-Maintain predictable project structures across teams.
-
-### Modern Performance
-
-Leverage Bun's speed without sacrificing developer experience.
-
-### Long-Term Maintainability
-
-Build applications that remain manageable as they grow.
-
----
+- **Less configuration** -- spend less time wiring libraries together.
+- **Faster development** -- focus on application logic rather than infrastructure setup.
+- **Consistent architecture** -- maintain predictable project structures across teams.
+- **Modern performance** -- leverage Bun's speed without sacrificing developer experience.
+- **Long-term maintainability** -- build applications that remain manageable as they grow.
 
 ## Bejibun at a Glance
 
@@ -387,14 +165,6 @@ flowchart TB
 
 The framework handles the common infrastructure concerns so developers can focus on delivering value.
 
----
-
 ## Next Steps
 
-Now that you understand why Bejibun exists and the problems it aims to solve, continue with:
-
-- Framework Philosophy
-- Feature Overview
-- Release Cycle
-
-These guides explain the principles behind the framework and help you start building your first application.
+Continue with [Framework Philosophy](/v0.6/guides/introduction/framework-philosophy), [Feature Overview](/v0.6/guides/introduction/feature-overview), and [Release Cycle](/v0.6/guides/introduction/release-cycle) to understand the principles behind the framework and begin building your first application.

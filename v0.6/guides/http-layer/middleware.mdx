@@ -4,7 +4,7 @@ description: "Intercept requests before they reach your controller."
 icon: "filter"
 ---
 
-Middleware wraps your route handlers, letting you run logic before a request reaches its controller --
+Middleware wraps route handlers, running logic before a request reaches its controller --
 authentication, logging, rate limiting, and more.
 
 ## The middleware contract
@@ -17,7 +17,7 @@ import Logger from "@bejibun/logger";
 
 export default class TestMiddleware {
     public handle(handler: HandlerType): HandlerType {
-        return async (request: Bun.BunRequest, server: Bun.Server<any>) => {
+        return async (request: Bejibun.Request, server: Bun.Server<any>) => {
             Logger.setContext("TestMiddleware").debug(request.url);
 
             // call the next handler in the chain
@@ -74,12 +74,10 @@ export default config;
         Limits requests per client IP. Configure the threshold in `config/limiter.ts`:
 
         ```ts config/limiter.ts
-        const config: Record
-        <string
-        , any> = {
-        limit: 30,
-        duration: 60 // seconds
-    };
+        const config: Record<string, any> = {
+            limit: 30,
+            duration: 60 // seconds
+        };
 
         export default config;
         ```
@@ -114,4 +112,4 @@ const blocked = await RateLimiter.tooManyAttempts("send-otp:user-1", 5);
 await RateLimiter.clear("send-otp:user-1");
 ```
 
-When omitted, `limit` and `duration` default to `60` / `60` seconds.
+When omitted, `duration` defaults to 60 seconds. The limiter counts attempts per key and throws a `RateLimiterException` once the limit is exceeded.

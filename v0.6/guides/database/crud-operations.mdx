@@ -24,7 +24,7 @@ Each returns an Objection query you `await`.
 </CodeGroup>
 
 ```ts app/controllers/UserController.ts
-public async index(request: Bun.BunRequest): Promise<Response> {
+public async index(request: Bejibun.Request): Promise<Response> {
     const users = await UserModel.all();
 
     return super.response.setData(users).send();
@@ -40,7 +40,7 @@ public async index(request: Bun.BunRequest): Promise<Response> {
 
 ```ts
 const user = await UserModel.create({
-    name: body.name as string
+    name: request.input("name")
 });
 ```
 
@@ -50,7 +50,7 @@ Find the record, then chain `update`:
 
 ```ts
 const user = await UserModel.find(id).update({
-    name: body.name as string
+    name: request.input("name")
 });
 ```
 

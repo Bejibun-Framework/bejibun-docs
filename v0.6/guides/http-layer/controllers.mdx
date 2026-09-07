@@ -5,7 +5,8 @@ icon: "gears"
 ---
 
 Controllers group related request-handling logic into classes. Every Bejibun controller extends **`BaseController`**,
-which provides request parsing, validation, and the response builder.
+which provides the response builder. Incoming data is read directly from the request via its
+[request helpers](/v0.6/guides/http-layer/the-request).
 
 ## Creating a controller
 
@@ -21,7 +22,7 @@ This creates `app/controllers/HelloController.ts`. A minimal controller method r
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HelloController extends BaseController {
-    public async hello(request: Bun.BunRequest): Promise<Response> {
+    public async hello(request: Bejibun.Request): Promise<Response> {
         return super.response.setData({
             message: "Hello, world!",
             method: request.method
@@ -38,14 +39,12 @@ Router.get("hello", "HelloController@hello");
 
 ## What `BaseController` gives you
 
-`BaseController` exposes three members:
+`BaseController` exposes two members:
 
-<CardGroup cols={3}>
-    <Card title="super.parse(request)" icon="inbox">
-        Unified parser for body, route params, query string, and uploaded files.
-    </Card>
-    <Card title="super.validate(...)" icon="circle-check">
-        Run a Vine validator against the parsed input.
+<CardGroup cols={2}>
+    <Card title="request" icon="inbox">
+        The populated `Bejibun.Request` -- read input with `request.input()`, `request.validate()`, and the other
+        request helpers.
     </Card>
     <Card title="super.response" icon="paper-plane">
         The fluent response builder (`setData`, `setMessage`, `setStatus`, `send`).
@@ -54,7 +53,7 @@ Router.get("hello", "HelloController@hello");
 
 ## A complete request flow
 
-The typical controller method parses input, validates it, performs work, and returns a response:
+The typical controller method reads and validates input, performs work, and returns a response:
 
 ```ts app/controllers/TestController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
@@ -62,12 +61,11 @@ import TestModel from "@/app/models/TestModel";
 import TestValidator from "@/app/validators/TestValidator";
 
 export default class TestController extends BaseController {
-    public async store(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-        await super.validate(TestValidator.store, body);
+    public async store(request: Bejibun.Request): Promise<Response> {
+        await request.validate(TestValidator.store);   // throws ValidatorException on failure
 
         const test = await TestModel.create({
-            name: body.name as string
+            name: request.input("name")
         });
 
         return super.response.setData(test).send();
@@ -75,9 +73,9 @@ export default class TestController extends BaseController {
 }
 ```
 
-- **`parse`** merges the request body, route parameters, query string, and uploaded files into one object. See [The Request](/v0.6/guides/http-layer/the-request).
-- **`validate`** throws a `ValidatorException` on failure (returned as a structured error). See the validation guide.
-- **`response`** builds the standard JSON envelope. See [The Response](/v0.6/guides/http-layer/the-response).
+- **`request.input(...)`** reads a value from the merged payload (body, params, query, form). See [The Request](/v0.6/guides/http-layer/the-request).
+- **`request.validate(...)`** throws a `ValidatorException` on failure (returned as a structured error). See the [validation guide](/v0.6/guides/validation/introduction).
+- **`super.response`** builds the standard JSON envelope. See [The Response](/v0.6/guides/http-layer/the-response).
 
 ## Resource controllers
 
@@ -87,31 +85,31 @@ Controllers created with `make:controller` include the five resource actions, re
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class TemplateController extends BaseController {
-    public async index(request: Bun.BunRequest): Promise<Response> {
+    public async index(request: Bejibun.Request): Promise<Response> {
         // Your code goes here
 
         return super.response.setData().send();
     }
 
-    public async store(request: Bun.BunRequest): Promise<Response> {
+    public async store(request: Bejibun.Request): Promise<Response> {
         // Your code goes here
 
         return super.response.setData().send();
     }
 
-    public async show(request: Bun.BunRequest): Promise<Response> {
+    public async show(request: Bejibun.Request): Promise<Response> {
         // Your code goes here
 
         return super.response.setData().send();
     }
 
-    public async update(request: Bun.BunRequest): Promise<Response> {
+    public async update(request: Bejibun.Request): Promise<Response> {
         // Your code goes here
 
         return super.response.setData().send();
     }
 
-    public async destroy(request: Bun.BunRequest): Promise<Response> {
+    public async destroy(request: Bejibun.Request): Promise<Response> {
         // Your code goes here
 
         return super.response.setData().send();
@@ -139,12 +137,11 @@ Annotate a controller method with the global `@ApiDoc` decorator to enrich the g
         ]
     }
 })
-public async store(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(TestValidator.store, body);
+public async store(request: Bejibun.Request): Promise<Response> {
+    await request.validate(TestValidator.store);
 
     const test = await TestModel.create({
-        name: body.name as string
+        name: request.input("name")
     });
 
     return super.response.setData(test).send();

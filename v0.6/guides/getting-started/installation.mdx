@@ -307,6 +307,8 @@ Commands:
   queue:flush                  Flush all of the failed queue jobs
   queue:retry                  Retry a failed queue job
   queue:work                   Start processing jobs on the queue as a daemon
+  route:list                   List registered routes
+  schedule:work                Run the task scheduler
   help [command]               display help for command
 
 Examples:
@@ -339,7 +341,7 @@ Example:
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HomeController extends BaseController {
-    public async index(request: Bun.BunRequest): Promise<Response> {
+    public async index(request: Bejibun.Request): Promise<Response> {
         return super.response.setData({
             message: "Hello, world!",
             method: request.method

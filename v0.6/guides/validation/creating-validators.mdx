@@ -21,11 +21,10 @@ This creates `app/validators/UserValidator.ts` with resource-style schemas.
 
 <CodeGroup>
     ```ts create()
-    import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
     import BaseValidator from "@bejibun/core/bases/BaseValidator";
 
     export default class UserValidator extends BaseValidator {
-        public static get store(): ValidatorType {
+        public static get store(): Bejibun.Validator {
             return super.validator.create({
                 name: super.validator.string()
             });
@@ -34,11 +33,10 @@ This creates `app/validators/UserValidator.ts` with resource-style schemas.
     ```
 
     ```ts compile(object())
-    import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
     import BaseValidator from "@bejibun/core/bases/BaseValidator";
 
     export default class UserValidator extends BaseValidator {
-        public static get store(): ValidatorType {
+        public static get store(): Bejibun.Validator {
             return super.validator.compile(
                 super.validator.object({
                     name: super.validator.string()
@@ -54,31 +52,30 @@ This creates `app/validators/UserValidator.ts` with resource-style schemas.
 Group every action's schema in one class:
 
 ```ts app/validators/UserValidator.ts
-import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
 import BaseValidator from "@bejibun/core/bases/BaseValidator";
 import UserModel from "@/app/models/UserModel";
 
 export default class UserValidator extends BaseValidator {
-    public static get show(): ValidatorType {
+    public static get show(): Bejibun.Validator {
         return super.validator.create({
             id: super.validator.number().min(1).exists(UserModel, "id")
         });
     }
 
-    public static get store(): ValidatorType {
+    public static get store(): Bejibun.Validator {
         return super.validator.create({
             name: super.validator.string()
         });
     }
 
-    public static get update(): ValidatorType {
+    public static get update(): Bejibun.Validator {
         return super.validator.create({
             id: super.validator.number().min(1).exists(UserModel, "id"),
             name: super.validator.string()
         });
     }
 
-    public static get destroy(): ValidatorType {
+    public static get destroy(): Bejibun.Validator {
         return super.validator.create({
             id: super.validator.number().min(1).exists(UserModel, "id")
         });

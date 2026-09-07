@@ -32,7 +32,7 @@ Application code should focus on business logic, not infrastructure settings.
 Good:
 
 ```ts
-const host = config("database.host");
+const host = config("database.connections.pgsql.host");
 ```
 
 Avoid:
@@ -105,21 +105,17 @@ flowchart LR
 
 Configuration values can be retrieved using the configuration service.
 
-Example:
+The first segment of the key names the `config/<file>.ts` module, and the remaining segments walk into its default export.
 
 ```ts
-config("app.name");
+config("cache.default");            // config/cache.ts → .default
+
+config("database.connections.pgsql.host");  // config/database.ts → .connections.pgsql.host
+
+config("cors.origin");              // config/cors.ts → .origin
 ```
 
-Nested values can be accessed using dot notation.
-
-```ts
-config("database.default");
-
-config("redis.host");
-
-config("cache.driver");
-```
+Nested values are resolved with dot notation, and `null` is returned when a path doesn't exist.
 
 This keeps configuration access consistent across the application.
 
@@ -364,7 +360,7 @@ const config: Record<string, any> = {
         public: {
             driver: StorageDiskDriverEnum.Local,
             root: App.Path.storagePath("app/public"),
-            url: `${env(APP_URL)}/storage/public`
+            url: `${env("APP_URL")}/storage/public`
         },
 
         s3: {
@@ -867,7 +863,7 @@ provider
 Prefer:
 
 ```ts
-config("database.host");
+config("database.connections.pgsql.host");
 ```
 
 instead of:

@@ -1,26 +1,29 @@
 ---
 title: "File Uploads"
-description: "Receive uploaded files via parse() and persist them with the Storage facade."
+description: "Receive uploaded files via request helpers and persist them with the Storage facade."
 icon: "upload"
 ---
 
-File uploads flow through the same `super.parse(request)` you use for any other input.
-Uploaded files arrive as native `File` objects,
-which you then persist with the [`Storage`](/v0.6/guides/storage/file-storage) facade.
+File uploads flow through the same request payload as any other input. Uploaded files arrive as native `File`
+objects, which you then read with `request.file()` and persist with the
+[`Storage`](/v0.6/guides/storage/file-storage) facade.
 
 ## Receiving an upload
 
-For a `multipart/form-data` request, `parse()` includes uploaded files alongside regular fields:
+For a `multipart/form-data` request, `request.file()` returns the uploaded file alongside regular fields.
+Use `request.hasFile()` to guard against a missing upload:
 
 ```ts app/controllers/UploadController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 import Storage from "@bejibun/storage";
 
 export default class UploadController extends BaseController {
-    public async store(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
+    public async store(request: Bejibun.Request): Promise<Response> {
+        if (!request.hasFile("avatar")) {
+            return super.response.setMessage("No file").setStatus(422).send();
+        }
 
-        const file = body.avatar as File;       // the uploaded file
+        const file = request.file("avatar")!;
 
         await Storage.disk("public").put(`avatars/${file.name}`, file);
 
@@ -53,9 +56,9 @@ The `Storage` facade (from the standalone `@bejibun/storage` package) writes to 
     import App from "@bejibun/app";
 
     await Storage.build({
-    driver: "local",
-    root: App.Path.storagePath("custom")
-}).put("file.txt", content);
+        driver: "local",
+        root: App.Path.storagePath("custom")
+    }).put("file.txt", content);
     ```
 </CodeGroup>
 
@@ -66,10 +69,9 @@ The `public` disk is rooted at `storage/app/public` and exposes a public URL via
 Validate the rest of the form payload as usual before storing:
 
 ```ts
-const body = await super.parse(request);
-await super.validate(UploadValidator.store, body);
+await request.validate(UploadValidator.store);
 
-const file = body.avatar as File;
+const file = request.file("avatar")!;
 await Storage.disk("public").put(`avatars/${file.name}`, file);
 ```
 

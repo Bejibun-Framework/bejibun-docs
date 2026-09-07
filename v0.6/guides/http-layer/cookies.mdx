@@ -5,17 +5,17 @@ icon: "cookie"
 ---
 
 Bejibun reads cookies through Bun's native `request.cookies` and
-writes them through dedicated methods on the**`Response` facade** -- no manual header juggling required.
+writes them through dedicated methods on the **`Response` facade** -- no manual header juggling required.
 
 ## Reading cookies
 
-`Bun.BunRequest` exposes `request.cookies`, a `CookieMap` built from the incoming `Cookie` header:
+`Bejibun.Request` exposes `request.cookies`, a `CookieMap` built from the incoming `Cookie` header:
 
 ```ts app/controllers/SessionController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class SessionController extends BaseController {
-    public async show(request: Bun.BunRequest): Promise<Response> {
+    public async show(request: Bejibun.Request): Promise<Response> {
         const sessionId = request.cookies.get("session_id");
 
         return super.response.setData({
@@ -30,12 +30,10 @@ export default class SessionController extends BaseController {
 ## Writing cookies
 
 Set cookies with `setCookie()`, chained the same way as `setData()` or `setMessage()`.
-It's applied as a`Set-Cookie` header automatically on `.send()` and `.stream()`, alongside your existing CORS headers.
+It's applied as a `Set-Cookie` header automatically on `.send()` and `.stream()`, alongside your existing CORS headers.
 
 ```ts app/controllers/SessionController.ts
-public async login(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-
+public async login(request: Bejibun.Request): Promise<Response> {
     return super.response
         .setMessage("Logged in")
         .setCookie("session_id", crypto.randomUUID(), {
@@ -85,7 +83,7 @@ these must match the values the cookie was originally set with,
 or the browser will treat it as a different cookie and won't clear it.
 
 ```ts
-public async logout(request: Bun.BunRequest): Promise<Response> {
+public async logout(request: Bejibun.Request): Promise<Response> {
     return super.response
         .setMessage("Logged out")
         .deleteCookie("session_id", {
@@ -123,7 +121,7 @@ return super.response
 | `deleteCookies(cookies)`          | Expire multiple cookies, each with its own `domain` / `path` |
 
 `options` accepts Bun's native `CookieInit` shape --
-`domain`, `path`, `expires`, `maxAge`, `httpOnly`, `secure`,`sameSite`, and `partitioned`.
+`domain`, `path`, `expires`, `maxAge`, `httpOnly`, `secure`, `sameSite`, and `partitioned`.
 
 <Tip>
     Cookies are applied on top of CORS headers automatically, on both `send()` and `stream()`.

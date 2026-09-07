@@ -1,72 +1,98 @@
 ---
 title: "Utilities"
-description: "Helper functions and the Str, Enum, Luxon, and Object facades from **@bejibun/utils**."
+description: "Helper functions and the Arr, Enum, Luxon, Object, and Str facades from @bejibun/utils."
 icon: "wrench"
 ---
 
-`@bejibun/utils` provides small helpers and facades used throughout the framework --
-and available to your application code. It's a standalone package you can use in any Bun project.
+`@bejibun/utils` is a standalone Bun package that provides small helpers and facades used throughout the framework and available to your application code.
+
+Importing from the package root (`@bejibun/utils`) eagerly loads its full dependency graph, including `@bejibun/logger` and `luxon`. For smaller bundles and faster cold starts, prefer deep imports:
+
+- `@bejibun/utils/utils` -- helper functions
+- `@bejibun/utils/facades/Arr`
+- `@bejibun/utils/facades/Enum`
+- `@bejibun/utils/facades/Luxon`
+- `@bejibun/utils/facades/Object`
+- `@bejibun/utils/facades/Str`
+- `@bejibun/utils/builders/*` -- builder classes for chaining
+- `@bejibun/utils/enums/HttpMethodEnum`
+- `@bejibun/utils/exceptions/*` -- `ArrException`, `EnumException`, `ObjectException`
+- `@bejibun/utils/types/enum` -- the `EnumItem` type
 
 ## Helper functions
 
 ```ts
-import {
-    isEmpty,
-    isNotEmpty,
-    defineValue,
-    ask,
-    isCommandExists,
-    isModuleExists
-} from "@bejibun/utils";
+import { isEmpty, isNotEmpty, defineValue, ask, isCommandExists, isModuleExists } from "@bejibun/utils/utils";
 ```
 
-| Function                             | Description                                       |
-| ------------------------------------ | ------------------------------------------------- |
-| `isEmpty(value)`                     | `true` for empty / nullish values                 |
-| `isNotEmpty(value)`                  | Inverse of `isEmpty`                              |
-| `defineValue(value, default = null)` | Returns `value` if non-empty, otherwise `default` |
-| `ask(question)`                      | Read a line of input from the terminal            |
-| `isCommandExists(command)`           | Whether a shell command is available              |
-| `isModuleExists(module)`             | Whether a package is installed                    |
+| Function                                       | Description                                          |
+| ---------------------------------------------- | ---------------------------------------------------- |
+| `isEmpty(value): boolean`                      | `true` for `undefined`, `null`, `0`, `NaN`, empty strings, arrays, objects, `Set`s, and `Map`s |
+| `isNotEmpty(value): boolean`                   | Inverse of `isEmpty`                                 |
+| `defineValue(value, defaultValue?)`            | Returns `value` when non-empty, otherwise `defaultValue` (default `null`) |
+| `ask(question): Promise<string>`               | Reads a trimmed line of input from the terminal      |
+| `isCommandExists(command): boolean`            | Whether a shell command is available on `PATH` (cached) |
+| `isModuleExists(module): boolean`              | Whether a Node module resolves (cached)              |
 
 ```ts
 const page: number = defineValue(body.page, 1);
 if (isEmpty(body.name)) throw new RuntimeException("Name required.");
+if (isCommandExists("ffmpeg")) await ask("Proceed with transcode? (y/n)");
+```
+
+## Arr facade
+
+Array transformations:
+
+```ts
+import Arr from "@bejibun/utils/facades/Arr";
+
+Arr.only([1, 2, 3], ["0", "2"]);  // [1, 3]
+Arr.except([1, 2, 3], ["1"]);     // [1, 3]
+Arr.first([1, 2, 3]);             // 1
+Arr.last([1, 2, 3]);              // 3
+Arr.pluck([{ id: 1 }, { id: 2 }], "id");  // [1, 2]
+```
+
+## Str facade
+
+String transformations. Most methods also accept `combine: true` to return a `StrBuilder` for chaining:
+
+```ts
+import Str from "@bejibun/utils/facades/Str";
+
+Str.toUpperCase("hello");        // "HELLO"
+Str.toLowerCase("HELLO");        // "hello"
+Str.toPascalCase("hello world"); // "HelloWorld"
+Str.toCamelCase("hello_world");  // "helloWorld"
+Str.toSnakeCase("helloWorld");   // "hello_world"
+Str.random(16);                  // random alphanumeric string of length 16
+Str.ipToFileName("127.0.0.1");   // filesystem-safe form of an IP
+Str.startsWith("hello", ["he"]);       // true
+Str.endsWith("hello", ["lo"]);         // true
+Str.contains("hello", ["x", "ell"]);   // true
 ```
 
 ## Enum facade
 
-Work with TypeScript enums by key or value:
+Introspects TypeScript enums by key or value through an `EnumBuilder`:
 
 ```ts
 import Enum from "@bejibun/utils/facades/Enum";
 import HttpMethodEnum from "@bejibun/utils/enums/HttpMethodEnum";
 
-Enum.setEnums(HttpMethodEnum).getKey("get");
-Enum.setEnums(HttpMethodEnum).getValue("GET");
-Enum.setEnums(HttpMethodEnum).toArray();        // [{ key, value }, ...]
-Enum.setEnums(HttpMethodEnum).hasValue("GET");
-Enum.setEnums(HttpMethodEnum).hasKey("get");
+Enum.setEnums(HttpMethodEnum).getKey("GET");  // "Get"
+Enum.setEnums(HttpMethodEnum).getValue("Get"); // "GET"
+Enum.setEnums(HttpMethodEnum).hasKey("Get");   // true
+Enum.setEnums(HttpMethodEnum).hasValue("GET"); // true
+Enum.setEnums(HttpMethodEnum).toArray();       // [{ name: "Get", value: "GET" }, ...]
 ```
 
-## Str facade
-
-String transformations:
-
-```ts
-import Str from "@bejibun/utils/facades/Str";
-
-Str.toLowerCase("HELLO");
-Str.toPascalCase("hello world"); // "HelloWorld"
-Str.toUpperCase("hello");
-Str.random(16);                  // random string of length 16
-Str.ipToFileName("127.0.0.1");   // filesystem-safe form of an IP
-```
+`toArray()` returns `EnumItem[]`, where `EnumItem` is `{ name: string; value: any }` imported from `@bejibun/utils/types/enum`.
 
 ## Luxon facade
 
-A thin re-export of [Luxon](https://moment.github.io/luxon) for date and time handling --
-the same library the framework uses for model timestamps:
+Lazily loads and re-exports [Luxon](https://moment.github.io/luxon) for date and time handling -- the same library the framework uses for model timestamps. `DateTime`, `Duration`, and `Interval` are exposed as getters, so importing the facade does not pay Luxon's cold-start cost until one is accessed:
 
 ```ts
 import Luxon from "@bejibun/utils/facades/Luxon";
@@ -75,19 +101,19 @@ const now = Luxon.DateTime.now();
 const later = now.plus({ hours: 2 });
 ```
 
-`Luxon.DateTime`, `Luxon.Duration`, and `Luxon.Interval` are all available.
-
 ## Object facade
 
-Serialization and form-data parsing helpers (these power `BaseController.parse()`):
+Payload normalization and form-data parsing:
 
 ```ts
 import BObject from "@bejibun/utils/facades/Object";
 
-BObject.serialize(value);          // normalize a JSON value
-BObject.parseFormData(formData);   // FormData -> plain object
+BObject.serialize({ a: 1, b: undefined });  // normalize a JSON value
+BObject.only({ a: 1, b: 2 }, ["a"]);        // { a: 1 }
+BObject.except({ a: 1, b: 2 }, ["b"]);      // { a: 1 }
+BObject.parseFormData(formData);            // FormData -> nested object
 ```
 
 <Note>
-    Import the `Object` facade under an alias (e.g. `BObject`) to avoid shadowing the global `Object`.
+    Import the `Object` facade under an alias (for example `BObject`) to avoid shadowing the global `Object`.
 </Note>

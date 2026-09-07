@@ -29,11 +29,10 @@ then explore it through the built-in API viewer.
         ]
     }
 })
-public async show(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(UserValidator.show, body);
+public async show(request: Bejibun.Request): Promise<Response> {
+    await request.validate(UserValidator.show);
 
-    const user = await UserModel.findOrFail(body.id as number | string);
+    const user = await UserModel.findOrFail(request.input("id"));
 
     return super.response.setData(user).send();
 }
@@ -52,7 +51,7 @@ export type ApiDocConfig = {
             in: "header" | "path" | "query";
             required: boolean;
             schema: {
-                type: "string";
+                type: "string" | "number" | "integer" | "boolean" | "array" | "object";
             };
         }>;
     };

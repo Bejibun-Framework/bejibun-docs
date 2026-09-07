@@ -1,11 +1,11 @@
 ---
 title: "Cache"
-description: "Cache values effortlessly using local or Redis storage with **@bejibun/cache**."
+description: "Cache values with local or Redis drivers using the @bejibun/cache facade."
 icon: "bolt"
 ---
 
-`@bejibun/cache` is a modern, driver-based caching library featuring a simple, expressive API.
-Choose between **local** (file-based) or **Redis** drivers to fit your application's needs.
+`@bejibun/cache` is a driver-based caching library with a small, expressive
+API. It supports two backends: **local** (file-based) and **Redis**.
 
 ## Installation
 
@@ -13,7 +13,7 @@ Choose between **local** (file-based) or **Redis** drivers to fit your applicati
 bun ace install @bejibun/cache
 ```
 
-This installs the package and drops `config/cache.ts`.
+This installs the package and adds `config/cache.ts`.
 
 ## Configuration
 
@@ -43,10 +43,23 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-| Driver  | Backing store                                       |
-| ------- | --------------------------------------------------- |
-| `Local` | Files under `storage/cache`                         |
-| `Redis` | A Redis server (see [Redis](/v0.6/guides/caching/redis)) |
+| Field             | Purpose                                             |
+| ----------------- | --------------------------------------------------- |
+| `default`         | Connection name used when none is passed explicitly |
+| `connections.*.driver` | Either `CacheDriverEnum.Local` or `CacheDriverEnum.Redis` |
+| `connections.local.path` | Absolute directory for local cache files (`storage/cache`) |
+| `connections.redis.*`    | `host`, `port`, `password`, and `database` of the Redis server |
+
+| Driver  | Backing store                                              |
+| ------- | ---------------------------------------------------------- |
+| `Local` | Files under the configured `path` (default `storage/cache`) |
+| `Redis` | A Redis server (see [Redis](/v0.6/guides/caching/redis))   |
+
+Cache keys are namespaced automatically, so a key like `user:1` never collides
+with raw Redis keys. The Redis driver connects through
+[`@bejibun/redis`](/v0.6/guides/caching/redis), which `@bejibun/cache` brings in
+as a dependency, and reads the `host`, `port`, `password`, and `database` fields
+above when it connects.
 
 ## Usage
 
@@ -57,7 +70,7 @@ import Cache from "@bejibun/cache";
 const user = await Cache.remember(
     "user:1",                                   // key
     async () => await UserModel.findOrFail(1),  // callback
-    300                                         // ttl
+    300                                         // ttl (seconds)
 );
 
 await Cache.put("hits", 0);                     // store with optional TTL
@@ -68,24 +81,26 @@ await Cache.forget("hits");                     // delete
 
 ## API reference
 
-| Method                          | Description                                |
-| ------------------------------- | ------------------------------------------ |
-| `remember(key, callback, ttl?)` | Return cached value, or compute + store it |
-| `get(key)`                      | Retrieve a value                           |
-| `has(key)`                      | Whether the key exists                     |
-| `add(key, value, ttl?)`         | Store only if absent                       |
-| `put(key, value, ttl?)`         | Store / overwrite with TTL                 |
-| `forget(key)`                   | Delete a key                               |
-| `increment(key, ttl?)`          | Increment a counter by 1                   |
-| `decrement(key, ttl?)`          | Decrement a counter by 1                   |
-| `incrementBy(key, n, ttl?)`     | Increment a counter by `n`                 |
-| `decrementBy(key, n, ttl?)`     | Decrement a counter by `n`                 |
-| `connection(name)`              | Use a non-default connection               |
+| Method                           | Description                                       |
+| -------------------------------- | ------------------------------------------------- |
+| `remember(key, callback, ttl?)`  | Return the cached value, or compute and store it  |
+| `get(key)`                       | Retrieve a value (`null`/empty when missing)      |
+| `has(key)`                       | Whether the key exists                            |
+| `add(key, value, ttl?)`          | Store only if absent; returns whether stored      |
+| `put(key, value, ttl?)`          | Store or overwrite; returns whether stored        |
+| `forget(key)`                    | Delete a key                                      |
+| `increment(key, ttl?)`           | Increment a counter by 1                          |
+| `decrement(key, ttl?)`           | Decrement a counter by 1                          |
+| `incrementBy(key, n, ttl?)`      | Increment a counter by `n`                        |
+| `decrementBy(key, n, ttl?)`      | Decrement a counter by `n`                        |
+| `connection(name)`               | Use a non-default connection                       |
 
 ```ts
 await Cache.connection("local").put("tmp", "value", 60);
 ```
 
 <Note>
-    TTL values are in **seconds**. The default connection is `local`.
+    TTL values are in **seconds**. `increment`/`decrement` (and their `By`
+    variants) set a starting value when the key does not yet exist, so
+    `decrement` on a fresh key yields `-1`.
 </Note>

@@ -81,11 +81,10 @@ id: super.validator.number().min(1).exists(UserModel, "id", true)
 ```
 
 ```ts app/controllers/UserController.ts
-public async restore(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(UserValidator.restore, body);
+public async restore(request: Bejibun.Request): Promise<Response> {
+    await request.validate(UserValidator.restore);
 
-    const user = await UserModel.find(body.id as number | string).restore();
+    const user = await UserModel.find(request.input("id") as number | string).restore();
 
     return super.response.setData(user).send();
 }

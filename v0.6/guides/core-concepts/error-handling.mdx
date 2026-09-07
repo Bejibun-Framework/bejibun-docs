@@ -30,23 +30,27 @@ export default class Handler extends ExceptionHandler {
 ## How errors are mapped
 
 When an error reaches the handler, it is logged (`Logger.setContext("APP").error(message).trace(stack)`) and converted
-to a response:
+to a response. Framework exceptions respond with their own `.code`; anything else becomes a generic `500`:
 
-| Error                       | Response status                     |
-| --------------------------- | ----------------------------------- |
-| `ModelNotFoundException`    | its `.code` (not found)             |
-| `QueueException`            | its `.code`                         |
-| `RateLimiterException`      | its `.code` (too many requests)     |
-| `RouterException`           | its `.code`                         |
-| `RuntimeException`          | its `.code`                         |
-| `ValidatorException`        | its `.code` (validation failed)     |
-| Any other error             | `500` -- `"Internal server error."` |
+| Exception                     | Default status | Source                                                  |
+| ----------------------------- | -------------- | ------------------------------------------------------- |
+| `ModelNotFoundException`      | `404`          | `@bejibun/core`                                         |
+| `ValidatorException`          | `422`          | `@bejibun/core`                                         |
+| `RateLimiterException`        | `429`          | `@bejibun/limiter`                                      |
+| `QueueException`              | `500`          | `@bejibun/core`                                         |
+| `RouterException`             | `500`          | `@bejibun/core`                                         |
+| `RuntimeException`            | `500`          | `@bejibun/core`                                         |
+| Objection `ValidationError`   | `statusCode`   | `objection`                                             |
+| Any other error               | `500`          | `"Internal server error."`                              |
+
+Every status code can be overridden at throw time by passing a `code` argument, and every exception logs itself on
+construction.
 
 <Note>
-    As of `@bejibun/core` v0.6.0, `DiskException` moved to the standalone
-    [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package alongside the `Storage` facade --
-    it's still caught and mapped the same way, just imported from a different package.
-    `RateLimiterException` similarly now ships with [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting).
+    As of `@bejibun/core` v0.6.0, `DiskException` was removed from core when the `Storage` facade moved to
+    [`@bejibun/storage`](/v0.6/guides/storage/file-storage), which now ships `StorageException`.
+    `RateLimiterException` similarly ships with [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) and is still
+    mapped by the handler.
     `QueueException` was added in v0.6.1 for queue configuration and job-handling failures -- see
     [Queues & Jobs](/v0.6/guides/background/queues).
 </Note>
@@ -73,15 +77,15 @@ Every error response uses the standard envelope:
         ```
     </Accordion>
     <Accordion title="ValidatorException" icon="circle-xmark">
-        Thrown by `super.validate(...)` when input fails validation. The message is the first failing rule's message.
+        Thrown by `request.validate(...)` when input fails validation. The message is the first failing rule's message.
     </Accordion>
     <Accordion title="RateLimiterException" icon="gauge-high">
         Thrown when a client exceeds the configured rate limit (see
         [config](/v0.6/guides/getting-started/configuration#rate-limiter-configuration)).
     </Accordion>
     <Accordion title="QueueException" icon="list-ol">
-        Thrown by `queue:work` / `queue:retry` when no queue config can be resolved (neither `config/queue.ts` nor
-        the package default is available).
+        Thrown for queue configuration and job-handling failures -- for example, when no queue config can be resolved
+        (neither `config/queue.ts` nor the package default is available).
     </Accordion>
 </AccordionGroup>
 

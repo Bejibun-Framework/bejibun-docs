@@ -208,46 +208,38 @@ import BaseController from "@bejibun/core/bases/BaseController";
 import UserModel from "@/app/models/UserModel";
 
 export default class UserController extends BaseController {
-    public async index(request: Bun.BunRequest): Promise<Response> {
+    public async index(request: Bejibun.Request): Promise<Response> {
         const users = await UserModel.all();
 
         return super.response.setData(users).send();
     }
 
-    public async show(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-
-        const user = await UserModel.findOrFail(body.id);
+    public async show(request: Bejibun.Request): Promise<Response> {
+        const user = await UserModel.findOrFail(request.input("id"));
 
         return super.response.setData(user).send();
     }
 
-    public async store(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-
+    public async store(request: Bejibun.Request): Promise<Response> {
         const user = await UserModel.create({
-            name: body.name,
-            email: body.email
+            name: request.input("name"),
+            email: request.input("email")
         });
 
         return super.response.setData(user).send();
     }
 
-    public async update(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-
-        const user = await UserModel.findOrFail(body.id).update({
-            name: body.name,
-            email: body.email
+    public async update(request: Bejibun.Request): Promise<Response> {
+        const user = await UserModel.findOrFail(request.input("id")).update({
+            name: request.input("name"),
+            email: request.input("email")
         });
 
         return super.response.setData(user).send();
     }
 
-    public async destroy(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-
-        await UserModel.findOrFail(body.id).delete();
+    public async destroy(request: Bejibun.Request): Promise<Response> {
+        await UserModel.findOrFail(request.input("id")).delete();
 
         return super.response.setData().send();
     }
@@ -269,11 +261,10 @@ bun ace make:validator User
 Example:
 
 ```ts app/validators/UserValidator.ts
-import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
 import BaseValidator from "@bejibun/core/bases/BaseValidator";
 
 export default class UserValidator extends BaseValidator {
-    public static get store(): ValidatorType {
+    public static get store(): Bejibun.Validator {
         return super.validator.create({
             name: super.validator.string(),
             email: super.validator.string().email()
@@ -292,13 +283,12 @@ import UserValidator from "@/app/validators/UserValidator";
 export default class UserController extends BaseController {
     // ...
 
-    public async store(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-        await super.validate(UserValidator.store, body);
+    public async store(request: Bejibun.Request): Promise<Response> {
+        await request.validate(UserValidator.store);
 
         const user = await UserModel.create({
-            name: body.name,
-            email: body.email
+            name: request.input("name"),
+            email: request.input("email")
         });
 
         return super.response.setData(user).send();
@@ -417,7 +407,7 @@ As applications grow, controllers should remain thin.
 Avoid:
 
 ```ts
-public async store(request: Bun.BunRequest): Promise<Response> {
+public async store(request: Bejibun.Request): Promise<Response> {
     // hundreds of lines of logic
 }
 ```
@@ -425,11 +415,9 @@ public async store(request: Bun.BunRequest): Promise<Response> {
 Instead:
 
 ```ts
-public async store(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-
+public async store(request: Bejibun.Request): Promise<Response> {
     return super.response.setData(
-        UserService.create(body)
+        UserService.create(request.all())
     ).send();
 }
 ```

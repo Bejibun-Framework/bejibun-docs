@@ -1,15 +1,17 @@
 ---
 title: "Migrations"
-description: "Version your database schema with migrations."
+description: "Version your database schema with Knex migrations managed through ace."
 icon: "layer-group"
 ---
 
-Migrations are version control for your database schema. Bejibun uses Knex.js migrations,
-managed through the `ace` CLI. The full schema-builder reference is on this page.
+Migrations are version control for your database schema. Bejibun uses Knex.js
+migrations, managed through the `ace` CLI. Each migration is a timestamped file
+with an `up` and `down` function.
 
 ## Configuration
 
-The database connection lives in `config/database.ts`. PostgreSQL is the default client:
+The database connection lives in `config/database.ts`. PostgreSQL is the default
+client:
 
 ```ts config/database.ts
 import type {Knex} from "knex";
@@ -43,8 +45,8 @@ export default config;
 ```
 
 <Note>
-    The database layer is provided by `@bejibun/database`.
-    Install it with `bun ace install @bejibun/database` if it isn't already present.
+    The database layer is provided by `@bejibun/database`. Install it with
+    `bun ace install @bejibun/database` if it isn't already present.
 </Note>
 
 ## Creating a migration
@@ -53,7 +55,8 @@ export default config;
 bun ace make:migration create_users_table
 ```
 
-This creates a timestamped file in `database/migrations/` with `up` and `down` functions:
+This creates a timestamped file in `database/migrations/` with `up` and `down`
+functions:
 
 ```ts database/migrations/20260101_000001_create_users_table.ts
 import type {Knex} from "knex";
@@ -74,10 +77,10 @@ export function down(knex: Knex): Knex.SchemaBuilder {
 }
 ```
 
-## Running migrations
+## Commands
 
 <CodeGroup>
-    ```bash Apply pending
+    ```bash Apply pending migrations
     bun ace migrate:latest
     ```
 
@@ -102,13 +105,16 @@ Example output:
 ```
 
 <Warning>
-    `migrate:fresh` and `migrate:rollback` prompt for confirmation because they're destructive.
-    `migrate:fresh` drops **all** tables before re-running every migration -- never run it against production data.
+    `migrate:fresh` and `migrate:rollback` are destructive and prompt for
+    confirmation (both accept a `--force` flag to bypass it). `migrate:fresh`
+    drops **all** tables before re-running every migration -- never run it
+    against production data.
 </Warning>
 
 ## Column types
 
-Add columns inside the `createTable` callback. Types below assume the default `pg` client.
+Add columns inside the `createTable` callback. The types below assume the
+default `pg` client.
 
 ```ts
 knex.schema.createTable("users", (table) => {
@@ -167,9 +173,10 @@ table.integer("user_id").unsigned()
 table.foreign("user_id").references("users.id").onDelete("SET NULL");
 ```
 
-## Indexes & constraints
+## Indexes and constraints
 
-Composite/named constraints across one or more columns, plus their drop counterparts (use in `down`).
+Composite or named constraints across one or more columns, plus their drop
+counterparts (for use in `down`).
 
 ```ts
 table.index(["last_name", "first_name"]);   // composite index
@@ -182,7 +189,8 @@ table.dropUnique(["team_id", "slug"]);
 
 ## Altering tables
 
-Use `alterTable` to add, change, rename, or drop columns. `.alter()` marks a column for modification.
+Use `alterTable` to add, change, rename, or drop columns. `.alter()` marks a
+column for modification.
 
 ```ts
 export function up(knex: Knex): Knex.SchemaBuilder {
@@ -199,7 +207,8 @@ export function up(knex: Knex): Knex.SchemaBuilder {
 
 ## Schema helpers
 
-Chain these on `knex.schema` in `up`/`down`. `hasTable`/`hasColumn` return a boolean promise.
+Chain these on `knex.schema` in `up`/`down`. `hasTable`/`hasColumn` return a
+boolean promise.
 
 ```ts
 knex.schema.dropTable("users");
@@ -209,3 +218,12 @@ await knex.schema.hasTable("users");            // -> boolean
 await knex.schema.hasColumn("users", "email");
 knex.schema.raw("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"");
 ```
+
+<CardGroup cols={2}>
+    <Card title="Seeders" icon="seedling">
+        Populate your database with default or sample data.
+    </Card>
+    <Card title="Models" icon="table">
+        Define the models that map to your migrated tables.
+    </Card>
+</CardGroup>

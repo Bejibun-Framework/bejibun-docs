@@ -1,36 +1,45 @@
 ---
 title: "The Request"
-description: "Read input from the Bun request with super.parse()."
+description: "Read input from the request with the built-in request helpers."
 icon: "inbox"
 ---
 
-Bejibun controllers receive Bun's native `Bun.BunRequest`. Rather than wrapping it in a custom class,
-Bejibun gives you `super.parse(request)` -- a single method that collects **all** request input into one object.
+Every Bejibun controller receives a **`Bejibun.Request`** -- Bun's native `Bun.BunRequest` extended with a single flat
+`payload` map and 36 fluent helpers. Input is available directly on the request object; there is no `super.parse()`
+step to call first.
 
 ## Reading input
 
-Call `super.parse(request)` inside any controller method:
+The `RequestMiddleware` (applied globally by the server) populates `request.payload` before your controller runs.
+Read values with `input()` -- pass a key for a single value, or omit it for the whole payload:
 
 ```ts app/controllers/TestController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class TestController extends BaseController {
-    public async add(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
+    public async add(request: Bejibun.Request): Promise<Response> {
+        const name = request.input("name");      // one value
+        const all  = request.all();            // the entire payload
 
-        // body.name, body.id, body.search ... all available here
-        return super.response.setData(body).send();
+        return super.response.setData({ name, all }).send();
     }
 }
 ```
 
-## What `parse()` collects
+`input(key, fallback)` returns a default when the key is missing:
 
-`parse()` merges several sources into one object, in this order:
+```ts
+const name = request.input("name", "guest");
+```
+
+## What `payload` collects
+
+`RequestMiddleware` merges several sources into one flat map, in this order (later sources overwrite earlier ones on
+key collision):
 
 <Steps>
     <Step title="JSON body">
-        For `application/json` requests, the parsed and serialized JSON body.
+        For `application/json` requests, the parsed JSON body.
     </Step>
     <Step title="Route parameters">
         Dynamic segments like `:id` (see [Routing](/v0.6/guides/http-layer/routing#route-parameters)).
@@ -39,24 +48,88 @@ export default class TestController extends BaseController {
         Values from the URL's `?key=value` parameters.
     </Step>
     <Step title="Form data">
-        Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including uploaded files.
+        Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including uploaded `File`s.
     </Step>
     <Step title="Raw text">
-        A non-empty raw text body is available under the `text` key.
+        A non-empty raw text body is available under the `plainText` key.
     </Step>
 </Steps>
 
 <Note>
-    `parse()` never throws -- malformed input is silently skipped. Use a [validator](/v0.6/guides/validation/introduction) to
-    enforce the shape you expect.
+    Parsing never throws -- malformed input is silently skipped, leaving `payload` with whatever was successfully
+    collected. Use a [validator](/v0.6/guides/validation/introduction) to enforce the shape you expect.
 </Note>
+
+## Request helpers
+
+The helpers fall into six groups, all available on `Bejibun.Request`.
+
+### Header, cookie & auth
+
+| Helper                  | Returns             | Description                                  |
+| ----------------------- | ------------------- | -------------------------------------------- |
+| `header(key, def?)`     | `string\|undefined` | Header value by name (case-insensitive)      |
+| `hasHeader(key)`        | `boolean`           | Whether the header is present                |
+| `bearerToken()`         | `string\|undefined` | Token from the `Authorization` header        |
+| `cookie(key)`           | `string\|undefined` | Cookie value by name                         |
+| `userAgent()`           | `string\|undefined` | The `User-Agent` header                      |
+| `ip()`                  | `string\|undefined` | The client IP, when resolvable               |
+
+### URL & protocol
+
+| Helper                 | Returns   | Description                                           |
+| ---------------------- | --------- | ----------------------------------------------------- |
+| `path()`               | `string`  | The pathname, without query string                    |
+| `fullUrl()`            | `string`  | The full URL including query string                   |
+| `is(...patterns)`      | `boolean` | Path matches a pattern (`*` wildcard, e.g. `admin/*`) |
+| `isMethod(method)`     | `boolean` | HTTP method matches, case-insensitive                 |
+| `secure()`             | `boolean` | Served over HTTPS                                     |
+| `ajax()`               | `boolean` | Initiated via `XMLHttpRequest`                        |
+| `wantsJson()`          | `boolean` | `Accept` header indicates JSON                        |
+| `expectsJson()`        | `boolean` | AJAX request or explicitly wants JSON                 |
+
+### Payload access
+
+| Helper                       | Returns                | Description                                  |
+| ---------------------------- | ---------------------- | -------------------------------------------- |
+| `input(key?, def?)`          | `any`                  | Whole payload, or a single value + fallback  |
+| `get(key)`                   | `any`                  | Raw value by key                             |
+| `set(key, value)`            | `void`                 | Set a value on the payload                   |
+| `all()`                      | `Record<string, any>`  | The full payload                             |
+| `keys()`                     | `string[]`             | Every payload key                            |
+| `only(keys)`                 | `Record<string, any>`  | Subset of the payload (given keys)           |
+| `except(keys)`               | `Record<string, any>`  | Payload without the given keys               |
+| `merge(values)`              | `void`                 | Merge values in, keeping other keys          |
+| `replace(values)`            | `void`                 | Replace the entire payload                   |
+
+### Presence checks
+
+| Helper       | Returns   | Description                                            |
+| ------------ | --------- | ------------------------------------------------------ |
+| `has(keys)`  | `boolean` | All given keys are present                             |
+| `hasAny(keys)` | `boolean` | At least one given key is present                    |
+| `filled(keys)` | `boolean` | All given keys are present and non-empty             |
+| `missing(keys)` | `boolean` | All given keys are absent                            |
+
+### Type coercion
+
+| Helper        | Returns   | Description                            |
+| ------------- | --------- | -------------------------------------- |
+| `string(key)` | `string`  | Coerced to string                      |
+| `integer(key)`| `number`  | Coerced to integer                     |
+| `float(key)`  | `number`  | Coerced to floating-point number       |
+| `boolean(key)`| `boolean` | Coerced to boolean                     |
+| `array(key)`  | `any[]`   | Coerced to array                       |
+| `object(key)` | `object`  | Coerced to object                      |
+| `file(key)`   | `File\|undefined` | Uploaded file by key           |
+| `hasFile(key)`| `boolean` | An uploaded file is present for the key |
 
 ## Accessing the raw request
 
-The native `Bun.BunRequest` is always available in your handler, so standard Web APIs work directly:
+`Bejibun.Request` *is* `Bun.BunRequest`, so standard Web APIs work directly too:
 
 ```ts
-public async show(request: Bun.BunRequest): Promise<Response> {
+public async show(request: Bejibun.Request): Promise<Response> {
     const method = request.method;             // "GET"
     const url = new URL(request.url);          // URL object
     const auth = request.headers.get("authorization");
@@ -70,12 +143,21 @@ public async show(request: Bun.BunRequest): Promise<Response> {
 
 ## Validating input
 
-Pair `parse()` with `validate()` to guarantee input integrity before using it:
+Call `request.validate(validator)` to guarantee input integrity before using it:
 
 ```ts
-const body = await super.parse(request);
-await super.validate(TestValidator.store, body);
+await request.validate(TestValidator.store);
 ```
 
-A failed validation throws a `ValidatorException` and short-circuits into an error response. See the validation guide
-for authoring validators.
+It returns the validated (and type-coerced) data, and throws a `ValidatorException` on failure, short-circuiting into
+an error response. See the [validation guide](/v0.6/guides/validation/request-validation) for authoring validators.
+
+```ts app/controllers/TestController.ts
+public async store(request: Bejibun.Request): Promise<Response> {
+    await request.validate(StoreValidator.store);   // throws ValidatorException (422)
+
+    const name = request.input("name", "guest");
+
+    return super.response.setData({ name }).send();
+}
+```

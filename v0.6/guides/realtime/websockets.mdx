@@ -4,8 +4,8 @@ description: "Build realtime features with WebSocket handlers and routes."
 icon: "tower-broadcast"
 ---
 
-Bejibun has first-class WebSocket support built on Bun's native server.
-You define handlers much like controllers and wire them up through WebSocket routes.
+Bejibun has first-class WebSocket support built on Bun's native server. You define handlers much like controllers and
+wire them up through WebSocket routes.
 
 ## Defining a handler
 
@@ -39,7 +39,8 @@ export default Router.prefix("chat").group([
 ]);
 ```
 
-`Router.websocket(path, "Class@method")` upgrades matching requests and dispatches incoming messages to your handler method.
+`Router.websocket(path, "Class@method")` upgrades matching requests and dispatches incoming messages to your handler
+method.
 
 ## Connections and broadcasting
 
@@ -89,3 +90,9 @@ const config: Record<string, any> = {
 
 export default config;
 ```
+
+<Note>
+    As of `@bejibun/core` v0.6.11, the WebSocket options (`idleTimeout`, `maxPayloadLength`, `backpressureLimit`, etc.)
+    are sourced from your `config/websocket.ts` even when you haven't published your own copy -- the server no longer
+    falls back to the route config for these values.
+</Note>

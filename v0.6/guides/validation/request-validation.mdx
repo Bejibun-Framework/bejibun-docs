@@ -5,11 +5,11 @@ icon: "arrow-right-to-bracket"
 ---
 
 Once you've defined a [validator](/v0.6/guides/validation/creating-validators),
-run it inside a controller with `super.validate()`.
+run it inside a controller with `request.validate()`.
 
 ## Validating a request
 
-Parse the request, validate it, then proceed:
+Validate the request payload, then proceed:
 
 ```ts app/controllers/UserController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
@@ -17,12 +17,11 @@ import UserModel from "@/app/models/UserModel";
 import UserValidator from "@/app/validators/UserValidator";
 
 export default class UserController extends BaseController {
-    public async store(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-        await super.validate(UserValidator.store, body);
+    public async store(request: Bejibun.Request): Promise<Response> {
+        await request.validate(UserValidator.store);
 
         const user = await UserModel.create({
-            name: body.name as string
+            name: request.input("name")
         });
 
         return super.response.setData(user).send();
@@ -31,18 +30,18 @@ export default class UserController extends BaseController {
 ```
 
 <Note>
-    `validate()` returns the validated data and throws a `ValidatorException` on failure --
+    `request.validate()` returns the validated data and throws a `ValidatorException` on failure --
     there's no need to check a result flag.
     Execution stops and the [exception handler](/v0.6/guides/core-concepts/error-handling) formats the error response.
 </Note>
 
 ## Validating route parameters
 
-Route parameters land in the same parsed object, so they validate like any other field.
+Route parameters land in the same payload, so they validate like any other field.
 This pairs perfectly with the `exists` rule:
 
 ```ts app/validators/UserValidator.ts
-public static get show(): ValidatorType {
+public static get show(): Bejibun.Validator {
     return super.validator.create({
         id: super.validator.number().min(1).exists(UserModel, "id")
     });
@@ -50,11 +49,10 @@ public static get show(): ValidatorType {
 ```
 
 ```ts app/controllers/UserController.ts
-public async show(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(UserValidator.show, body);
+public async show(request: Bejibun.Request): Promise<Response> {
+    await request.validate(UserValidator.show);
 
-    const user = await UserModel.findOrFail(body.id as number | string);
+    const user = await UserModel.findOrFail(request.input("id"));
 
     return super.response.setData(user).send();
 }

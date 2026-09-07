@@ -4,57 +4,80 @@ description: "Every VineJS schema type and validation rule, plus the framework's
 icon: "list-check"
 ---
 
-Validators are built on the full VineJS rule set, and Bejibun adds two database-aware rules: `exists` and `unique`.
-`super.validator` is the VineJS root, so every schema type and rule below is chained from it.
+Validators are built on the full [VineJS](https://vinejs.dev) rule set (v4.4.0), and Bejibun adds two database-aware rules: `exists` and `unique`. `super.validator` is the shared Vine instance, so every schema type and rule below is chained from it.
 
 ## Schema types
 
-Pick a type, then chain rules and [modifiers](#modifiers) onto it. Each type lists the commonly used rules;
-VineJS ships more (50+ in total) -- the patterns are identical.
+Pick a type, then chain rules and [modifiers](#modifiers) onto it. The tables list the rules available on each type. Vine ships a few more types than the ones covered here -- `any()`, `optional()`, `null()`, `record()`, `tuple()`, `union()`, `unionOfTypes()`, and `nativeFile()` -- which follow the same chaining pattern.
 
 ### String
 
-`string()` validates string fields. Empty strings pass by default; use `minLength()` or a [modifier](#modifiers)
-to require a value. Normalizers (`trim`, `escape`, `toUpperCase`...) mutate the output value.
+`string()` validates string fields. Empty strings pass by default; use `minLength()`, `maxLength()`, or a [modifier](#modifiers) to require a value.
 
-```ts
-super.validator.string()                                    // any string
-super.validator.string().minLength(8).maxLength(64)         // length bounds
-super.validator.string().fixedLength(6)                     // exact length
-super.validator.string().email()                            // valid email
-super.validator.string().url({require_protocol: true})      // valid URL
-super.validator.string().alphaNumeric({allowUnderscores: true})
-super.validator.string().regex(/^[a-z0-9-]+$/)              // custom pattern
-super.validator.string().in(["draft", "published"])         // allow-list
-super.validator.string().notIn(["admin", "root"])           // deny-list
-super.validator.string().confirmed()                        // needs <field>_confirmation
-super.validator.string().sameAs("password")                 // must equal another field
-super.validator.string().creditCard()                       // valid card number
-super.validator.string().mobile()                           // valid phone number
+| Rule              | Description                                        | Example                                          |
+| ----------------- | -------------------------------------------------- | ------------------------------------------------ |
+| `email()`         | Valid email address                                | `string().email()`                               |
+| `mobile()`        | Valid mobile phone number                          | `string().mobile({ locale: ["en-US"] })`         |
+| `url()`           | Valid URL                                          | `string().url({ require_protocol: true })`       |
+| `activeUrl()`     | URL that returns a successful HTTP response        | `string().activeUrl()`                           |
+| `ipAddress()`     | Valid IP address                                   | `string().ipAddress(4)`                          |
+| `regex()`         | Match a custom regular expression                  | `string().regex(/^[a-z0-9-]+$/)`                 |
+| `hexCode()`       | Valid hexadecimal color code                       | `string().hexCode()`                             |
+| `alpha()`         | Letters only                                       | `string().alpha({ allowSpaces: true })`          |
+| `alphaNumeric()`  | Letters and numbers                                | `string().alphaNumeric({ allowUnderscores: true })` |
+| `ascii()`         | ASCII characters only                              | `string().ascii()`                               |
+| `minLength()`     | Minimum character count                            | `string().minLength(8)`                          |
+| `maxLength()`     | Maximum character count                            | `string().maxLength(64)`                         |
+| `fixedLength()`   | Exact character count                              | `string().fixedLength(6)`                        |
+| `startsWith()`    | Begins with a substring                            | `string().startsWith("https://")`                |
+| `endsWith()`      | Ends with a substring                              | `string().endsWith(".com")`                      |
+| `in()`            | Value is in an allow-list                          | `string().in(["draft", "published"])`            |
+| `notIn()`         | Value is not in a deny-list                        | `string().notIn(["admin", "root"])`              |
+| `sameAs()`        | Equals another field's value                       | `string().sameAs("password")`                    |
+| `notSameAs()`     | Differs from another field's value                 | `string().notSameAs("oldPassword")`              |
+| `confirmed()`     | Matches a `<field>_confirmation` sibling field     | `string().confirmed()`                           |
+| `uuid()`          | Valid UUID                                         | `string().uuid()`                                |
+| `ulid()`          | Valid ULID                                         | `string().ulid()`                                |
+| `creditCard()`    | Valid credit card number                           | `string().creditCard({ provider: ["visa"] })`    |
+| `passport()`      | Valid passport number for a country                | `string().passport({ countryCode: ["US"] })`     |
+| `vat()`           | Valid VAT number for a country                     | `string().vat({ countryCode: ["GB"] })`          |
+| `postalCode()`    | Valid postal code                                  | `string().postalCode({ countryCode: ["US"] })`   |
+| `iban()`          | Valid IBAN                                         | `string().iban()`                                |
+| `jwt()`           | Valid JWT structure (signature not verified)       | `string().jwt()`                                 |
+| `coordinates()`   | Valid `"lat,lng"` pair                             | `string().coordinates()`                         |
 
-// normalizers (transform the output)
-super.validator.string().trim()
-super.validator.string().escape()                           // escape HTML
-super.validator.string().toUpperCase()                      // also toLowerCase()
-super.validator.string().email().normalizeEmail({all_lowercase: true})
-super.validator.string().url().normalizeUrl({forceHttps: true})
-```
+`ipAddress()` accepts no argument to allow both IPv4 and IPv6, or `4` / `6` to restrict a single version.
+
+Normalizers mutate the output value instead of rejecting it:
+
+| Rule               | Description                        | Example                                             |
+| ------------------ | ---------------------------------- | --------------------------------------------------- |
+| `trim()`           | Strip leading and trailing whitespace | `string().trim()`                                |
+| `escape()`         | Escape HTML entities               | `string().escape()`                                 |
+| `toUpperCase()`    | Convert to uppercase               | `string().toUpperCase()`                            |
+| `toLowerCase()`    | Convert to lowercase               | `string().toLowerCase()`                            |
+| `toCamelCase()`    | Convert `snake_case` to camelCase  | `string().toCamelCase()`                            |
+| `normalizeEmail()` | Normalize an email address         | `string().email().normalizeEmail({ all_lowercase: true })` |
+| `normalizeUrl()`   | Normalize a URL                    | `string().url().normalizeUrl({ forceHttps: true })` |
 
 ### Number
 
-`number()` accepts numbers or numeric strings; pass `{ strict: true }` to reject coercion.
+`number()` accepts numbers or numeric strings; pass `{ strict: true }` to reject string coercion.
 
-```ts
-super.validator.number()                    // number or numeric string
-super.validator.number({strict: true})      // no string coercion
-super.validator.number().min(1).max(120)    // bounds
-super.validator.number().range([1, 5])      // inclusive range
-super.validator.number().positive()         // > 0  (also .negative())
-super.validator.number().nonNegative()      // >= 0
-super.validator.number().withoutDecimals()  // integers only
-super.validator.number().decimal([0, 2])    // up to 2 decimal places
-super.validator.number().in([10, 20, 50])   // allow-list
-```
+| Rule                | Description                        | Example                       |
+| ------------------- | ---------------------------------- | ----------------------------- |
+| `min()`             | Minimum value                      | `number().min(1)`             |
+| `max()`             | Maximum value                      | `number().max(120)`           |
+| `range()`           | Inclusive range                    | `number().range([1, 5])`      |
+| `positive()`        | Greater than `0`                   | `number().positive()`         |
+| `negative()`        | Less than `0`                      | `number().negative()`         |
+| `nonNegative()`     | Greater than or equal to `0`       | `number().nonNegative()`      |
+| `nonPositive()`     | Less than or equal to `0`          | `number().nonPositive()`      |
+| `decimal()`         | Fixed or bounded decimal places    | `number().decimal([0, 2])`    |
+| `withoutDecimals()` | Whole numbers only                 | `number().withoutDecimals()`  |
+| `in()`              | Value is in an allow-list          | `number().in([10, 20, 50])`   |
+
+`decimal()` accepts either an exact count (`decimal(2)`) or a `[min, max]` tuple.
 
 ### Boolean
 
@@ -62,26 +85,32 @@ super.validator.number().in([10, 20, 50])   // allow-list
 
 ```ts
 super.validator.boolean()                // accepts "true", 1, etc.
-super.validator.boolean({strict: true})  // only true / false
+super.validator.boolean({ strict: true }) // only true / false
 ```
 
 ### Date
 
 `date()` validates a date string and returns a JS `Date`. Default format is ISO-8601; override with `formats`.
 
-```ts
-super.validator.date()                             // ISO-8601 -> Date
-super.validator.date({formats: ["YYYY-MM-DD"]})    // custom format
-super.validator.date().after("today")              // also .before()
-super.validator.date().afterOrEqual("2024-01-01")
-super.validator.date().afterField("checkin_date")  // compare to sibling field
-super.validator.date().weekday()                   // Mon-Fri only
-```
+| Rule                 | Description                        | Example                                   |
+| -------------------- | ---------------------------------- | ----------------------------------------- |
+| `after()`            | After a date                       | `date().after("today")`                   |
+| `afterOrEqual()`     | After or equal to a date           | `date().afterOrEqual("2024-01-01")`       |
+| `before()`           | Before a date                      | `date().before("yesterday")`              |
+| `beforeOrEqual()`    | Before or equal to a date          | `date().beforeOrEqual("2024-12-31")`      |
+| `equals()`           | Equal to a date                    | `date().equals("2024-06-01")`             |
+| `afterField()`       | After a sibling field's value      | `date().afterField("checkin_date")`       |
+| `beforeField()`      | Before a sibling field's value     | `date().beforeField("checkout_date")`     |
+| `afterOrSameAs()`    | After or equal to a sibling field  | `date().afterOrSameAs("checkin_date")`    |
+| `beforeOrSameAs()`   | Before or equal to a sibling field | `date().beforeOrSameAs("checkout_date")`  |
+| `sameAs()`           | Same as a sibling field            | `date().sameAs("other_date")`             |
+| `notSameAs()`        | Different from a sibling field     | `date().notSameAs("other_date")`          |
+| `weekday()`          | Weekday only (Mon-Fri)             | `date().weekday()`                        |
+| `weekend()`          | Weekend only                       | `date().weekend()`                        |
 
 ### Enum & literal
 
-`enum()` restricts a value to a fixed set. Accepts an array (use `as const` for precise types) or a TypeScript enum;
-a callback computes options at runtime.
+`enum()` restricts a value to a fixed set. It accepts an array (use `as const` for precise types), a TypeScript enum, or a callback that computes options at runtime. `literal()` accepts exactly one value.
 
 ```ts
 super.validator.enum(["pending", "active", "banned"] as const)
@@ -94,8 +123,7 @@ super.validator.literal("v1")    // exactly this value
 
 ### Accepted
 
-`accepted()` validates an HTML checkbox -- it passes only when the value is `on`, `1`, `yes`, or `true`,
-and normalizes the output to `true`.
+`accepted()` validates an HTML checkbox -- it passes only when the value is `on`, `1`, `yes`, or `true`, and normalizes the output to `true`.
 
 ```ts
 terms: super.validator.accepted()  // "on" -> true
@@ -105,13 +133,16 @@ terms: super.validator.accepted()  // "on" -> true
 
 `array(member)` validates every element against the member schema.
 
-```ts
-super.validator.array(super.validator.string())             // string[]
-super.validator.array(super.validator.number()).notEmpty()  // at least one item
-super.validator.array(super.validator.string()).minLength(1).maxLength(10)
-super.validator.array(super.validator.number()).distinct()  // no duplicates
-super.validator.array(super.validator.string()).compact()   // drop null/undefined/"" first
+| Rule            | Description                                 | Example                                   |
+| --------------- | ------------------------------------------- | ----------------------------------------- |
+| `minLength()`   | Minimum element count                       | `array(string()).minLength(1)`            |
+| `maxLength()`   | Maximum element count                       | `array(string()).maxLength(10)`           |
+| `fixedLength()` | Exact element count                         | `array(string()).fixedLength(5)`          |
+| `notEmpty()`    | At least one element                        | `array(string()).notEmpty()`              |
+| `distinct()`    | No duplicates (optionally by object field)  | `array(number()).distinct()`              |
+| `compact()`     | Drop `null`/`undefined`/`""` before validating | `array(string()).compact()`            |
 
+```ts
 // array of objects, unique by a property
 super.validator.array(
     super.validator.object({
@@ -122,7 +153,15 @@ super.validator.array(
 
 ### Object
 
-`object({...})` validates known properties. Unknown keys are stripped unless you call `allowUnknownProperties()`.
+`object({...})` validates known properties. Unknown keys are rejected unless you call `allowUnknownProperties()`.
+
+| Method                        | Effect                                                        |
+| ----------------------------- | ------------------------------------------------------------- |
+| `allowUnknownProperties()`    | Allow and retain properties not declared in the schema        |
+| `pick([...])` / `omit([...])` | Derive a schema with only (or without) the given keys         |
+| `partial()` / `partial([...])`| Make all (or selected) properties optional -- useful for PATCH |
+| `merge(vine.group(...))`      | Add conditional property groups                                |
+| `toCamelCase()`               | Convert `snake_case` input keys to camelCase output           |
 
 ```ts
 super.validator.object({
@@ -132,10 +171,6 @@ super.validator.object({
         city: super.validator.string()
     })
 })
-
-super.validator.object({
-    name: super.validator.string()
-}).allowUnknownProperties()
 ```
 
 ## Modifiers
@@ -154,9 +189,13 @@ super.validator.string().nullable()             // string | null
 super.validator.string().nullable().optional()  // string | null | undefined
 ```
 
+## Database rules
+
+Bejibun registers two database-aware rules on both string and number schemas: `exists` and `unique`. Both query the model's table to check a value against a column. They accept either a model class with positional arguments, or a single options object.
+
 ### `exists` -- the value must exist in a table
 
-Confirms a value matches a row in the database before you query it. Registered on both string and number fields.
+Confirms a value matches a row in the database before you query it.
 
 ```ts
 id: super.validator.number().min(1).exists(UserModel, "id")
@@ -167,7 +206,7 @@ Signature:
 ```ts
 .exists(Model, column?, withTrashed?, nullable?)
 // or, as an options object:
-.exists({table, column?, withTrashed?, nullable?})
+.exists({ table, column?, withTrashed?, nullable? })
 ```
 
 | Argument      | Default        | Description                           |
@@ -184,9 +223,19 @@ Default message: `The <field> field doesn't exists`.
 id: super.validator.number().min(1).exists(UserModel, "id", true)
 ```
 
+With an options object:
+
+```ts
+email: super.validator.string().email().exists({
+    table: UserModel,
+    column: "email",
+    nullable: true
+})
+```
+
 ### `unique` -- the value must not already exist
 
-The inverse of `exists` -- used for sign-up emails, slugs, and other one-of-a-kind values. Same signature as `exists`.
+The inverse of `exists` -- used for sign-up emails, slugs, and other one-of-a-kind values. Same signature and options as `exists`.
 
 ```ts
 email: super.validator.string().email().unique(UserModel, "email")
@@ -195,6 +244,5 @@ email: super.validator.string().email().unique(UserModel, "email")
 Default message: `The <field> field is already exists`.
 
 <Note>
-    Both rules query the model with `Model.query().where(column, value).first()` (or `withTrashed()` first). Pass
-    `nullable: true` to skip the check entirely for empty values.
+    Both rules query the model with `Model.query().where(column, value).first()`, or `Model.withTrashed().where(...)` when `withTrashed` is set. Pass `nullable: true` to skip the check entirely for empty values.
 </Note>

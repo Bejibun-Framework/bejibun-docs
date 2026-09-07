@@ -4,23 +4,13 @@ description: Learn what Bejibun is, why it was created, and how it helps develop
 icon: "book-open"
 ---
 
-# What is Bejibun?
+Bejibun is a modern, batteries-included TypeScript framework built specifically for the Bun runtime. Inspired by the developer experience of Laravel, it provides a structured, productive environment for building APIs, web applications, real-time systems, and backend services without sacrificing performance or type safety.
 
-Bejibun is a modern, batteries-included TypeScript framework built specifically for the Bun runtime.
-
-Inspired by the developer experience of frameworks like Laravel, Bejibun provides a structured and productive environment
-for building APIs, web applications, real-time systems, and backend services without sacrificing performance or type safety.
-
-Rather than assembling dozens of libraries and configurations before writing application logic, Bejibun provides
-a unified ecosystem with sensible defaults and first-class integrations.
-
----
+Rather than assembling dozens of libraries and configuration files before writing application logic, Bejibun ships a unified ecosystem with sensible defaults and first-class integrations.
 
 ## Built for Bun
 
-Bejibun is designed from the ground up for Bun.
-
-By embracing Bun as its foundation, Bejibun benefits from:
+Bejibun is designed from the ground up for Bun and inherits its runtime characteristics:
 
 - Fast startup times
 - High-performance HTTP handling
@@ -29,15 +19,9 @@ By embracing Bun as its foundation, Bejibun benefits from:
 - Built-in tooling
 - Simplified deployment
 
-Developers can focus on building applications instead of managing runtime complexity.
-
----
-
 ## Laravel-Inspired Developer Experience
 
-Bejibun adopts many of the concepts developers love about Laravel while embracing TypeScript and Bun.
-
-Examples include:
+Bejibun adopts concepts developers value in Laravel while embracing TypeScript and Bun:
 
 - MVC architecture
 - Dependency injection
@@ -49,43 +33,23 @@ Examples include:
 - Queue jobs
 - Event-driven architecture
 
-The goal is familiar productivity without bringing PHP-specific limitations into the TypeScript ecosystem.
-
----
+The goal is familiar productivity without carrying PHP-specific limitations into the TypeScript ecosystem.
 
 ## TypeScript First
 
-TypeScript is not an afterthought.
-
-Every part of the framework is designed with type safety in mind.
-
-Benefits include:
-
-- Better autocomplete
-- Improved refactoring
-- Compile-time validation
-- Safer application architecture
-- Enhanced developer experience
-
-This allows teams to build large applications with greater confidence and maintainability.
-
----
+TypeScript is not an afterthought. Every part of the framework is designed for type safety, yielding better autocomplete, improved refactoring, compile-time validation, and safer application architecture.
 
 ## Batteries Included
 
-Modern applications require more than a router.
-
-Bejibun includes a growing ecosystem of integrated features that work together out of the box.
-
-Current framework capabilities include:
+Bejibun includes an integrated ecosystem of features that work together out of the box:
 
 - Installation CLI
-- Ace as CLI command
+- Ace CLI
 - Routing
 - Middleware
-- Controller
+- Controllers
 - Validation
-- Command
+- Commands
 - Database ORM
 - Migrations
 - Seeders
@@ -102,10 +66,6 @@ Current framework capabilities include:
 - CORS
 - Unit testing
 - x402 payments
-
-Instead of spending time evaluating and integrating multiple packages, developers can rely on a consistent framework experience.
-
----
 
 ## MVC Architecture
 
@@ -142,26 +102,15 @@ sequenceDiagram
     end
 ```
 
-This architecture encourages:
-
-- Separation of concerns
-- Maintainable codebases
-- Clear application structure
-- Scalable team collaboration
-
-Whether you're building a small API or a large enterprise platform, MVC provides a familiar and organized foundation.
-
----
+This architecture encourages separation of concerns, maintainable codebases, clear application structure, and scalable team collaboration.
 
 ## Designed for Modern Applications
 
-Bejibun is built to support a wide range of application types.
-
-Examples include:
+Bejibun supports a range of application types:
 
 ### REST APIs
 
-Build secure and scalable APIs with routing, validation, middleware, and OpenAPI support.
+Build secure, scalable APIs with routing, validation, middleware, and OpenAPI support.
 
 ### Real-Time Applications
 
@@ -179,14 +128,9 @@ Create APIs and services that power AI applications, automation workflows, and a
 
 Integrate monetized endpoints using built-in x402 support.
 
----
-
 ## A Unified Developer Experience
 
-One of Bejibun's primary goals is consistency.
-
-Instead of learning separate conventions for routing, validation, database access, caching, and background processing,
-developers interact with a cohesive framework designed around shared principles.
+Consistency is a primary goal. Instead of learning separate conventions for routing, validation, database access, caching, and background processing, developers interact with a cohesive framework built on shared principles.
 
 ```text
 📁 Application
@@ -217,93 +161,26 @@ developers interact with a cohesive framework designed around shared principles.
 ├── bootstrap.ts
 ├── bunfig.toml
 ├── package.json
-└── server.ts
+├── server.ts
+└── tsconfig.json
 ```
-
-This consistency reduces cognitive overhead and helps teams move faster.
-
----
 
 ## Open and Extensible
 
-While Bejibun provides many features out of the box, it is also designed to be extensible.
-
-Developers can:
-
-- Create custom middleware
-- Build custom commands
-- Extend validation rules
-- Add startup codes
-- Develop reusable packages
-- Integrate external services
-
-The framework aims to provide strong defaults without limiting customization.
-
----
+Bejibun provides strong defaults without limiting customization. Developers can create custom middleware, build custom commands, extend validation rules, add startup code, develop reusable packages, and integrate external services.
 
 ## Who Is Bejibun For?
 
-Bejibun is suitable for:
-
-- Individual developers
-- Startup teams
-- SaaS companies
-- API developers
-- Enterprise applications
-- Open-source projects
-
-Whether you're building your first API or managing a large production system, Bejibun provides the tools needed to develop efficiently.
-
----
+Bejibun suits individual developers, startup teams, SaaS companies, API developers, enterprise applications, and open-source projects.
 
 ## Why Was Bejibun Created?
 
-Modern TypeScript development often requires assembling multiple libraries before a project becomes productive.
-
-A typical setup might involve:
-
-```text
-Router
-ORM
-Validation
-Dependency Injection
-Configuration
-Queue System
-Documentation
-WebSockets
-Caching
-```
-
-Each library introduces its own APIs, conventions, and maintenance requirements.
-
-Bejibun was created to provide a unified framework experience where these components work together seamlessly from the start.
-
----
+Modern TypeScript development often requires assembling many libraries before a project becomes productive. A typical setup combines a router, ORM, validation library, dependency injection container, configuration system, queue, documentation generator, WebSockets, and caching -- each with its own APIs, conventions, and maintenance burden. Bejibun was created to provide a unified framework where these components work together from the start.
 
 ## The Vision
 
-Bejibun aims to become the most productive framework for building modern backend applications on Bun.
-
-Its vision is centered around:
-
-- Developer productivity
-- Excellent developer experience
-- Performance by default
-- Type safety
-- Extensibility
-- Long-term maintainability
-
-By combining Bun's speed with a cohesive application architecture, Bejibun helps developers focus on building products
-rather than configuring infrastructure.
-
----
+Bejibun aims to be the most productive framework for building backend applications on Bun. Its vision centers on developer productivity, excellent developer experience, performance by default, type safety, extensibility, and long-term maintainability.
 
 ## Next Steps
 
-Now that you understand what Bejibun is, continue with:
-
-- Why Bejibun?
-- Framework Philosophy
-- Feature Overview
-
-These guides explain the design decisions, principles, and capabilities that shape the framework.
+Continue with [Why Bejibun?](/v0.6/guides/introduction/why-bejibun), [Framework Philosophy](/v0.6/guides/introduction/framework-philosophy), and [Feature Overview](/v0.6/guides/introduction/feature-overview) to understand the design decisions, principles, and capabilities that shape the framework.

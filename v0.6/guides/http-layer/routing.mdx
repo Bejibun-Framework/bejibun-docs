@@ -63,7 +63,7 @@ export default Router.prefix("tests").group([
 
 ### Available HTTP verbs
 
-| Method                          | Signature |
+| Facade method                   | HTTP verb |
 | ------------------------------- | --------- |
 | `Router.get(path, handler)`     | `GET`     |
 | `Router.post(path, handler)`    | `POST`    |
@@ -98,7 +98,7 @@ A handler can be a **controller reference string** or an **inline function**.
     ```
 
     ```ts Inline handler
-    Router.get("/", async (request: Bun.BunRequest): Promise<Response> => {
+    Router.get("/", async (request: Bejibun.Request): Promise<Response> => {
         return Response.json({
             framework: "Bejibun",
             status: "running"
@@ -112,8 +112,8 @@ and binds the method. An invalid `Controller@method` reference throws a `RouterE
 
 ## Route parameters
 
-Routes often need to capture segments of the URL -- for example, the ID of the record you want to fetch.
-Prefix a path segment with a colon to make it dynamic:
+Prefix a path segment with a colon to capture that segment as a dynamic value (for example, the ID of the
+record to fetch):
 
 ```ts routes/api/test.ts
 import Router from "@bejibun/core/facades/Router";
@@ -135,18 +135,16 @@ Router.get("posts/:postId/comments/:commentId", "CommentController@show");
 
 ### Reading parameters
 
-Route parameters are merged into the parsed request body by `super.parse(request)`.
-Call it in your controller and read the values by name:
+Route parameters are merged into the request `payload` by the framework before your controller runs.
+Read them with `request.input()`:
 
 ```ts app/controllers/TestController.ts
 import BaseController from "@bejibun/core/bases/BaseController";
 import TestModel from "@/app/models/TestModel";
 
 export default class TestController extends BaseController {
-    public async show(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-
-        const test = await TestModel.findOrFail(body.id);
+    public async show(request: Bejibun.Request): Promise<Response> {
+        const test = await TestModel.findOrFail(request.input("id"));
 
         return super.response.setData(test).send();
     }
@@ -154,22 +152,21 @@ export default class TestController extends BaseController {
 ```
 
 <Note>
-    `parse()` merges **route parameters**, **query-string values**, and the **request body** into a single object. See
+    The payload merges **route parameters**, **query-string values**, and the **request body** into a single map. See
     [The Request](/v0.6/guides/http-layer/the-request) for the full precedence.
 </Note>
 
 ### Validating parameters
 
-Because parameters arrive in the same object as the body, you validate them with a normal [validator](/v0.6/guides/http-layer/controllers).
+Because parameters arrive in the same object as the body, you validate them with a normal [validator](/v0.6/guides/validation/creating-validators).
 The built-in `exists` rule is ideal for confirming a record exists before you query it:
 
 ```ts app/validators/TestValidator.ts
-import type {ValidatorType} from "@bejibun/core/types/ValidatorType";
 import BaseValidator from "@bejibun/core/bases/BaseValidator";
 import TestModel from "@/app/models/TestModel";
 
 export default class TestValidator extends BaseValidator {
-    public static get show(): ValidatorType {
+    public static get show(): Bejibun.Validator {
         return super.validator.create({
             id: super.validator.number().min(1).exists(TestModel, "id")
         });
@@ -183,11 +180,10 @@ import TestModel from "@/app/models/TestModel";
 import TestValidator from "@/app/validators/TestValidator";
 
 export default class TestController extends BaseController {
-    public async show(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-        await super.validate(TestValidator.show, body);
+    public async show(request: Bejibun.Request): Promise<Response> {
+        await request.validate(TestValidator.show);
 
-        const test = await TestModel.findOrFail(body.id);
+        const test = await TestModel.findOrFail(request.input("id"));
 
         return super.response.setData(test).send();
     }
@@ -220,7 +216,7 @@ Document the parameter explicitly with the [`@ApiDoc`](/v0.6/guides/http-layer/c
         ]
     }
 })
-public async show(request: Bun.BunRequest): Promise<Response> {
+public async show(request: Bejibun.Request): Promise<Response> {
     // ...
 }
 ```
@@ -352,12 +348,11 @@ import TestModel from "@/app/models/TestModel";
 import TestValidator from "@/app/validators/TestValidator";
 
 export default class TestController extends BaseController {
-    public async show(request: Bun.BunRequest): Promise<Response> {
-        const body = await super.parse(request);
-        await super.validate(TestValidator.show, body);
+    public async show(request: Bejibun.Request): Promise<Response> {
+        await request.validate(TestValidator.show);
 
         // resolves the model or throws ModelNotFoundException
-        const test = await TestModel.findOrFail(body.id);
+        const test = await TestModel.findOrFail(request.input("id"));
 
         return super.response.setData(test).send();
     }
@@ -374,11 +369,11 @@ id: super.validator.number().min(1).exists(TestModel, "id", true)
 ```
 
 ```ts
-// controller: load including trashed, then restore
-await TestModel.withTrashed().find(body.id as number | string).restore();
+// controller: restore a soft-deleted record
+await TestModel.withTrashed().where("id", request.input("id")).restore();
 ```
 
-See [Models & ORM](/v0.6/guides/database/models) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).
+See [Soft Deletes](/v0.6/guides/database/soft-deletes) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).
 
 ## Next steps
 

@@ -3,35 +3,36 @@ title: "Introduction"
 description: "How Bejibun generates and serves your API reference."
 ---
 
-Bejibun generates an OpenAPI specification directly from your routes. As your API evolves, the reference stays in sync because it's built from the same code that handles requests.
+Bejibun generates an OpenAPI specification directly from your routes. As your API evolves, the reference stays in sync
+because it's built from the same code that handles requests.
 
 ## How it works
 
-Annotate controller methods with the global [`@ApiDoc`](/v0.6/guides/api-development/openapi) decorator to describe each endpoint. At startup, the server collects this metadata, builds an OpenAPI document, and writes it to `public/apis.json`.
+Annotate controller methods with the global [`@ApiDoc`](/v0.6/guides/api-development/openapi) decorator to describe each
+endpoint. At startup, the server collects this metadata, builds an OpenAPI document, and writes it to `public/apis.json`.
 
 ```ts
 @ApiDoc({
     description: "Create a test record",
     request: {
         params: [
-            { name: "name", in: "query", required: true, schema: { type: "string" } }
+            {name: "name", in: "query", required: true, schema: {type: "string"}}
         ]
     }
 })
-public async add(request: Bun.BunRequest): Promise<Response> {
-    const body = await super.parse(request);
-    await super.validate(TestValidator.add, body);
+public async add(request: Bejibun.Request): Promise<Response> {
+    await request.validate(TestValidator.add);
 
-    return super.response.setData({ name: body.name }).send();
+    return super.response.setData({name: request.input("name")}).send();
 }
 ```
 
 ## Viewing the reference
 
-| Location | Contents |
-| --- | --- |
-| `/apis` | Interactive API viewer |
-| `public/apis.json` | Generated OpenAPI spec |
+| Location           | Contents                 |
+| ------------------ | ------------------------ |
+| `/apis`            | Interactive API viewer   |
+| `public/apis.json` | Generated OpenAPI spec   |
 
 Rebuild or inspect routes anytime with:
 
@@ -45,11 +46,12 @@ The base document in `config/route.ts` pre-defines two security schemes you can 
 
 ```ts
 securitySchemes: {
-    ApiKeyAuth: { type: "apiKey", in: "header", name: "x-api-key" },
-    BearerAuth: { type: "http", scheme: "bearer" }
+    ApiKeyAuth: {type: "apiKey", in: "header", name: "x-api-key"},
+    BearerAuth: {type: "http", scheme: "bearer"}
 }
 ```
 
 <Note>
-The endpoint examples in this section illustrate Mintlify's API reference components. Your live, always-current reference is generated from your own routes and served at `/apis`.
+    The endpoint examples in this section illustrate Mintlify's API reference components.
+    Your live, always-current reference is generated from your own routes and served at `/apis`.
 </Note>
