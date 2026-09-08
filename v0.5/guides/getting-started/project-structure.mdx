@@ -281,7 +281,10 @@ Example:
 import BaseWebSocket from "@bejibun/core/bases/BaseWebSocket";
 
 export default class ChatWebSocket extends BaseWebSocket {
-    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+    public async handle(
+        ws: Bun.ServerWebSocket<any>,
+        message: string | Buffer<ArrayBuffer>
+    ): Promise<void> {
         // ...
     }
 }

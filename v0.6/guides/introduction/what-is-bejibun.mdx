@@ -135,31 +135,39 @@ Consistency is a primary goal. Instead of learning separate conventions for rout
 ```text
 📁 Application
 ├── 📁 app
-│   ├── controllers/
-│   ├── exceptions/
-│   ├── jobs/
-│   ├── middlewares/
-│   ├── models/
-│   ├── validators/
-│   └── websockets/
+│   ├── 📁 controllers
+│   ├── 📁 exceptions
+│   ├── 📁 jobs
+│   ├── 📁 middlewares
+│   ├── 📁 models
+│   ├── 📁 validators
+│   └── 📁 websockets
 ├── 📁 commands
 ├── 📁 config
 ├── 📁 database
-│   ├── migrations/
-│   └── seeders/
+│   ├── 📁 migrations
+│   └── 📁 seeders
 ├── 📁 public
 ├── 📁 resources
 ├── 📁 routes
 ├── 📁 storage
-│   ├── app/
-│   ├── cache/
-│   └── framework/
+│   ├── 📁 app
+│   ├── 📁 cache
+│   └── 📁 framework
 ├── 📁 tests
+├── .dockerignore
 ├── .env
-├── Dockerfile
+├── .env.example
+├── .gitignore
+├── .prettierignore
+├── .prettierrc.json
 ├── ace.ts
 ├── bootstrap.ts
+├── bun.lock
+├── bun-env.d.ts
 ├── bunfig.toml
+├── Dockerfile
+├── eslint.config.js
 ├── package.json
 ├── server.ts
 └── tsconfig.json

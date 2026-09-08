@@ -9,10 +9,9 @@ plus a `RateLimiter` facade for limiting specific actions.
 
 <Note>
     As of v0.6.0, the `RateLimiter` facade lives in the standalone
-    [`@bejibun/limiter`](https://github.com/Bejibun-Framework/bejibun-limiter)
-    package rather than `@bejibun/core`. `RateLimiterMiddleware` is unaffected --
-    it is still exported from `@bejibun/core` and works exactly as before, now
-    using `@bejibun/limiter` internally.
+    [`@bejibun/limiter`](https://github.com/Bejibun-Framework/bejibun-limiter) package rather than
+    `@bejibun/core`. `RateLimiterMiddleware` is unaffected -- it is still exported from
+    `@bejibun/core` and works exactly as before, now using `@bejibun/limiter` internally.
 </Note>
 
 ## Global rate limiting
@@ -60,9 +59,14 @@ bun ace install @bejibun/limiter
 import RateLimiter from "@bejibun/limiter";
 
 // run the callback only if still under the limit
-await RateLimiter.attempt("send-otp:user-1", 5, async () => {
-    await sendOtp();
-}, 60);
+await RateLimiter.attempt(
+    "send-otp:user-1",
+    5,
+    async () => {
+        await sendOtp();
+    },
+    60
+);
 
 // check without consuming an attempt
 const blocked = await RateLimiter.tooManyAttempts("send-otp:user-1", 5);
@@ -81,19 +85,16 @@ await RateLimiter.clear("send-otp:user-1");
 the count stays within `limit`; once the count exceeds `limit` it throws
 `RateLimiterException`. `tooManyAttempts` only inspects the current count.
 
-<Note>
-    When omitted, `limit` and `duration` default to `60` and `60` seconds
-    respectively.
-</Note>
+<Note>When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.</Note>
 
 <Tip>
-    Choose a key that identifies the actor and action together (for example
-    `login:{email}`), so limits are scoped precisely.
+    Choose a key that identifies the actor and action together (for example `login:{email}`), so
+    limits are scoped precisely.
 </Tip>
 
 <Warning>
     **Breaking change (v0.6.0):** if you're importing `RateLimiter` from
-    `@bejibun/core/facades/RateLimiter`, switch to
-    `import RateLimiter from "@bejibun/limiter";`. `config/limiter.ts` keeps its
-    existing `limit` / `duration` shape, so no config changes are needed.
+    `@bejibun/core/facades/RateLimiter`, switch to `import RateLimiter from "@bejibun/limiter";`.
+    `config/limiter.ts` keeps its existing `limit` / `duration` shape, so no config changes are
+    needed.
 </Warning>

@@ -18,9 +18,11 @@ export default class SessionController extends BaseController {
     public async show(request: Bejibun.Request): Promise<Response> {
         const sessionId = request.cookies.get("session_id");
 
-        return super.response.setData({
-            session: sessionId
-        }).send();
+        return super.response
+            .setData({
+                session: sessionId
+            })
+            .send();
     }
 }
 ```
@@ -48,8 +50,8 @@ public async login(request: Bejibun.Request): Promise<Response> {
 ```
 
 <Warning>
-    Always set security attributes on session cookies: `httpOnly` (block JS access),
-    `secure` (HTTPS only, in production), and an appropriate `sameSite` value to mitigate CSRF.
+    Always set security attributes on session cookies: `httpOnly` (block JS access), `secure` (HTTPS
+    only, in production), and an appropriate `sameSite` value to mitigate CSRF.
 </Warning>
 
 Set multiple cookies in one call with `setCookies()` -- each entry can carry its own options:
@@ -124,6 +126,6 @@ return super.response
 `domain`, `path`, `expires`, `maxAge`, `httpOnly`, `secure`, `sameSite`, and `partitioned`.
 
 <Tip>
-    Cookies are applied on top of CORS headers automatically, on both `send()` and `stream()`.
-    You no longer need to return a raw `Response` or merge headers by hand to set a cookie.
+    Cookies are applied on top of CORS headers automatically, on both `send()` and `stream()`. You
+    no longer need to return a raw `Response` or merge headers by hand to set a cookie.
 </Tip>

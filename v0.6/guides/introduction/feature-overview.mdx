@@ -35,13 +35,15 @@ export default class UserController extends BaseController {
     public async index(request: Bejibun.Request): Promise<Response> {
         const page = request.input("page", 1);
 
-        return super.response.setData({ page }).send();
+        return super.response.setData({page}).send();
     }
 }
 ```
 
 <Tip>
-Read request data with `request.input(key?, fallback?)` and validate it with `request.validate(validator)`. The global `RequestMiddleware` populates `request.payload`, merging JSON body, route params, query string, and form data.
+    Read request data with `request.input(key?, fallback?)` and validate it with
+    `request.validate(validator)`. The global `RequestMiddleware` populates `request.payload`,
+    merging JSON body, route params, query string, and form data.
 </Tip>
 
 Controllers keep route declarations clean, improve organization, and make logic easier to test and reuse.
@@ -153,9 +155,37 @@ export default class ChatWebSocket extends BaseWebSocket {
 
 Some tasks -- sending emails, processing files, generating reports, or calling external APIs -- should not run during an HTTP request. Jobs move long-running work into background workers, improving application responsiveness and scalability.
 
+Generate a job and implement `handle()`:
+
+```ts app/jobs/ExportReportJob.ts
+import BaseJob from "@bejibun/core/bases/BaseJob";
+
+export default class ExportReportJob extends BaseJob {
+    public async handle(args: Array<any>): Promise<void> {
+        // long-running work, e.g. export and store a report
+    }
+}
+```
+
+Dispatch it from anywhere with `dispatch(...).send()`:
+
+```ts
+await ExportReportJob.dispatch({reportId: 42}).send();
+```
+
 ## Queue Processing
 
 Queues manage background task execution, providing better performance, improved reliability, controlled concurrency, and retry mechanisms. Bejibun's queue runs on the database driver via `config/queue.ts`.
+
+Run workers from the CLI:
+
+```bash
+bun ace queue:work    # process jobs as a long-running daemon
+bun ace queue:retry   # retry a failed job
+bun ace queue:flush   # flush all failed jobs
+```
+
+See [Queues & Jobs](/v0.6/guides/background/queues) for the full workflow and [Task Scheduling](/v0.6/guides/background/scheduler) to run commands on a recurring schedule.
 
 ## Storage
 

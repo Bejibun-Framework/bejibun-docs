@@ -35,21 +35,21 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-| Field        | Purpose                          |
-| ------------ | -------------------------------- |
-| `default`    | Connection used when omitted     |
-| `host`       | Redis server host                |
-| `port`       | Redis server port                |
-| `password`   | Optional authentication          |
-| `database`   | Database index to select         |
-| `maxRetries` | Connection retry attempts        |
+| Field        | Purpose                      |
+| ------------ | ---------------------------- |
+| `default`    | Connection used when omitted |
+| `host`       | Redis server host            |
+| `port`       | Redis server port            |
+| `password`   | Optional authentication      |
+| `database`   | Database index to select     |
+| `maxRetries` | Connection retry attempts    |
 
 ## Keys and values
 
 ```ts
 import Redis from "@bejibun/redis";
 
-await Redis.set("session:1", token, 3600);          // value with TTL (seconds)
+await Redis.set("session:1", token, 3600); // value with TTL (seconds)
 const value = await Redis.get("session:1");
 await Redis.del("session:1");
 
@@ -65,7 +65,7 @@ await Redis.incrBy("page:views", 10);
 await Redis.decr("stock:42");
 await Redis.decrBy("stock:42", 3);
 await Redis.expire("page:views", 86400);
-await Redis.ttl("page:views");                       // remaining TTL in seconds
+await Redis.ttl("page:views"); // remaining TTL in seconds
 ```
 
 ## Connectivity
@@ -73,9 +73,9 @@ await Redis.ttl("page:views");                       // remaining TTL in seconds
 Check the health of a connection with `ping()`:
 
 ```ts
-await Redis.ping();                              // "PONG"
-await Redis.ping("hello");                       // echoes back "hello"
-await Redis.ping("hello", "analytics", false);   // named connection, keep it open
+await Redis.ping(); // "PONG"
+await Redis.ping("hello"); // echoes back "hello"
+await Redis.ping("hello", "analytics", false); // named connection, keep it open
 ```
 
 ## Pipelines
@@ -114,7 +114,7 @@ const sub = await Redis.subscribe("orders", (message, channel) => {
 
 await Redis.publish("orders", {id: 1, total: 990});
 
-await sub.unsubscribe();   // stop listening and close the client
+await sub.unsubscribe(); // stop listening and close the client
 ```
 
 ## Multiple connections
@@ -137,33 +137,32 @@ Redis.off("disconnect", handler);
 
 ## API reference
 
-| Method          | Purpose                                                                             |
-| --------------- | ----------------------------------------------------------------------------------- |
-| `setClient`     | Register a Redis client configuration, optionally with a connection name.           |
-| `connection`    | Retrieve command wrappers bound to a named connection.                              |
-| `connect`       | Establish a Redis connection.                                                       |
-| `disconnect`    | Close an active Redis connection.                                                   |
-| `ping`          | Send a `PING` to check connectivity, optionally with a message.                     |
-| `set`           | Store a value by key, with an optional TTL.                                         |
-| `get`           | Retrieve the value of a key.                                                        |
-| `del`           | Delete a key from Redis.                                                            |
-| `exists`        | Check whether a key exists.                                                         |
-| `keys`          | Return all keys matching a pattern.                                                 |
-| `incr`          | Increment a numeric value by 1.                                                     |
-| `decr`          | Decrement a numeric value by 1.                                                     |
-| `incrBy`        | Increment a numeric value by the specified amount.                                  |
-| `decrBy`        | Decrement a numeric value by the specified amount.                                  |
-| `ttl`           | Get the remaining time-to-live of a key.                                            |
-| `expire`        | Set or update the expiration time of a key.                                         |
-| `publish`       | Publish a message to a Pub/Sub channel.                                             |
-| `subscribe`     | Subscribe to a Pub/Sub channel and receive messages.                                |
-| `pipeline(fn)`  | Execute multiple Redis commands in a single pipeline.                               |
-| `on(event, fn)` | Register a listener for `connect`, `disconnect`, or `error` events.                 |
-| `off(event, fn)`| Remove a previously registered event listener.                                      |
+| Method           | Purpose                                                                   |
+| ---------------- | ------------------------------------------------------------------------- |
+| `setClient`      | Register a Redis client configuration, optionally with a connection name. |
+| `connection`     | Retrieve command wrappers bound to a named connection.                    |
+| `connect`        | Establish a Redis connection.                                             |
+| `disconnect`     | Close an active Redis connection.                                         |
+| `ping`           | Send a `PING` to check connectivity, optionally with a message.           |
+| `set`            | Store a value by key, with an optional TTL.                               |
+| `get`            | Retrieve the value of a key.                                              |
+| `del`            | Delete a key from Redis.                                                  |
+| `exists`         | Check whether a key exists.                                               |
+| `keys`           | Return all keys matching a pattern.                                       |
+| `incr`           | Increment a numeric value by 1.                                           |
+| `decr`           | Decrement a numeric value by 1.                                           |
+| `incrBy`         | Increment a numeric value by the specified amount.                        |
+| `decrBy`         | Decrement a numeric value by the specified amount.                        |
+| `ttl`            | Get the remaining time-to-live of a key.                                  |
+| `expire`         | Set or update the expiration time of a key.                               |
+| `publish`        | Publish a message to a Pub/Sub channel.                                   |
+| `subscribe`      | Subscribe to a Pub/Sub channel and receive messages.                      |
+| `pipeline(fn)`   | Execute multiple Redis commands in a single pipeline.                     |
+| `on(event, fn)`  | Register a listener for `connect`, `disconnect`, or `error` events.       |
+| `off(event, fn)` | Remove a previously registered event listener.                            |
 
 <Tip>
-    Most methods accept trailing `connection?` and `disconnectAfter?` arguments
-    for one-off operations on a specific connection. See
-    [Cache](/v0.6/guides/caching/cache) for the driver that builds on this
-    facade.
+    Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off
+    operations on a specific connection. See [Cache](/v0.6/guides/caching/cache) for the driver that
+    builds on this facade.
 </Tip>

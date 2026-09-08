@@ -67,10 +67,11 @@ When returning a raw `Response`, merge the headers in manually:
         }
     });
     ```
+
 </CodeGroup>
 
 <Warning>
-    The defaults (`origin: "*"`, `allowedHeaders: "*"`) are permissive for getting started.
-    In production, replace `*` with an explicit allowlist of trusted origins and headers,
-    and only enable `credentials` when you actually need cookies or authorization headers across origins.
+    The defaults (`origin: "*"`, `allowedHeaders: "*"`) are permissive for getting started. In
+    production, replace `*` with an explicit allowlist of trusted origins and headers, and only
+    enable `credentials` when you actually need cookies or authorization headers across origins.
 </Warning>

@@ -37,15 +37,15 @@ The scaffold ships these files:
 | `x402.ts`        | x402 payments                          |
 
 <Note>
-    The core provides built-in defaults for `cache`, `cors`, `limiter`, `redis`, and `websocket`. If you delete a
-    project file, the bundled default is used.
+    The core provides built-in defaults for `cache`, `cors`, `limiter`, `redis`, and `websocket`. If
+    you delete a project file, the bundled default is used.
 </Note>
 
 <Note>
     As of v0.6.0, `storage.ts` (formerly `disk.ts`) and `limiter.ts` are sourced from the standalone
     [`@bejibun/storage`](/v0.6/guides/storage/file-storage) and
-    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting)
-    packages rather than `@bejibun/core` itself, though `limiter.ts`'s shape (`limit` / `duration`) is unchanged.
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) packages rather than `@bejibun/core`
+    itself, though `limiter.ts`'s shape (`limit` / `duration`) is unchanged.
 </Note>
 
 ## Reading configuration
@@ -53,8 +53,8 @@ The scaffold ships these files:
 The global `config()` function reads values using dot notation -- the first segment is the file name:
 
 ```ts
-config("storage.default");              // "local"
-config("limiter.limit");                // 30
+config("storage.default"); // "local"
+config("limiter.limit"); // 30
 config("cache.connections.redis.host"); // 127.0.0.1
 ```
 
@@ -107,8 +107,8 @@ export default config;
 ```
 
 <Warning>
-    Store credentials in `.env`, never in committed config files. Keep `.env` out of version control and
-    use a separate set of values per environment.
+    Store credentials in `.env`, never in committed config files. Keep `.env` out of version control
+    and use a separate set of values per environment.
 </Warning>
 
 See [Environment Variables](/v0.6/guides/getting-started/environment-variables) for the full list of variables the scaffold uses.

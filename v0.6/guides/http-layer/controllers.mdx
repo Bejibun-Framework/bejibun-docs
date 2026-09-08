@@ -23,10 +23,12 @@ import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HelloController extends BaseController {
     public async hello(request: Bejibun.Request): Promise<Response> {
-        return super.response.setData({
-            message: "Hello, world!",
-            method: request.method
-        }).send();
+        return super.response
+            .setData({
+                message: "Hello, world!",
+                method: request.method
+            })
+            .send();
     }
 }
 ```
@@ -43,8 +45,8 @@ Router.get("hello", "HelloController@hello");
 
 <CardGroup cols={2}>
     <Card title="request" icon="inbox">
-        The populated `Bejibun.Request` -- read input with `request.input()`, `request.validate()`, and the other
-        request helpers.
+        The populated `Bejibun.Request` -- read input with `request.input()`, `request.validate()`,
+        and the other request helpers.
     </Card>
     <Card title="super.response" icon="paper-plane">
         The fluent response builder (`setData`, `setMessage`, `setStatus`, `send`).
@@ -62,7 +64,7 @@ import TestValidator from "@/app/validators/TestValidator";
 
 export default class TestController extends BaseController {
     public async store(request: Bejibun.Request): Promise<Response> {
-        await request.validate(TestValidator.store);   // throws ValidatorException on failure
+        await request.validate(TestValidator.store); // throws ValidatorException on failure
 
         const test = await TestModel.create({
             name: request.input("name")

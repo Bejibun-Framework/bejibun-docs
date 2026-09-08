@@ -31,9 +31,9 @@ export default class UserController extends BaseController {
 ```
 
 <Note>
-    `validate()` returns the validated data and throws a `ValidatorException` on failure --
-    there's no need to check a result flag.
-    Execution stops and the [exception handler](/v0.5/guides/core-concepts/error-handling) formats the error response.
+    `validate()` returns the validated data and throws a `ValidatorException` on failure -- there's
+    no need to check a result flag. Execution stops and the [exception
+    handler](/v0.5/guides/core-concepts/error-handling) formats the error response.
 </Note>
 
 ## Validating route parameters
@@ -72,6 +72,6 @@ Each controller action references its matching schema:
 | `destroy` | `Validator.delete` | `id` + `exists`         |
 
 <Tip>
-    Validate **before** touching the database. Combined with `exists`, you get a clean validation error instead of a
-    deeper failure when a referenced record is missing.
+    Validate **before** touching the database. Combined with `exists`, you get a clean validation
+    error instead of a deeper failure when a referenced record is missing.
 </Tip>

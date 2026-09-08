@@ -32,15 +32,15 @@ export default class Handler extends ExceptionHandler {
 When an error reaches the handler, it is logged (`Logger.setContext("APP").error(message).trace(stack)`) and converted
 to a response:
 
-| Error                       | Response status                     |
-| --------------------------- | ----------------------------------- |
-| `DiskException`             | its `.code` (disk error)            |
-| `ModelNotFoundException`    | its `.code` (not found)             |
-| `RateLimiterException`      | its `.code` (too many requests)     |
-| `RouterException`           | its `.code`                         |
-| `RuntimeException`          | its `.code`                         |
-| `ValidatorException`        | its `.code` (validation failed)     |
-| Any other error             | `500` -- `"Internal server error."` |
+| Error                    | Response status                     |
+| ------------------------ | ----------------------------------- |
+| `DiskException`          | its `.code` (disk error)            |
+| `ModelNotFoundException` | its `.code` (not found)             |
+| `RateLimiterException`   | its `.code` (too many requests)     |
+| `RouterException`        | its `.code`                         |
+| `RuntimeException`       | its `.code`                         |
+| `ValidatorException`     | its `.code` (validation failed)     |
+| Any other error          | `500` -- `"Internal server error."` |
 
 Every error response uses the standard envelope:
 
@@ -70,6 +70,7 @@ Every error response uses the standard envelope:
         Thrown when a client exceeds the configured rate limit (see
         [config](/v0.5/guides/getting-started/configuration#rate-limiter-configuration)).
     </Accordion>
+
 </AccordionGroup>
 
 ## Throwing your own errors

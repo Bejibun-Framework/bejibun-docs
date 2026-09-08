@@ -43,9 +43,9 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-| Driver  | Backing store                                       |
-| ------- | --------------------------------------------------- |
-| `Local` | Files under `storage/cache`                         |
+| Driver  | Backing store                                            |
+| ------- | -------------------------------------------------------- |
+| `Local` | Files under `storage/cache`                              |
 | `Redis` | A Redis server (see [Redis](/v0.5/guides/caching/redis)) |
 
 ## Usage
@@ -55,15 +55,15 @@ import Cache from "@bejibun/cache";
 
 // fetch from cache or compute and store
 const user = await Cache.remember(
-    "user:1",                                   // key
-    async () => await UserModel.findOrFail(1),  // callback
-    300                                         // ttl
+    "user:1", // key
+    async () => await UserModel.findOrFail(1), // callback
+    300 // ttl
 );
 
-await Cache.put("hits", 0);                     // store with optional TTL
-await Cache.increment("hits");                  // bump a counter
+await Cache.put("hits", 0); // store with optional TTL
+await Cache.increment("hits"); // bump a counter
 const value = await Cache.get("hits");
-await Cache.forget("hits");                     // delete
+await Cache.forget("hits"); // delete
 ```
 
 ## API reference
@@ -86,6 +86,4 @@ await Cache.forget("hits");                     // delete
 await Cache.connection("local").put("tmp", "value", 60);
 ```
 
-<Note>
-    TTL values are in **seconds**. The default connection is `local`.
-</Note>
+<Note>TTL values are in **seconds**. The default connection is `local`.</Note>

@@ -33,22 +33,20 @@ export default class TestController extends BaseController {
         For `application/json` requests, the parsed and serialized JSON body.
     </Step>
     <Step title="Route parameters">
-        Dynamic segments like `:id` (see [Routing](/v0.5/guides/http-layer/routing#route-parameters)).
+        Dynamic segments like `:id` (see
+        [Routing](/v0.5/guides/http-layer/routing#route-parameters)).
     </Step>
-    <Step title="Query string">
-        Values from the URL's `?key=value` parameters.
-    </Step>
+    <Step title="Query string">Values from the URL's `?key=value` parameters.</Step>
     <Step title="Form data">
-        Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including uploaded files.
+        Fields from `multipart/form-data` and `application/x-www-form-urlencoded` bodies, including
+        uploaded files.
     </Step>
-    <Step title="Raw text">
-        A non-empty raw text body is available under the `text` key.
-    </Step>
+    <Step title="Raw text">A non-empty raw text body is available under the `text` key.</Step>
 </Steps>
 
 <Note>
-    `parse()` never throws -- malformed input is silently skipped. Use a [validator](/v0.5/guides/validation/introduction) to
-    enforce the shape you expect.
+    `parse()` never throws -- malformed input is silently skipped. Use a
+    [validator](/v0.5/guides/validation/introduction) to enforce the shape you expect.
 </Note>
 
 ## Accessing the raw request

@@ -28,15 +28,12 @@ import Router from "@bejibun/core/facades/Router";
 import hello from "@/routes/api/hello";
 import test from "@/routes/api/test";
 
-export default Router.prefix("api").group([
-    hello,
-    test
-]);
+export default Router.prefix("api").group([hello, test]);
 ```
 
 <Note>
-    `routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on startup if any is
-    missing.
+    `routes/api.ts`, `routes/web.ts`, and `routes/websocket.ts` must exist -- the server throws on
+    startup if any is missing.
 </Note>
 
 ## Defining routes
@@ -105,6 +102,7 @@ A handler can be a **controller reference string** or an **inline function**.
         });
     });
     ```
+
 </CodeGroup>
 
 The string form is `"Controller@method"`. Bejibun resolves the controller from the group's namespace (default `app/controllers`)
@@ -154,8 +152,8 @@ export default class TestController extends BaseController {
 ```
 
 <Note>
-    `parse()` merges **route parameters**, **query-string values**, and the **request body** into a single object. See
-    [The Request](/v0.5/guides/http-layer/the-request) for the full precedence.
+    `parse()` merges **route parameters**, **query-string values**, and the **request body** into a
+    single object. See [The Request](/v0.5/guides/http-layer/the-request) for the full precedence.
 </Note>
 
 ### Validating parameters
@@ -195,8 +193,8 @@ export default class TestController extends BaseController {
 ```
 
 <Tip>
-    Pass `true` as the third argument to `exists` (`exists(TestModel, "id", true)`) to include **soft-deleted** rows
-    -- useful for a `restore` endpoint.
+    Pass `true` as the third argument to `exists` (`exists(TestModel, "id", true)`) to include
+    **soft-deleted** rows -- useful for a `restore` endpoint.
 </Tip>
 
 ### Parameters in OpenAPI
@@ -262,8 +260,8 @@ export default Router.prefix("test")
 | `Router.x402(facilitator?, routePayment?)` | Gate the group behind an [x402 payment](/v0.5/guides/api-development/x402-payments) (requires `@bejibun/x402`) |
 
 <Note>
-    Middleware runs in the order listed: the **first** middleware is the outermost wrapper and executes first on the
-    way in. See [Middleware](/v0.5/guides/http-layer/middleware).
+    Middleware runs in the order listed: the **first** middleware is the outermost wrapper and
+    executes first on the way in. See [Middleware](/v0.5/guides/http-layer/middleware).
 </Note>
 
 ### Nesting groups
@@ -276,10 +274,7 @@ import hello from "@/routes/api/hello";
 import test from "@/routes/api/test";
 
 // Everything is served under /api
-export default Router.prefix("api").group([
-    hello,
-    test
-]);
+export default Router.prefix("api").group([hello, test]);
 ```
 
 ### Resource routes
@@ -322,7 +317,8 @@ Router.resource("path", YourController, {
 Valid actions: `"index"`, `"store"`, `"show"`, `"update"`, `"destroy"`.
 
 <Tip>
-    `bun ace make:controller YourController` scaffolds a controller with all five resource actions ready to fill in.
+    `bun ace make:controller YourController` scaffolds a controller with all five resource actions
+    ready to fill in.
 </Tip>
 
 ## Route model binding
@@ -332,8 +328,8 @@ A common pattern is to resolve a model directly from a route parameter. Bejibun 
 controller. This keeps resolution predictable and type-safe.
 
 <Note>
-    Automatic route–model binding is **not yet available**. The recommended pattern below uses the verified
-    `findOrFail` and validator `exists` APIs.
+    Automatic route–model binding is **not yet available**. The recommended pattern below uses the
+    verified `findOrFail` and validator `exists` APIs.
 </Note>
 
 ### Resolving a model with `findOrFail`
@@ -370,12 +366,14 @@ To resolve records that have been soft-deleted (for example, a `restore` endpoin
 
 ```ts
 // validator: allow trashed rows to pass the exists check
-id: super.validator.number().min(1).exists(TestModel, "id", true)
+id: super.validator.number().min(1).exists(TestModel, "id", true);
 ```
 
 ```ts
 // controller: load including trashed, then restore
-await TestModel.withTrashed().find(body.id as number | string).restore();
+await TestModel.withTrashed()
+    .find(body.id as number | string)
+    .restore();
 ```
 
 See [Models & ORM](/v0.5/guides/database/models) for the full soft-delete API (`withTrashed`, `onlyTrashed`, `restore`, `forceDelete`).

@@ -32,25 +32,25 @@ export default class Handler extends ExceptionHandler {
 When an error reaches the handler, it is logged (`Logger.setContext("APP").error(message).trace(stack)`) and converted
 to a response. Framework exceptions respond with their own `.code`; anything else becomes a generic `500`:
 
-| Exception                     | Default status | Source                                                  |
-| ----------------------------- | -------------- | ------------------------------------------------------- |
-| `ModelNotFoundException`      | `404`          | `@bejibun/core`                                         |
-| `ValidatorException`          | `422`          | `@bejibun/core`                                         |
-| `RateLimiterException`        | `429`          | `@bejibun/limiter`                                      |
-| `QueueException`              | `500`          | `@bejibun/core`                                         |
-| `RouterException`             | `500`          | `@bejibun/core`                                         |
-| `RuntimeException`            | `500`          | `@bejibun/core`                                         |
-| Objection `ValidationError`   | `statusCode`   | `objection`                                             |
-| Any other error               | `500`          | `"Internal server error."`                              |
+| Exception                   | Default status | Source                     |
+| --------------------------- | -------------- | -------------------------- |
+| `ModelNotFoundException`    | `404`          | `@bejibun/core`            |
+| `ValidatorException`        | `422`          | `@bejibun/core`            |
+| `RateLimiterException`      | `429`          | `@bejibun/limiter`         |
+| `QueueException`            | `500`          | `@bejibun/core`            |
+| `RouterException`           | `500`          | `@bejibun/core`            |
+| `RuntimeException`          | `500`          | `@bejibun/core`            |
+| Objection `ValidationError` | `statusCode`   | `objection`                |
+| Any other error             | `500`          | `"Internal server error."` |
 
 Every status code can be overridden at throw time by passing a `code` argument, and every exception logs itself on
 construction.
 
 <Note>
-    As of `@bejibun/core` v0.6.0, `DiskException` was removed from core when the `Storage` facade moved to
-    [`@bejibun/storage`](/v0.6/guides/storage/file-storage), which now ships `StorageException`.
-    `RateLimiterException` similarly ships with [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) and is still
-    mapped by the handler.
+    As of `@bejibun/core` v0.6.0, `DiskException` was removed from core when the `Storage` facade
+    moved to [`@bejibun/storage`](/v0.6/guides/storage/file-storage), which now ships
+    `StorageException`. `RateLimiterException` similarly ships with
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) and is still mapped by the handler.
     `QueueException` was added in v0.6.1 for queue configuration and job-handling failures -- see
     [Queues & Jobs](/v0.6/guides/background/queues).
 </Note>
@@ -87,6 +87,7 @@ Every error response uses the standard envelope:
         Thrown for queue configuration and job-handling failures -- for example, when no queue config can be resolved
         (neither `config/queue.ts` nor the package default is available).
     </Accordion>
+
 </AccordionGroup>
 
 ## Throwing your own errors
@@ -102,8 +103,8 @@ if (!allowed) {
 ```
 
 <Tip>
-    As of v0.6.0, `RuntimeException` is also exported from the package root: `import {RuntimeException} from
-    "@bejibun/core";`.
+    As of v0.6.0, `RuntimeException` is also exported from the package root: `import{" "}
+    {RuntimeException} from "@bejibun/core";`.
 </Tip>
 
 To customize behavior -- for example, to report errors to an external service -- add logic in `Handler.handle()` before

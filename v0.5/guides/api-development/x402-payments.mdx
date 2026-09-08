@@ -11,9 +11,10 @@ same route, matching `@x402/express` behavior.
 
 <Note>
     As of `@bejibun/x402` v0.2.0, payment verification and settlement delegate to `@x402/core`'s
-    `x402HTTPResourceServer` (via a new `BunAdapter` implementing `@x402/core`'s `HTTPAdapter` against
-    `Bun.BunRequest`), replacing the earlier hand-rolled verify/settle/decode chain.
-    The underlying dependency moved from `x402` to `@coinbase/x402`, `@x402/core`, `@x402/evm`, and `@x402/svm`.
+    `x402HTTPResourceServer` (via a new `BunAdapter` implementing `@x402/core`'s `HTTPAdapter`
+    against `Bun.BunRequest`), replacing the earlier hand-rolled verify/settle/decode chain. The
+    underlying dependency moved from `x402` to `@coinbase/x402`, `@x402/core`, `@x402/evm`, and
+    `@x402/svm`.
 </Note>
 
 ## Installation
@@ -49,14 +50,12 @@ const config: Record<string, any> = {
 export default config;
 ```
 
-| Option        | Type           | Description                                                                                    |
-| ------------- | -------------- | ---------------------------------------------------------------------------------------------- |
-| `facilitator` | `TFacilitator` | Plain `{ url?, createAuthHeaders? }` object. Defaults to the Coinbase facilitator when omitted |
-| `networks`    | `TRoutePayment`| Config-wide `accepts` array used as a fallback for routes without their own payment options    |
+| Option        | Type            | Description                                                                                    |
+| ------------- | --------------- | ---------------------------------------------------------------------------------------------- |
+| `facilitator` | `TFacilitator`  | Plain `{ url?, createAuthHeaders? }` object. Defaults to the Coinbase facilitator when omitted |
+| `networks`    | `TRoutePayment` | Config-wide `accepts` array used as a fallback for routes without their own payment options    |
 
-<Info>
-    Types are imported from `@bejibun/x402/types`, not `@bejibun/x402`.
-</Info>
+<Info>Types are imported from `@bejibun/x402/types`, not `@bejibun/x402`.</Info>
 
 ### Payment resolution order
 
@@ -77,34 +76,33 @@ The signature is `x402(facilitator?, routePayment?)`:
 import Router from "@bejibun/core/facades/Router";
 
 export default Router.prefix("premium")
-    .x402({
-        url: "https://facilitator.example.com"
-    }, {
-        accepts: [
-            {
-                network: "eip155:8453",
-                price: "$1.00",
-                payTo: "0x..."
-            }
-        ]
-    })
-    .group([
-        Router.get("report", "ReportController@paid")
-    ]);
+    .x402(
+        {
+            url: "https://facilitator.example.com"
+        },
+        {
+            accepts: [
+                {
+                    network: "eip155:8453",
+                    price: "$1.00",
+                    payTo: "0x..."
+                }
+            ]
+        }
+    )
+    .group([Router.get("report", "ReportController@paid")]);
 ```
 
 `routePayment` (`TRoutePayment`) supports a full `accepts` array for per-network control --
 each entry can set its own `scheme`, `price`, `network`, `payTo`, `description`, and `mimeType`.
 Omit `facilitator` and/or `routePayment` to fall back to `config/x402.ts` and the built-in defaults.
 
-<Note>
-    `Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.
-</Note>
+<Note>`Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.</Note>
 
 <Warning>
-    **Breaking change (v0.5.0):** `Router.x402(config, facilitatorConfig, paywallConfig)` has been replaced by
-    `Router.x402(facilitator, routePayment)`. `TRoutePayment` replaces `TX402Config`, and existing calls must be
-    updated to the new two-argument form.
+    **Breaking change (v0.5.0):** `Router.x402(config, facilitatorConfig, paywallConfig)` has been
+    replaced by `Router.x402(facilitator, routePayment)`. `TRoutePayment` replaces `TX402Config`,
+    and existing calls must be updated to the new two-argument form.
 </Warning>
 
 ## Programmatic usage
@@ -114,11 +112,10 @@ removed in favor of `.setFacilitator()` and `.setRoutePayment()`:
 
 ```ts
 import X402 from "@bejibun/x402";
-import type { TFacilitator, TRoutePayment } from "@bejibun/x402/types";
+import type {TFacilitator, TRoutePayment} from "@bejibun/x402/types";
 
-return X402
-    .setFacilitator()    // optional -- defaults to the Coinbase facilitator
-    .setRoutePayment()   // optional -- accepts array / network + payTo shorthand
+return X402.setFacilitator() // optional -- defaults to the Coinbase facilitator
+    .setRoutePayment() // optional -- accepts array / network + payTo shorthand
     .setRequest(request) // required -- provides the request headers
     .middleware(() => {
         // your paid resource here
@@ -126,9 +123,9 @@ return X402
 ```
 
 <Warning>
-    Never commit production payout addresses or facilitator secrets to source control.
-    When going live, make sure every network in your `accepts` array (or config-wide `networks` block) points at a real,
-    production payout address.
+    Never commit production payout addresses or facilitator secrets to source control. When going
+    live, make sure every network in your `accepts` array (or config-wide `networks` block) points
+    at a real, production payout address.
 </Warning>
 
 <a
@@ -207,4 +204,5 @@ return X402
             Launch demo →
         </div>
     </div>
+
 </a>

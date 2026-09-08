@@ -108,11 +108,11 @@ Configuration values can be retrieved using the configuration service.
 The first segment of the key names the `config/<file>.ts` module, and the remaining segments walk into its default export.
 
 ```ts
-config("cache.default");            // config/cache.ts → .default
+config("cache.default"); // config/cache.ts → .default
 
-config("database.connections.pgsql.host");  // config/database.ts → .connections.pgsql.host
+config("database.connections.pgsql.host"); // config/database.ts → .connections.pgsql.host
 
-config("cors.origin");              // config/cors.ts → .origin
+config("cors.origin"); // config/cors.ts → .origin
 ```
 
 Nested values are resolved with dot notation, and `null` is returned when a path doesn't exist.
@@ -329,9 +329,10 @@ Common settings include:
 # Storage Configuration
 
 <Note>
-    As of v0.6.0, storage ships as the standalone [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package
-    (`bun ace install @bejibun/storage`) rather than being built into `@bejibun/core`. The old `config/disk.ts` is
-    now `config/storage.ts`.
+    As of v0.6.0, storage ships as the standalone
+    [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package (`bun ace install
+    @bejibun/storage`) rather than being built into `@bejibun/core`. The old `config/disk.ts` is now
+    `config/storage.ts`.
 </Note>
 
 Configure disk connections and storage drivers.
@@ -393,9 +394,9 @@ Common settings include:
 
 <Note>
     As of v0.6.0, the `RateLimiter` facade ships as the standalone
-    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting)
-    package. This config file's shape is unchanged, and `RateLimiterMiddleware` (still exported from `@bejibun/core`)
-    works exactly as before.
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) package. This config file's shape is
+    unchanged, and `RateLimiterMiddleware` (still exported from `@bejibun/core`) works exactly as
+    before.
 </Note>
 
 Defines request throttling and rate-limiting rules.
@@ -493,7 +494,8 @@ export default config;
 | `retry_after` | Seconds a worker waits between polls when idle, waits before retrying a failed job, and how long a job stays reserved by a worker before it's considered abandoned and reclaimed by another. |
 
 <Note>
-    If `config/queue.ts` isn't present in your application, the package's built-in default (shown above) is used.
+    If `config/queue.ts` isn't present in your application, the package's built-in default (shown
+    above) is used.
 </Note>
 
 These settings help control how background jobs are processed and how workers coordinate with each other.
@@ -807,7 +809,7 @@ DB_HOST=127.0.0.1
 ### Configuration File
 
 ```ts
-host: env("DB_HOST")
+host: env("DB_HOST");
 ```
 
 ### Application Code
@@ -833,7 +835,7 @@ DB_PASSWORD=secret
 Avoid:
 
 ```ts
-password: "secret"
+password: "secret";
 ```
 
 ### Use Environment Variables
@@ -849,13 +851,13 @@ Organize configuration by subsystem.
 Good:
 
 ```ts
-payment.defaultProvider
+payment.defaultProvider;
 ```
 
 Avoid:
 
 ```ts
-provider
+provider;
 ```
 
 ### Avoid Direct Environment Access

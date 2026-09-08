@@ -20,7 +20,7 @@ export default class UploadController extends BaseController {
     public async store(request: Bun.BunRequest): Promise<Response> {
         const body = await super.parse(request);
 
-        const file = body.avatar as File;       // the uploaded file
+        const file = body.avatar as File; // the uploaded file
 
         await Storage.disk("public").put(`avatars/${file.name}`, file);
 
@@ -56,6 +56,7 @@ The `Storage` facade writes to the disks configured in `config/disk.ts` (a `loca
         root: App.Path.storagePath("custom")
     }).put("file.txt", content);
     ```
+
 </CodeGroup>
 
 The `public` disk is rooted at `storage/app/public` and exposes a public URL via `APP_URL/storage/public`.
@@ -73,11 +74,11 @@ await Storage.disk("public").put(`avatars/${file.name}`, file);
 ```
 
 <Tip>
-    For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then call
-    `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
+    For cloud storage, configure the `s3` disk in `config/disk.ts` with your S3 credentials, then
+    call `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
 </Tip>
 
 <Warning>
-    Never trust the client-supplied filename directly.
-    Sanitize or generate your own name (and validate the content type / size) before writing to disk.
+    Never trust the client-supplied filename directly. Sanitize or generate your own name (and
+    validate the content type / size) before writing to disk.
 </Warning>

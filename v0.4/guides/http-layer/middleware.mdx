@@ -44,14 +44,12 @@ import LoggerMiddleware from "@/app/middlewares/LoggerMiddleware";
 
 export default Router.prefix("test")
     .middleware(new TestMiddleware(), new LoggerMiddleware())
-    .group([
-        Router.get("/", "TestController@index")
-    ]);
+    .group([Router.get("/", "TestController@index")]);
 ```
 
 <Note>
-    Middleware is applied so that the **first** middleware listed is the **outermost** wrapper --
-    it runs first on the way in and last on the way out.
+    Middleware is applied so that the **first** middleware listed is the **outermost** wrapper -- it
+    runs first on the way in and last on the way out.
 </Note>
 
 ## Built-in middleware
@@ -93,6 +91,7 @@ export default config;
         bun ace maintenance:up      # return to live
         ```
     </Accordion>
+
 </AccordionGroup>
 
 ## Rate limiting manually

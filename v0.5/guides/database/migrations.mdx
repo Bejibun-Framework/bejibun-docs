@@ -43,8 +43,8 @@ export default config;
 ```
 
 <Note>
-    The database layer is provided by `@bejibun/database`.
-    Install it with `bun ace install @bejibun/database` if it isn't already present.
+    The database layer is provided by `@bejibun/database`. Install it with `bun ace install
+    @bejibun/database` if it isn't already present.
 </Note>
 
 ## Creating a migration
@@ -92,6 +92,7 @@ export function down(knex: Knex): Knex.SchemaBuilder {
     ```bash Show status
     bun ace migrate:status
     ```
+
 </CodeGroup>
 
 Example output:
@@ -103,7 +104,8 @@ Example output:
 
 <Warning>
     `migrate:fresh` and `migrate:rollback` prompt for confirmation because they're destructive.
-    `migrate:fresh` drops **all** tables before re-running every migration -- never run it against production data.
+    `migrate:fresh` drops **all** tables before re-running every migration -- never run it against
+    production data.
 </Warning>
 
 ## Column types
@@ -112,22 +114,22 @@ Add columns inside the `createTable` callback. Types below assume the default `p
 
 ```ts
 knex.schema.createTable("users", (table) => {
-    table.increments("id");                 // auto-inc int PK (serial in pg)
-    table.bigIncrements("id");              // auto-inc bigint PK (bigserial)
-    table.integer("age");                   // int
-    table.bigInteger("views");              // bigint (returned as string)
-    table.string("name", 255);              // varchar(255), length optional
-    table.text("bio");                      // text / clob
-    table.boolean("is_active");             // boolean
-    table.decimal("price", 8, 2);           // numeric(8,2)
-    table.float("rating");                  // float
-    table.date("born_on");                  // date
-    table.dateTime("seen_at");              // datetime / timestamp
-    table.timestamp("published_at");        // timestamp
-    table.timestamps(true, true);           // created_at + updated_at (useTz, defaultNow)
-    table.json("meta");                     // json
-    table.jsonb("meta");                    // jsonb (pg)
-    table.uuid("token");                    // uuid
+    table.increments("id"); // auto-inc int PK (serial in pg)
+    table.bigIncrements("id"); // auto-inc bigint PK (bigserial)
+    table.integer("age"); // int
+    table.bigInteger("views"); // bigint (returned as string)
+    table.string("name", 255); // varchar(255), length optional
+    table.text("bio"); // text / clob
+    table.boolean("is_active"); // boolean
+    table.decimal("price", 8, 2); // numeric(8,2)
+    table.float("rating"); // float
+    table.date("born_on"); // date
+    table.dateTime("seen_at"); // datetime / timestamp
+    table.timestamp("published_at"); // timestamp
+    table.timestamps(true, true); // created_at + updated_at (useTz, defaultNow)
+    table.json("meta"); // json
+    table.jsonb("meta"); // jsonb (pg)
+    table.uuid("token"); // uuid
     table.enu("status", ["draft", "live"]); // enum (aka table.enum)
 });
 ```
@@ -136,7 +138,7 @@ knex.schema.createTable("users", (table) => {
 
 Chain modifiers onto any column definition.
 
-| Modifier            | Effect |
+| Modifier            | Effect                        |
 | ------------------- | ----------------------------- |
 | `.notNullable()`    | `NOT NULL`                    |
 | `.nullable()`       | allow null (default)          |
@@ -159,9 +161,13 @@ Inline on the column, or as a standalone `table.foreign(...)`.
 
 ```ts
 // inline
-table.integer("user_id").unsigned()
-    .references("id").inTable("users")
-    .onDelete("CASCADE").onUpdate("CASCADE");
+table
+    .integer("user_id")
+    .unsigned()
+    .references("id")
+    .inTable("users")
+    .onDelete("CASCADE")
+    .onUpdate("CASCADE");
 
 // standalone (also allows composite keys)
 table.foreign("user_id").references("users.id").onDelete("SET NULL");
@@ -172,9 +178,9 @@ table.foreign("user_id").references("users.id").onDelete("SET NULL");
 Composite/named constraints across one or more columns, plus their drop counterparts (use in `down`).
 
 ```ts
-table.index(["last_name", "first_name"]);   // composite index
-table.unique(["team_id", "slug"]);          // composite unique
-table.primary(["a_id", "b_id"]);            // composite primary key
+table.index(["last_name", "first_name"]); // composite index
+table.unique(["team_id", "slug"]); // composite unique
+table.primary(["a_id", "b_id"]); // composite primary key
 
 table.dropIndex(["last_name", "first_name"]);
 table.dropUnique(["team_id", "slug"]);
@@ -187,12 +193,12 @@ Use `alterTable` to add, change, rename, or drop columns. `.alter()` marks a col
 ```ts
 export function up(knex: Knex): Knex.SchemaBuilder {
     return knex.schema.alterTable("users", (table) => {
-        table.string("phone");                              // add column
-        table.string("name", 35).notNullable().alter();     // change type + nullability
+        table.string("phone"); // add column
+        table.string("name", 35).notNullable().alter(); // change type + nullability
         table.integer("age").alter({alterNullable: false}); // keep current nullability
-        table.renameColumn("bio", "about");                 // rename
-        table.dropColumn("legacy_flag");                    // drop column
-        table.dropForeign("user_id");                       // drop FK
+        table.renameColumn("bio", "about"); // rename
+        table.dropColumn("legacy_flag"); // drop column
+        table.dropForeign("user_id"); // drop FK
     });
 }
 ```
@@ -203,9 +209,9 @@ Chain these on `knex.schema` in `up`/`down`. `hasTable`/`hasColumn` return a boo
 
 ```ts
 knex.schema.dropTable("users");
-knex.schema.dropTableIfExists("users");         // safe in `down`
+knex.schema.dropTableIfExists("users"); // safe in `down`
 knex.schema.renameTable("users", "members");
-await knex.schema.hasTable("users");            // -> boolean
+await knex.schema.hasTable("users"); // -> boolean
 await knex.schema.hasColumn("users", "email");
-knex.schema.raw("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"");
+knex.schema.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 ```

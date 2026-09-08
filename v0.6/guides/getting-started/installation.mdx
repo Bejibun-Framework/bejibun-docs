@@ -18,9 +18,9 @@ Bejibun is built specifically for Bun and requires a modern development environm
 
 ## Runtime Requirements
 
-| Software   | Version       |
-| ---------- | ------------- |
-| Bun        | Latest Stable |
+| Software | Version       |
+| -------- | ------------- |
+| Bun      | Latest Stable |
 
 To verify your Bun installation:
 
@@ -239,8 +239,8 @@ Create a simple route.
 ```ts
 Router.get("/", () => {
     return Response.json({
-        "framework": "Bejibun",
-        "status": "running"
+        framework: "Bejibun",
+        status: "running"
     });
 });
 ```
@@ -342,10 +342,12 @@ import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HomeController extends BaseController {
     public async index(request: Bejibun.Request): Promise<Response> {
-        return super.response.setData({
-            message: "Hello, world!",
-            method: request.method
-        }).send();
+        return super.response
+            .setData({
+                message: "Hello, world!",
+                method: request.method
+            })
+            .send();
     }
 }
 ```

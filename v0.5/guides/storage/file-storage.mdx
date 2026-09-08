@@ -13,9 +13,9 @@ Disks are configured once and selected by name.
 ```ts
 import Storage from "@bejibun/core/facades/Storage";
 
-await Storage.exists("path/to/file.ext");       // boolean
-await Storage.missing("path/to/file.ext");      // boolean
-await Storage.get("path/to/file.ext");          // BunFile | S3File
+await Storage.exists("path/to/file.ext"); // boolean
+await Storage.missing("path/to/file.ext"); // boolean
+await Storage.get("path/to/file.ext"); // BunFile | S3File
 await Storage.put("path/to/file.ext", content);
 await Storage.copy("path/to/file.ext", "path/to/copy.ext");
 await Storage.move("path/to/file.ext", "path/to/new.ext");
@@ -43,10 +43,10 @@ await Storage.delete("path/to/file.ext");
 Inspect files without reading their contents:
 
 ```ts
-const metadata = await Storage.metadata("uploads/avatar.png");          // full stats
-const size = await Storage.size("uploads/avatar.png");                  // bytes
-const mimeType = await Storage.mimeType("uploads/avatar.png");          // e.g. "image/png"
-const lastModified = await Storage.lastModified("uploads/avatar.png");  // Date
+const metadata = await Storage.metadata("uploads/avatar.png"); // full stats
+const size = await Storage.size("uploads/avatar.png"); // bytes
+const mimeType = await Storage.mimeType("uploads/avatar.png"); // e.g. "image/png"
+const lastModified = await Storage.lastModified("uploads/avatar.png"); // Date
 ```
 
 These helpers work on every disk and resolve to the same values across local and S3 storage.
@@ -59,6 +59,7 @@ These helpers work on every disk and resolve to the same values across local and
     const file = await Storage.get("path/to/file.ext");
     const contents = await file.text();
     ```
+
 </Note>
 
 ## Disks
@@ -133,6 +134,6 @@ await Storage.build({
 </CardGroup>
 
 <Tip>
-    The local and S3 drivers share the same method signatures --
-    switching a disk from `local` to `s3` requires no code changes, only config.
+    The local and S3 drivers share the same method signatures -- switching a disk from `local` to
+    `s3` requires no code changes, only config.
 </Tip>

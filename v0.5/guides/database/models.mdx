@@ -56,7 +56,7 @@ You don't need to set these columns manually.
 ## Input validation with `jsonSchema`
 
 A static `jsonSchema` getter validates model data on every `insert`/`patch`; a failed check rejects
-with a `ValidationError`. It's a standard JSON Schema for input only — **not** the database schema,
+with a `ValidationError`. It's a standard JSON Schema for input only -- **not** the database schema,
 no tables or columns are generated from it. Object/array properties are auto-serialized to JSON on
 write and parsed back on read.
 
@@ -98,13 +98,11 @@ static get jsonSchema() {
 }
 ```
 
-<Note>
-    `raw`, subqueries, and field expressions in the update object are **not** validated.
-</Note>
+<Note>`raw`, subqueries, and field expressions in the update object are **not** validated.</Note>
 
 ## Relationships
 
-Declare relations in a static `relationMappings` getter — each entry sets the relation type, related
+Declare relations in a static `relationMappings` getter -- each entry sets the relation type, related
 `modelClass`, and `join` columns. `require` the related model inside the getter to avoid require loops.
 
 | Relation               | Use for                                                 |
@@ -176,12 +174,12 @@ Load relations with a relation expression. `withGraphFetched` runs separate quer
 `withGraphJoined` uses SQL joins so you can filter/order by related columns from the root query.
 
 ```ts
-UserModel.query().withGraphFetched("[posts.comments, profile]")   // nested, separate queries
-UserModel.query().withGraphFetched("posts(published)")            // apply a modifier (see below)
+UserModel.query().withGraphFetched("[posts.comments, profile]"); // nested, separate queries
+UserModel.query().withGraphFetched("posts(published)"); // apply a modifier (see below)
 UserModel.query()
-    .withGraphJoined("posts")                                     // single joined query...
-    .where("posts.published", true)                               // ...so you can filter/order
-    .orderBy("posts.created_at", "desc")                          //    on the related table
+    .withGraphJoined("posts") // single joined query...
+    .where("posts.published", true) // ...so you can filter/order
+    .orderBy("posts.created_at", "desc"); //    on the related table
 ```
 
 ## Relation queries
@@ -191,9 +189,9 @@ parents; instance `$relatedQuery(name)` targets a loaded model. Both return a fu
 insert/patch/delete through the relation too (foreign keys set for you).
 
 ```ts
-UserModel.relatedQuery("posts").for([1, 2])                       // posts of users 1 and 2
-user.$relatedQuery("posts").where("published", true)              // posts of a loaded user
-UserModel.relatedQuery("posts").for(1).insert({title: "Hello"})   // insert related row
+UserModel.relatedQuery("posts").for([1, 2]); // posts of users 1 and 2
+user.$relatedQuery("posts").where("published", true); // posts of a loaded user
+UserModel.relatedQuery("posts").for(1).insert({title: "Hello"}); // insert related row
 ```
 
 ## Query-builder CRUD
@@ -202,24 +200,24 @@ UserModel.relatedQuery("posts").for(1).insert({title: "Hello"})   // insert rela
 
 ```ts
 // read
-UserModel.query().findById(1)
-UserModel.query().where("name", "like", "A%").orderBy("created_at", "desc")
+UserModel.query().findById(1);
+UserModel.query().where("name", "like", "A%").orderBy("created_at", "desc");
 
-// create — returns given props + id only (no extra SELECT)
-UserModel.query().insert({name: "Jane", email: "jane@x.io"})
-UserModel.query().insertAndFetch({name: "Jane", email: "jane@x.io"})  // full row back (any DB)
-UserModel.query().insert({name: "Jane"}).returning("*")               // full row back (Postgres)
+// create -- returns given props + id only (no extra SELECT)
+UserModel.query().insert({name: "Jane", email: "jane@x.io"});
+UserModel.query().insertAndFetch({name: "Jane", email: "jane@x.io"}); // full row back (any DB)
+UserModel.query().insert({name: "Jane"}).returning("*"); // full row back (Postgres)
 
-// update — patch returns the number of affected rows
-UserModel.query().patch({name: "Janet"}).where("id", 1)
-UserModel.query().patchAndFetchById(1, {name: "Janet"})
+// update -- patch returns the number of affected rows
+UserModel.query().patch({name: "Janet"}).where("id", 1);
+UserModel.query().patchAndFetchById(1, {name: "Janet"});
 
 // delete
-UserModel.query().deleteById(1)
+UserModel.query().deleteById(1);
 ```
 
 <Note>
-    `BaseModel.query()` applies the soft-delete scope and fills timestamps automatically — see
+    `BaseModel.query()` applies the soft-delete scope and fills timestamps automatically -- see
     [Soft Deletes](/v0.5/guides/database/soft-deletes).
 </Note>
 
@@ -232,7 +230,8 @@ inserted, and existing related rows **missing from the graph are deleted**.
 ```ts
 // insert a user with two new posts
 UserModel.query().insertGraph({
-    name: "Jane", email: "jane@x.io",
+    name: "Jane",
+    email: "jane@x.io",
     posts: [
         {
             title: "First"
@@ -241,23 +240,24 @@ UserModel.query().insertGraph({
             title: "Second"
         }
     ]
-})
+});
 
 // sync a graph (add *AndFetch to get full rows back)
 UserModel.query().upsertGraph({
-    id: 1, name: "Janet",
+    id: 1,
+    name: "Janet",
     posts: [
         {
             id: 10,
             title: "Updated"
-        },  // has id  -> updated
+        }, // has id  -> updated
         {
             title: "Brand new"
-        }   // no id   -> inserted
+        } // no id   -> inserted
 
         // any other post linked to user 1 -> deleted
     ]
-})
+});
 ```
 
 <Note>
@@ -284,13 +284,13 @@ async $beforeUpdate(opt, queryContext) {
 ```
 
 <Note>
-    Starting a query inside a hook? Pass `queryContext.transaction` as its connection so it joins the
-    parent transaction.
+    Starting a query inside a hook? Pass `queryContext.transaction` as its connection so it joins
+    the parent transaction.
 </Note>
 
 ## Reusable query modifiers
 
-Named query fragments in a static `modifiers` getter, applied with `.modify()` — including inside
+Named query fragments in a static `modifiers` getter, applied with `.modify()` -- including inside
 relation expressions (`"posts(published)"` above).
 
 ```ts app/models/UserModel.ts
@@ -303,8 +303,8 @@ static get modifiers() {
 ```
 
 ```ts
-UserModel.query().modify("active")            // apply directly
-UserModel.query().modify("byName", "Jane")    // with arguments
+UserModel.query().modify("active"); // apply directly
+UserModel.query().modify("byName", "Jane"); // with arguments
 ```
 
 ## Transactions
@@ -317,15 +317,13 @@ import BaseModel from "@bejibun/core/bases/BaseModel";
 import UserModel from "@/app/models/UserModel";
 
 await BaseModel.transaction(async (trx) => {
-    const user = await UserModel.query(trx)
-        .insert({
-            name: "Jane",
-            email: "jane@x.io"
-        });
+    const user = await UserModel.query(trx).insert({
+        name: "Jane",
+        email: "jane@x.io"
+    });
 
-    await user.$relatedQuery("posts", trx)
-        .insert({
-            title: "First post"
-        });
+    await user.$relatedQuery("posts", trx).insert({
+        title: "First post"
+    });
 });
 ```

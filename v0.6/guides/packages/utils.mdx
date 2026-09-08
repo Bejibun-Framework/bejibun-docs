@@ -22,17 +22,24 @@ Importing from the package root (`@bejibun/utils`) eagerly loads its full depend
 ## Helper functions
 
 ```ts
-import { isEmpty, isNotEmpty, defineValue, ask, isCommandExists, isModuleExists } from "@bejibun/utils/utils";
+import {
+    isEmpty,
+    isNotEmpty,
+    defineValue,
+    ask,
+    isCommandExists,
+    isModuleExists
+} from "@bejibun/utils/utils";
 ```
 
-| Function                                       | Description                                          |
-| ---------------------------------------------- | ---------------------------------------------------- |
-| `isEmpty(value): boolean`                      | `true` for `undefined`, `null`, `0`, `NaN`, empty strings, arrays, objects, `Set`s, and `Map`s |
-| `isNotEmpty(value): boolean`                   | Inverse of `isEmpty`                                 |
-| `defineValue(value, defaultValue?)`            | Returns `value` when non-empty, otherwise `defaultValue` (default `null`) |
-| `ask(question): Promise<string>`               | Reads a trimmed line of input from the terminal      |
-| `isCommandExists(command): boolean`            | Whether a shell command is available on `PATH` (cached) |
-| `isModuleExists(module): boolean`              | Whether a Node module resolves (cached)              |
+| Function                            | Description                                                                                    |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `isEmpty(value): boolean`           | `true` for `undefined`, `null`, `0`, `NaN`, empty strings, arrays, objects, `Set`s, and `Map`s |
+| `isNotEmpty(value): boolean`        | Inverse of `isEmpty`                                                                           |
+| `defineValue(value, defaultValue?)` | Returns `value` when non-empty, otherwise `defaultValue` (default `null`)                      |
+| `ask(question): Promise<string>`    | Reads a trimmed line of input from the terminal                                                |
+| `isCommandExists(command): boolean` | Whether a shell command is available on `PATH` (cached)                                        |
+| `isModuleExists(module): boolean`   | Whether a Node module resolves (cached)                                                        |
 
 ```ts
 const page: number = defineValue(body.page, 1);
@@ -47,11 +54,11 @@ Array transformations:
 ```ts
 import Arr from "@bejibun/utils/facades/Arr";
 
-Arr.only([1, 2, 3], ["0", "2"]);  // [1, 3]
-Arr.except([1, 2, 3], ["1"]);     // [1, 3]
-Arr.first([1, 2, 3]);             // 1
-Arr.last([1, 2, 3]);              // 3
-Arr.pluck([{ id: 1 }, { id: 2 }], "id");  // [1, 2]
+Arr.only([1, 2, 3], ["0", "2"]); // [1, 3]
+Arr.except([1, 2, 3], ["1"]); // [1, 3]
+Arr.first([1, 2, 3]); // 1
+Arr.last([1, 2, 3]); // 3
+Arr.pluck([{id: 1}, {id: 2}], "id"); // [1, 2]
 ```
 
 ## Str facade
@@ -61,16 +68,16 @@ String transformations. Most methods also accept `combine: true` to return a `St
 ```ts
 import Str from "@bejibun/utils/facades/Str";
 
-Str.toUpperCase("hello");        // "HELLO"
-Str.toLowerCase("HELLO");        // "hello"
+Str.toUpperCase("hello"); // "HELLO"
+Str.toLowerCase("HELLO"); // "hello"
 Str.toPascalCase("hello world"); // "HelloWorld"
-Str.toCamelCase("hello_world");  // "helloWorld"
-Str.toSnakeCase("helloWorld");   // "hello_world"
-Str.random(16);                  // random alphanumeric string of length 16
-Str.ipToFileName("127.0.0.1");   // filesystem-safe form of an IP
-Str.startsWith("hello", ["he"]);       // true
-Str.endsWith("hello", ["lo"]);         // true
-Str.contains("hello", ["x", "ell"]);   // true
+Str.toCamelCase("hello_world"); // "helloWorld"
+Str.toSnakeCase("helloWorld"); // "hello_world"
+Str.random(16); // random alphanumeric string of length 16
+Str.ipToFileName("127.0.0.1"); // filesystem-safe form of an IP
+Str.startsWith("hello", ["he"]); // true
+Str.endsWith("hello", ["lo"]); // true
+Str.contains("hello", ["x", "ell"]); // true
 ```
 
 ## Enum facade
@@ -81,11 +88,11 @@ Introspects TypeScript enums by key or value through an `EnumBuilder`:
 import Enum from "@bejibun/utils/facades/Enum";
 import HttpMethodEnum from "@bejibun/utils/enums/HttpMethodEnum";
 
-Enum.setEnums(HttpMethodEnum).getKey("GET");  // "Get"
+Enum.setEnums(HttpMethodEnum).getKey("GET"); // "Get"
 Enum.setEnums(HttpMethodEnum).getValue("Get"); // "GET"
-Enum.setEnums(HttpMethodEnum).hasKey("Get");   // true
+Enum.setEnums(HttpMethodEnum).hasKey("Get"); // true
 Enum.setEnums(HttpMethodEnum).hasValue("GET"); // true
-Enum.setEnums(HttpMethodEnum).toArray();       // [{ name: "Get", value: "GET" }, ...]
+Enum.setEnums(HttpMethodEnum).toArray(); // [{ name: "Get", value: "GET" }, ...]
 ```
 
 `toArray()` returns `EnumItem[]`, where `EnumItem` is `{ name: string; value: any }` imported from `@bejibun/utils/types/enum`.
@@ -98,7 +105,7 @@ Lazily loads and re-exports [Luxon](https://moment.github.io/luxon) for date and
 import Luxon from "@bejibun/utils/facades/Luxon";
 
 const now = Luxon.DateTime.now();
-const later = now.plus({ hours: 2 });
+const later = now.plus({hours: 2});
 ```
 
 ## Object facade
@@ -108,12 +115,13 @@ Payload normalization and form-data parsing:
 ```ts
 import BObject from "@bejibun/utils/facades/Object";
 
-BObject.serialize({ a: 1, b: undefined });  // normalize a JSON value
-BObject.only({ a: 1, b: 2 }, ["a"]);        // { a: 1 }
-BObject.except({ a: 1, b: 2 }, ["b"]);      // { a: 1 }
-BObject.parseFormData(formData);            // FormData -> nested object
+BObject.serialize({a: 1, b: undefined}); // normalize a JSON value
+BObject.only({a: 1, b: 2}, ["a"]); // { a: 1 }
+BObject.except({a: 1, b: 2}, ["b"]); // { a: 1 }
+BObject.parseFormData(formData); // FormData -> nested object
 ```
 
 <Note>
-    Import the `Object` facade under an alias (for example `BObject`) to avoid shadowing the global `Object`.
+    Import the `Object` facade under an alias (for example `BObject`) to avoid shadowing the global
+    `Object`.
 </Note>

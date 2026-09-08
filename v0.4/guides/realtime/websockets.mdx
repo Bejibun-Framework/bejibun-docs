@@ -15,7 +15,10 @@ WebSocket handlers extend `BaseWebSocket` and live in `app/websockets/`:
 import BaseWebSocket from "@bejibun/core/bases/BaseWebSocket";
 
 export default class ChatWebSocket extends BaseWebSocket {
-    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+    public async handle(
+        ws: Bun.ServerWebSocket<any>,
+        message: string | Buffer<ArrayBuffer>
+    ): Promise<void> {
         for (const connection of super.connections) {
             if (connection.data.id !== ws.data.id) {
                 if (connection.readyState === 1) {
@@ -34,9 +37,7 @@ Declare WebSocket routes in `routes/websocket.ts`:
 ```ts routes/websocket.ts
 import Router from "@bejibun/core/facades/Router";
 
-export default Router.prefix("chat").group([
-    Router.websocket("/", "ChatWebSocket@handle")
-]);
+export default Router.prefix("chat").group([Router.websocket("/", "ChatWebSocket@handle")]);
 ```
 
 `Router.websocket(path, "Class@method")` upgrades matching requests and dispatches incoming messages to your handler method.

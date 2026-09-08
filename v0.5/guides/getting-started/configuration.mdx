@@ -9,7 +9,7 @@ icon: "sliders"
 Configuration is the central place where application behavior is defined.
 
 Rather than hardcoding values throughout your codebase, Bejibun encourages storing settings in dedicated configuration
- files and environment variables.
+files and environment variables.
 
 This approach provides:
 
@@ -749,7 +749,7 @@ DB_HOST=127.0.0.1
 ### Configuration File
 
 ```ts
-host: env("DB_HOST")
+host: env("DB_HOST");
 ```
 
 ### Application Code
@@ -775,7 +775,7 @@ DB_PASSWORD=secret
 Avoid:
 
 ```ts
-password: "secret"
+password: "secret";
 ```
 
 ### Use Environment Variables
@@ -791,13 +791,13 @@ Organize configuration by subsystem.
 Good:
 
 ```ts
-payment.defaultProvider
+payment.defaultProvider;
 ```
 
 Avoid:
 
 ```ts
-provider
+provider;
 ```
 
 ### Avoid Direct Environment Access

@@ -106,8 +106,7 @@ public async download(request: Bejibun.Request): Promise<Response> {
 ```
 
 <Tip>
-    CORS headers are loaded once at startup and merged into **every** response --
-    `send()` and `stream()` both apply them.
-    Configure them in `config/cors.ts`. Cookies set with `setCookie()` / `setCookies()` are merged in the same way --
-    see [Cookies](/v0.6/guides/http-layer/cookies).
+    CORS headers are loaded once at startup and merged into **every** response -- `send()` and
+    `stream()` both apply them. Configure them in `config/cors.ts`. Cookies set with `setCookie()` /
+    `setCookies()` are merged in the same way -- see [Cookies](/v0.6/guides/http-layer/cookies).
 </Tip>

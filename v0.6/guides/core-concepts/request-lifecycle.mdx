@@ -110,9 +110,7 @@ export default class AuthMiddleware {
 Register it per route or per group:
 
 ```ts
-Router.middleware(new AuthMiddleware()).group([
-    Router.get("/profile", "ProfileController@show")
-]);
+Router.middleware(new AuthMiddleware()).group([Router.get("/profile", "ProfileController@show")]);
 ```
 
 When middleware returns early, the controller never runs.

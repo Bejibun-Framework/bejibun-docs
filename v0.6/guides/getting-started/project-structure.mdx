@@ -280,7 +280,10 @@ Example:
 import BaseWebSocket from "@bejibun/core/bases/BaseWebSocket";
 
 export default class ChatWebSocket extends BaseWebSocket {
-    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+    public async handle(
+        ws: Bun.ServerWebSocket<any>,
+        message: string | Buffer<ArrayBuffer>
+    ): Promise<void> {
         // ...
     }
 }
@@ -470,8 +473,9 @@ export default config;
 ### Storage Configuration
 
 <Note>
-    As of v0.6.0, storage ships as the standalone [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package
-    (`bun ace install @bejibun/storage`), rather than being built into `@bejibun/core`. The old `config/disk.ts` is
+    As of v0.6.0, storage ships as the standalone
+    [`@bejibun/storage`](/v0.6/guides/storage/file-storage) package (`bun ace install
+    @bejibun/storage`), rather than being built into `@bejibun/core`. The old `config/disk.ts` is
     now `config/storage.ts`.
 </Note>
 
@@ -523,9 +527,9 @@ export default config;
 
 <Note>
     As of v0.6.0, the `RateLimiter` facade ships as the standalone
-    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting)
-    package. `config/limiter.ts`'s shape is unchanged, and `RateLimiterMiddleware` (still exported from
-    `@bejibun/core`) works exactly as before.
+    [`@bejibun/limiter`](/v0.6/guides/security/rate-limiting) package. `config/limiter.ts`'s shape
+    is unchanged, and `RateLimiterMiddleware` (still exported from `@bejibun/core`) works exactly as
+    before.
 </Note>
 
 Defines request throttling and rate-limiting rules.

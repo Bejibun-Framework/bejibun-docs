@@ -280,7 +280,10 @@ Router.websocket("/", "ChatWebSocket@handle");
 
 ```ts
 export default class ChatWebSocket extends BaseWebSocket {
-    public async handle(ws: Bun.ServerWebSocket<any>, message: string | Buffer<ArrayBuffer>): Promise<void> {
+    public async handle(
+        ws: Bun.ServerWebSocket<any>,
+        message: string | Buffer<ArrayBuffer>
+    ): Promise<void> {
         //
     }
 }

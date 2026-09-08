@@ -49,14 +49,10 @@ import Router from "@bejibun/core/facades/Router";
 
 export default Router.prefix("premium")
     .x402()
-    .group([
-        Router.get("report", "ReportController@paid")
-    ]);
+    .group([Router.get("report", "ReportController@paid")]);
 ```
 
-<Note>
-    `Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.
-</Note>
+<Note>`Router.x402()` throws a `RouterException` if `@bejibun/x402` isn't installed.</Note>
 
 ## Programmatic usage
 
@@ -65,10 +61,9 @@ For finer control, use the `X402` facade directly inside a handler:
 ```ts
 import X402 from "@bejibun/x402";
 
-return X402
-    .setConfig()         // optional overrides (description, paywall HTML, schemas…)
-    .setFacilitator()    // optional facilitator config
-    .setPaywall()        // optional paywall config
+return X402.setConfig() // optional overrides (description, paywall HTML, schemas…)
+    .setFacilitator() // optional facilitator config
+    .setPaywall() // optional paywall config
     .setRequest(request) // required -- provides the request headers
     .middleware(() => {
         // your paid resource here
@@ -76,9 +71,9 @@ return X402
 ```
 
 <Warning>
-    The default config targets a **test network** (`testnet: true`). Before going live, switch `network`/`testnet` to
-    production values and set a real payout `address` -- and never commit production payout addresses or facilitator
-    secrets to source control.
+    The default config targets a **test network** (`testnet: true`). Before going live, switch
+    `network`/`testnet` to production values and set a real payout `address` -- and never commit
+    production payout addresses or facilitator secrets to source control.
 </Warning>
 
 <a
@@ -157,4 +152,5 @@ return X402
             Launch demo →
         </div>
     </div>
+
 </a>

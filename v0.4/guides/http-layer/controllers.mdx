@@ -22,10 +22,12 @@ import BaseController from "@bejibun/core/bases/BaseController";
 
 export default class HelloController extends BaseController {
     public async hello(request: Bun.BunRequest): Promise<Response> {
-        return super.response.setData({
-            message: "Hello, world!",
-            method: request.method
-        }).send();
+        return super.response
+            .setData({
+                message: "Hello, world!",
+                method: request.method
+            })
+            .send();
     }
 }
 ```

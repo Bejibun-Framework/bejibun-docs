@@ -44,9 +44,14 @@ Use the `RateLimiter` facade to throttle a particular operation -- for example, 
 import RateLimiter from "@bejibun/core/facades/RateLimiter";
 
 // run the callback only if under the limit
-await RateLimiter.attempt("send-otp:user-1", 5, async () => {
-    await sendOtp();
-}, 60);
+await RateLimiter.attempt(
+    "send-otp:user-1",
+    5,
+    async () => {
+        await sendOtp();
+    },
+    60
+);
 
 // check without consuming an attempt
 const blocked = await RateLimiter.tooManyAttempts("send-otp:user-1", 5);
@@ -61,11 +66,9 @@ await RateLimiter.clear("send-otp:user-1");
 | `tooManyAttempts(key, limit, duration?)`   | Whether the limit is exceeded     |
 | `clear(key)`                               | Reset the counter for a key       |
 
-<Note>
-    When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.
-</Note>
+<Note>When omitted, `limit` and `duration` default to `60` and `60` seconds respectively.</Note>
 
 <Tip>
-    Choose a key that identifies the actor and action together (for example `login:{email}`),
-    so limits are scoped precisely.
+    Choose a key that identifies the actor and action together (for example `login:{email}`), so
+    limits are scoped precisely.
 </Tip>

@@ -37,8 +37,8 @@ The scaffold ships these files:
 | `x402.ts`        | x402 payments                     |
 
 <Note>
-    The core provides built-in defaults for `cache`, `cors`, `disk`, `limiter`, `redis`, and `websocket`.
-    If you delete a project file, the bundled default is used.
+    The core provides built-in defaults for `cache`, `cors`, `disk`, `limiter`, `redis`, and
+    `websocket`. If you delete a project file, the bundled default is used.
 </Note>
 
 ## Reading configuration
@@ -46,8 +46,8 @@ The scaffold ships these files:
 The global `config()` function reads values using dot notation -- the first segment is the file name:
 
 ```ts
-config("disk.default");                 // "local"
-config("limiter.limit");                // 30
+config("disk.default"); // "local"
+config("limiter.limit"); // 30
 config("cache.connections.redis.host"); // 127.0.0.1
 ```
 
@@ -100,8 +100,8 @@ export default config;
 ```
 
 <Warning>
-    Store credentials in `.env`, never in committed config files. Keep `.env` out of version control and
-    use a separate set of values per environment.
+    Store credentials in `.env`, never in committed config files. Keep `.env` out of version control
+    and use a separate set of values per environment.
 </Warning>
 
 See [Environment Variables](/v0.4/guides/getting-started/environment-variables) for the full list of variables the scaffold uses.

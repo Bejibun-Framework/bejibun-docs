@@ -18,7 +18,8 @@ table.timestamp("deleted_at");
 
 ```ts
 // model
-declare deleted_at: NullableTimestamp;
+declare;
+deleted_at: NullableTimestamp;
 ```
 
 (The default `make:model` and `make:migration` stubs include these.)
@@ -26,7 +27,7 @@ declare deleted_at: NullableTimestamp;
 ## Soft deleting
 
 ```ts
-await UserModel.find(id).delete();  // sets deleted_at = now()
+await UserModel.find(id).delete(); // sets deleted_at = now()
 ```
 
 The row stays in the database but disappears from default queries like `UserModel.all()`.
@@ -59,6 +60,7 @@ By default queries hide soft-deleted rows. Include or isolate them with:
     ```ts Only trashed
     const trashed = await UserModel.onlyTrashed(); // trashed only
     ```
+
 </CodeGroup>
 
 ## Method reference
@@ -77,7 +79,7 @@ The `exists` validation rule can opt into trashed rows --
 useful for a restore endpoint that must accept an already-deleted ID:
 
 ```ts
-id: super.validator.number().min(1).exists(UserModel, "id", true)
+id: super.validator.number().min(1).exists(UserModel, "id", true);
 ```
 
 ```ts app/controllers/UserController.ts

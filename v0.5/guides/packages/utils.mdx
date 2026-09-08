@@ -44,7 +44,7 @@ import HttpMethodEnum from "@bejibun/utils/enums/HttpMethodEnum";
 
 Enum.setEnums(HttpMethodEnum).getKey("get");
 Enum.setEnums(HttpMethodEnum).getValue("GET");
-Enum.setEnums(HttpMethodEnum).toArray();        // [{ key, value }, ...]
+Enum.setEnums(HttpMethodEnum).toArray(); // [{ key, value }, ...]
 Enum.setEnums(HttpMethodEnum).hasValue("GET");
 Enum.setEnums(HttpMethodEnum).hasKey("get");
 ```
@@ -59,8 +59,8 @@ import Str from "@bejibun/utils/facades/Str";
 Str.toLowerCase("HELLO");
 Str.toPascalCase("hello world"); // "HelloWorld"
 Str.toUpperCase("hello");
-Str.random(16);                  // random string of length 16
-Str.ipToFileName("127.0.0.1");   // filesystem-safe form of an IP
+Str.random(16); // random string of length 16
+Str.ipToFileName("127.0.0.1"); // filesystem-safe form of an IP
 ```
 
 ## Luxon facade
@@ -72,7 +72,7 @@ the same library the framework uses for model timestamps:
 import Luxon from "@bejibun/utils/facades/Luxon";
 
 const now = Luxon.DateTime.now();
-const later = now.plus({ hours: 2 });
+const later = now.plus({hours: 2});
 ```
 
 `Luxon.DateTime`, `Luxon.Duration`, and `Luxon.Interval` are all available.
@@ -84,10 +84,11 @@ Serialization and form-data parsing helpers (these power `BaseController.parse()
 ```ts
 import BObject from "@bejibun/utils/facades/Object";
 
-BObject.serialize(value);          // normalize a JSON value
-BObject.parseFormData(formData);   // FormData -> plain object
+BObject.serialize(value); // normalize a JSON value
+BObject.parseFormData(formData); // FormData -> plain object
 ```
 
 <Note>
-    Import the `Object` facade under an alias (e.g. `BObject`) to avoid shadowing the global `Object`.
+    Import the `Object` facade under an alias (e.g. `BObject`) to avoid shadowing the global
+    `Object`.
 </Note>

@@ -60,6 +60,7 @@ The `Storage` facade (from the standalone `@bejibun/storage` package) writes to 
         root: App.Path.storagePath("custom")
     }).put("file.txt", content);
     ```
+
 </CodeGroup>
 
 The `public` disk is rooted at `storage/app/public` and exposes a public URL via `APP_URL/storage/public`.
@@ -76,11 +77,11 @@ await Storage.disk("public").put(`avatars/${file.name}`, file);
 ```
 
 <Tip>
-    For cloud storage, configure the `s3` disk in `config/storage.ts` with your S3 credentials, then call
-    `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
+    For cloud storage, configure the `s3` disk in `config/storage.ts` with your S3 credentials, then
+    call `Storage.disk("s3").put(...)`. The local and S3 drivers share the same API.
 </Tip>
 
 <Warning>
-    Never trust the client-supplied filename directly.
-    Sanitize or generate your own name (and validate the content type / size) before writing to disk.
+    Never trust the client-supplied filename directly. Sanitize or generate your own name (and
+    validate the content type / size) before writing to disk.
 </Warning>

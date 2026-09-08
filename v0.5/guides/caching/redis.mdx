@@ -29,7 +29,7 @@ REDIS_CONNECTION=local
 ```ts
 import Redis from "@bejibun/redis";
 
-await Redis.set("session:1", token, 3600);          // value with TTL (seconds)
+await Redis.set("session:1", token, 3600); // value with TTL (seconds)
 const value = await Redis.get("session:1");
 await Redis.del("session:1");
 
@@ -51,9 +51,9 @@ await Redis.expire("page:views", 86400);
 Check the health of a Redis connection with `ping()`:
 
 ```ts
-await Redis.ping();                              // "PONG"
-await Redis.ping("hello");                       // echoes back "hello"
-await Redis.ping("hello", "analytics", false);   // named connection, keep it open
+await Redis.ping(); // "PONG"
+await Redis.ping("hello"); // echoes back "hello"
+await Redis.ping("hello", "analytics", false); // named connection, keep it open
 ```
 
 ## Pipelines
@@ -123,6 +123,6 @@ await Redis.connection("analytics").incr("events");
 | `off(event, fn)` | Remove a previously registered event listener.                                      |
 
 <Tip>
-    Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off operations on a specific
-    connection.
+    Most methods accept trailing `connection?` and `disconnectAfter?` arguments for one-off
+    operations on a specific connection.
 </Tip>

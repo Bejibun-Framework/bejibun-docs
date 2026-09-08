@@ -52,11 +52,10 @@ adds `null` for rows that have not been soft-deleted. Both types are exported
 from `@bejibun/core/bases/BaseModel`.
 
 <Tip>
-    As of v0.6.0, the `EpochTimestamps` mixin is exported from the package root:
-    `import {EpochTimestamps} from "@bejibun/core";`. It stamps
-    `createdColumn`/`updatedColumn` with Unix epoch integers instead of
-    `DateTime` objects, which is useful for integer timestamp columns such as
-    those in the built-in `jobs` table (see `JobModel`).
+    As of v0.6.0, the `EpochTimestamps` mixin is exported from the package root: `import{" "}
+    {EpochTimestamps} from "@bejibun/core";`. It stamps `createdColumn`/`updatedColumn` with Unix
+    epoch integers instead of `DateTime` objects, which is useful for integer timestamp columns such
+    as those in the built-in `jobs` table (see `JobModel`).
 </Tip>
 
 ## Automatic timestamps
@@ -75,39 +74,39 @@ so you never assign these columns by hand.
 
 `BaseModel` adds short static helpers that wrap `query()`:
 
-| Helper                       | Equivalent                        | Returns                          |
-| ---------------------------- | --------------------------------- | -------------------------------- |
-| `all(trx?)`                  | `query().select()`                | all rows (query builder)         |
-| `find(id, trx?)`             | `query().findById(id)`            | matching row, or `undefined`     |
-| `findOrFail(id, trx?)`       | `query().findById(id)` + throw   | `Promise<InstanceType<T>>`       |
-| `create(payload, trx?)`      | `query().insert(payload)`         | inserted row (query builder)     |
-| `query(trx?)`                | --                                | soft-delete-aware query builder  |
-| `withTrashed(trx?)`          | `query().withTrashed()`           | query including soft-deleted rows|
+| Helper                  | Equivalent                     | Returns                           |
+| ----------------------- | ------------------------------ | --------------------------------- |
+| `all(trx?)`             | `query().select()`             | all rows (query builder)          |
+| `find(id, trx?)`        | `query().findById(id)`         | matching row, or `undefined`      |
+| `findOrFail(id, trx?)`  | `query().findById(id)` + throw | `Promise<InstanceType<T>>`        |
+| `create(payload, trx?)` | `query().insert(payload)`      | inserted row (query builder)      |
+| `query(trx?)`           | --                             | soft-delete-aware query builder   |
+| `withTrashed(trx?)`     | `query().withTrashed()`        | query including soft-deleted rows |
 
 `findOrFail` throws `ModelNotFoundException` when no row matches; `find` returns
 `undefined` instead.
 
 ```ts
-await UserModel.all();                                  // all non-deleted users
-await UserModel.find(1);                                // user 1, or undefined
-const user = await UserModel.findOrFail(1);             // throws if missing
+await UserModel.all(); // all non-deleted users
+await UserModel.find(1); // user 1, or undefined
+const user = await UserModel.findOrFail(1); // throws if missing
 await UserModel.create({name: "Jane", email: "jane@x.io"});
 ```
 
 <Note>
-    `query()`, `all()`, `find()`, and `create()` return Objection query
-    builders, so they resolve when `await`ed or chained with further methods.
-    `findOrFail` is the one helper that returns a plain `Promise`.
+    `query()`, `all()`, `find()`, and `create()` return Objection query builders, so they resolve
+    when `await`ed or chained with further methods. `findOrFail` is the one helper that returns a
+    plain `Promise`.
 </Note>
 
 The soft-delete-aware helpers `withTrashed()` and `onlyTrashed()` scope the
 result set, while `restore()` and `forceDelete()` operate on the matched rows:
 
 ```ts
-await UserModel.withTrashed().where("email", "like", "%@x.io");  // include deleted
-await UserModel.onlyTrashed();                                    // deleted rows only
-await UserModel.onlyTrashed().restore();                          // undelete
-await UserModel.forceDelete().where("id", 5);                     // real DELETE
+await UserModel.withTrashed().where("email", "like", "%@x.io"); // include deleted
+await UserModel.onlyTrashed(); // deleted rows only
+await UserModel.onlyTrashed().restore(); // undelete
+await UserModel.forceDelete().where("id", 5); // real DELETE
 ```
 
 See [Soft Deletes](/v0.6/guides/database/soft-deletes) for the full behavior.
@@ -159,8 +158,7 @@ static get jsonSchema() {
 ```
 
 <Note>
-    `raw` expressions, subqueries, and field expressions in the update object
-    are **not** validated.
+    `raw` expressions, subqueries, and field expressions in the update object are **not** validated.
 </Note>
 
 ## Relationships
@@ -239,12 +237,12 @@ queries (the common choice); `withGraphJoined` uses SQL joins so you can filter
 or order by related columns from the root query.
 
 ```ts
-UserModel.query().withGraphFetched("[posts.comments, profile]")   // nested, separate queries
-UserModel.query().withGraphFetched("posts(published)")            // apply a modifier (see below)
+UserModel.query().withGraphFetched("[posts.comments, profile]"); // nested, separate queries
+UserModel.query().withGraphFetched("posts(published)"); // apply a modifier (see below)
 UserModel.query()
-    .withGraphJoined("posts")                                     // single joined query...
-    .where("posts.published", true)                               // ...so you can filter/order
-    .orderBy("posts.created_at", "desc")                          //    on the related table
+    .withGraphJoined("posts") // single joined query...
+    .where("posts.published", true) // ...so you can filter/order
+    .orderBy("posts.created_at", "desc"); //    on the related table
 ```
 
 ## Relation queries
@@ -255,9 +253,9 @@ model. Both return a full query builder, so you can insert, patch, or delete
 through the relation, with foreign keys set for you.
 
 ```ts
-UserModel.relatedQuery("posts").for([1, 2])                       // posts of users 1 and 2
-user.$relatedQuery("posts").where("published", true)              // posts of a loaded user
-UserModel.relatedQuery("posts").for(1).insert({title: "Hello"})   // insert related row
+UserModel.relatedQuery("posts").for([1, 2]); // posts of users 1 and 2
+user.$relatedQuery("posts").where("published", true); // posts of a loaded user
+UserModel.relatedQuery("posts").for(1).insert({title: "Hello"}); // insert related row
 ```
 
 ## Query-builder CRUD
@@ -266,25 +264,25 @@ UserModel.relatedQuery("posts").for(1).insert({title: "Hello"})   // insert rela
 
 ```ts
 // read
-UserModel.query().findById(1)
-UserModel.query().where("name", "like", "A%").orderBy("created_at", "desc")
+UserModel.query().findById(1);
+UserModel.query().where("name", "like", "A%").orderBy("created_at", "desc");
 
 // create -- returns given props + id only (no extra SELECT)
-UserModel.query().insert({name: "Jane", email: "jane@x.io"})
-UserModel.query().insertAndFetch({name: "Jane", email: "jane@x.io"})  // full row back (any DB)
-UserModel.query().insert({name: "Jane"}).returning("*")               // full row back (Postgres)
+UserModel.query().insert({name: "Jane", email: "jane@x.io"});
+UserModel.query().insertAndFetch({name: "Jane", email: "jane@x.io"}); // full row back (any DB)
+UserModel.query().insert({name: "Jane"}).returning("*"); // full row back (Postgres)
 
 // update -- patch returns the number of affected rows
-UserModel.query().patch({name: "Janet"}).where("id", 1)
-UserModel.query().patchAndFetchById(1, {name: "Janet"})
+UserModel.query().patch({name: "Janet"}).where("id", 1);
+UserModel.query().patchAndFetchById(1, {name: "Janet"});
 
 // delete
-UserModel.query().deleteById(1)
+UserModel.query().deleteById(1);
 ```
 
 <Note>
-    `BaseModel.query()` applies the soft-delete scope and fills timestamps
-    automatically -- see [Soft Deletes](/v0.6/guides/database/soft-deletes).
+    `BaseModel.query()` applies the soft-delete scope and fills timestamps automatically -- see
+    [Soft Deletes](/v0.6/guides/database/soft-deletes).
 </Note>
 
 ## Nested writes
@@ -297,7 +295,8 @@ graph are deleted**.
 ```ts
 // insert a user with two new posts
 UserModel.query().insertGraph({
-    name: "Jane", email: "jane@x.io",
+    name: "Jane",
+    email: "jane@x.io",
     posts: [
         {
             title: "First"
@@ -306,23 +305,23 @@ UserModel.query().insertGraph({
             title: "Second"
         }
     ]
-})
+});
 
 // sync a graph (add *AndFetch to get full rows back)
 UserModel.query().upsertGraph({
-    id: 1, name: "Janet",
+    id: 1,
+    name: "Janet",
     posts: [
-        {id: 10, title: "Updated"},   // has id  -> updated
-        {title: "Brand new"}          // no id   -> inserted
+        {id: 10, title: "Updated"}, // has id  -> updated
+        {title: "Brand new"} // no id   -> inserted
 
         // any other post linked to user 1 -> deleted
     ]
-})
+});
 ```
 
 <Note>
-    `upsertGraph` deletion is not recursive unless the database enforces
-    `ON DELETE CASCADE`.
+    `upsertGraph` deletion is not recursive unless the database enforces `ON DELETE CASCADE`.
 </Note>
 
 ## Lifecycle hooks
@@ -345,8 +344,8 @@ async $beforeUpdate(opt, queryContext) {
 ```
 
 <Note>
-    Starting a query inside a hook? Pass `queryContext.transaction` as its
-    connection so it joins the parent transaction.
+    Starting a query inside a hook? Pass `queryContext.transaction` as its connection so it joins
+    the parent transaction.
 </Note>
 
 ## Reusable query modifiers
@@ -364,8 +363,8 @@ static get modifiers() {
 ```
 
 ```ts
-UserModel.query().modify("active")            // apply directly
-UserModel.query().modify("byName", "Jane")    // with arguments
+UserModel.query().modify("active"); // apply directly
+UserModel.query().modify("byName", "Jane"); // with arguments
 ```
 
 ## Transactions
@@ -378,16 +377,14 @@ import BaseModel from "@bejibun/core/bases/BaseModel";
 import UserModel from "@/app/models/UserModel";
 
 await BaseModel.transaction(async (trx) => {
-    const user = await UserModel.query(trx)
-        .insert({
-            name: "Jane",
-            email: "jane@x.io"
-        });
+    const user = await UserModel.query(trx).insert({
+        name: "Jane",
+        email: "jane@x.io"
+    });
 
-    await user.$relatedQuery("posts", trx)
-        .insert({
-            title: "First post"
-        });
+    await user.$relatedQuery("posts", trx).insert({
+        title: "First post"
+    });
 });
 ```
 

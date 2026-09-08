@@ -21,6 +21,7 @@ Each returns an Objection query you `await`.
     ```ts Find or fail
     const user = await UserModel.findOrFail(id); // throws ModelNotFoundException
     ```
+
 </CodeGroup>
 
 ```ts app/controllers/UserController.ts
@@ -32,8 +33,8 @@ public async index(request: Bejibun.Request): Promise<Response> {
 ```
 
 <Tip>
-    Use `findOrFail` in controllers --
-    the thrown `ModelNotFoundException` is automatically turned into a not-found response.
+    Use `findOrFail` in controllers -- the thrown `ModelNotFoundException` is automatically turned
+    into a not-found response.
 </Tip>
 
 ## Creating
