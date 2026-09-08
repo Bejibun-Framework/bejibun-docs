@@ -1,0 +1,191 @@
+---
+title: "Linter & Prettier"
+description: "Enforce consistent code style across your Bejibun application with the built-in ESLint and Prettier setup."
+icon: "sparkles"
+---
+
+Every Bejibun application ships with a ready-to-run ESLint and Prettier configuration, wired together so formatting and linting stay consistent without setup.
+
+`package.json` already includes the tooling and a `lint` script that runs the whole pipeline:
+
+```json
+"scripts": {
+    "format": "prettier --write . --log-level=silent",
+    "eslint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "lint": "bun run format && bun run eslint && bun run typecheck",
+    "build": "bun run lint"
+}
+```
+
+Run everything with:
+
+```bash
+bun run lint
+```
+
+---
+
+# ESLint
+
+Linting is powered by ESLint's flat config (`eslint.config.js`) built on top of [`@eslint/js`](https://www.npmjs.com/package/@eslint/js) and [`typescript-eslint`](https://typescript-eslint.io/):
+
+```ts
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+    {
+        ignores: [
+            "node_modules/**",
+            "dist/**",
+            "out/**",
+            "coverage/**",
+            "public/**",
+            "storage/app/**",
+            "storage/cache/**",
+            "storage/framework/**",
+            "bun.lock",
+            "*.tsbuildinfo"
+        ]
+    },
+
+    js.configs.recommended,
+    ...tseslint.configs.recommended,
+
+    {
+        files: ["**/*.{ts,tsx}"],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+            parserOptions: {
+                ecmaFeatures: {
+                    experimentalDecorators: true
+                }
+            },
+            globals: {
+                ...globals.node,
+                ...globals.browser,
+                Bun: "readonly"
+            }
+        },
+        rules: {
+            "no-unused-vars": "off",
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_"
+                }
+            ],
+            "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/no-empty-object-type": "off",
+            "@typescript-eslint/no-inferrable-types": "off",
+            "@typescript-eslint/no-require-imports": "off",
+            "no-console": "off"
+        }
+    },
+
+    eslintConfigPrettier
+);
+```
+
+Check a single run with:
+
+```bash
+bun run eslint
+```
+
+## What the config covers
+
+- **Recommended rules** -- ESLint's `recommended` and `typescript-eslint` recommended rule sets are enabled out of the box.
+- **Any is allowed** -- `@typescript-eslint/no-explicit-any` is disabled, since dynamic framework code often deals with runtime-shaped data.
+- **Unused variables warn** -- unused variable reports are warnings, not errors, and parameters/variables prefixed with `_` are ignored (`argsIgnorePattern: "^_"`).
+- **Console is allowed** -- `no-console` is off; `Logger` is preferred, but plain `console` calls don't fail the lint.
+- **Dynamic require is allowed** -- `@typescript-eslint/no-require-imports` is off; Bejibun bundles use `require()` for synchronous module loading.
+- **Bun global** -- `Bun` is declared as a read-only global together with Node and browser globals.
+- **Decorators** -- `experimentalDecorators` is enabled for TypeScript decorator syntax.
+
+## Configuring linting
+
+The config lives at the project root as `eslint.config.js`. Because it's a flat config, you can extend it at the top level:
+
+```ts
+export default tseslint.config(...existingConfig, {
+    rules: {
+        "your-custom-rule": "error"
+    }
+});
+```
+
+The base config shown above is shared across every Bejibun package and the application scaffold. Individual packages may additionally ignore paths specific to their structure (for example core and libraries ignore `src/stubs/**`); the override logic stays the same.
+
+---
+
+# Prettier
+
+Formatting is handled by Prettier with a framework default stored in `.prettierrc.json`:
+
+```json
+{
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": false,
+    "quoteProps": "as-needed",
+    "trailingComma": "none",
+    "bracketSpacing": false,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "printWidth": 100,
+    "endOfLine": "lf",
+    "jsxSingleQuote": false
+}
+```
+
+Format the whole project with:
+
+```bash
+bun run format
+```
+
+## What it styles
+
+| Setting          | Default | Note                                       |
+| ---------------- | ------- | ------------------------------------------ |
+| `tabWidth`       | 4       | Indentation width                          |
+| `semi`           | true    | Always add semicolons                      |
+| `singleQuote`    | false   | Double quotes                              |
+| `trailingComma`  | none    | No trailing commas                         |
+| `bracketSpacing` | false   | `{foo: "bar"}` instead of `{ foo: "bar" }` |
+| `arrowParens`    | always  | Always wrap arrow function parameters      |
+| `printWidth`     | 100     | Line width before wrapping                 |
+| `endOfLine`      | lf      | LF line endings                            |
+
+## Configuring formatting
+
+Override the defaults by editing `.prettierrc.json` at the application root, or use [Prettier's configuration file](https://prettier.io/docs/en/configuration.html) precedence. Files and directories can be excluded with a `.prettierignore`:
+
+```text
+node_modules/
+dist/
+public/
+storage/
+```
+
+---
+
+# Linter & Prettier together
+
+`eslint-config-prettier` is loaded **last** in the ESLint config, which disables every stylistic ESLint rule that conflicts with Prettier. ESLint focuses on code correctness while Prettier owns formatting, so the two never fight over the same rules and `bun run lint` produces deterministic output.
+
+Because `build` runs `lint`, a failing format check or lint error blocks a production build until the code is cleaned up:
+
+```bash
+bun run lint      # format + eslint + typecheck
+bun run format    # prettier --write
+bun run eslint    # eslint . (no auto-fix)
+bun run typecheck # tsc --noEmit
+```
