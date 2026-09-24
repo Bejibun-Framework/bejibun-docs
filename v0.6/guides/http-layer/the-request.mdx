@@ -4,7 +4,7 @@ description: "Read input from the request with the built-in request helpers."
 icon: "inbox"
 ---
 
-Every Bejibun controller receives a **`Bejibun.Request`** -- Bun's native `Bun.BunRequest` extended with a single flat
+Every Bejibun controller receives a **`Bejibun.Request`** -- Bun's native `Bun.BunRequest` extended with a populated
 `payload` map and 36 fluent helpers. Input is available directly on the request object; there is no `super.parse()`
 step to call first.
 
@@ -56,6 +56,43 @@ key collision):
     successfully collected. Use a [validator](/v0.6/guides/validation/introduction) to enforce the
     shape you expect.
 </Note>
+
+## Nested arrays & objects
+
+Query-string and form fields that use `[]` bracket keys are unwrapped into nested arrays and objects instead of flat
+keys:
+
+| Query param                                 | `request.payload`                              |
+| ------------------------------------------- | ---------------------------------------------- |
+| `filters[status]=active&filters[sort]=desc` | `filters = { status: "active", sort: "desc" }` |
+| `tags[]=services&tags[]=ecosystem`          | `tags = ["services", "ecosystem"]`             |
+| `user[address][city]=Jakarta`               | `user = { address: { city: "Jakarta" } }`      |
+
+```ts app/controllers/TestController.ts
+// GET /api/articles/search?q=bejibun&page=2&filters[status]=published&tags[]=services
+public async search(request: Bejibun.Request): Promise<Response> {
+    const tags    = request.array("tags");           // ["services"]
+    const status  = request.get("filters.status");   // "published"
+    const filters = request.get("filters");          // { status: "published" }
+    const page    = request.integer("page");         // 2
+}
+```
+
+The accessors `input`, `get`, `has`, `hasAny`, `filled`, `missing`, `array`, `only`, and `except` all resolve keys
+through dot **and** bracket notation, so you can read nested values directly -- `request.get("user.address.city")` and
+`request.get("user[address][city]")` are equivalent.
+
+<Note>
+    Nested values arrive as strings (`"27"`) -- coerce with `request.integer(key)`,
+    `request.float(key)`, or `Number(...)` when arithmetic is needed.
+</Note>
+
+<Warning>
+    Prototype-ish path segments (`__proto__`, `constructor`, `prototype`) are rejected during
+    nesting, and presence checks inspect own properties only. Query strings such as
+    `?__proto__[polluted]=1` can never touch the global `Object.prototype`, and `has("constructor")`
+    stays `false`.
+</Warning>
 
 ## Request helpers
 

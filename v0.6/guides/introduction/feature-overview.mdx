@@ -43,7 +43,9 @@ export default class UserController extends BaseController {
 <Tip>
     Read request data with `request.input(key?, fallback?)` and validate it with
     `request.validate(validator)`. The global `RequestMiddleware` populates `request.payload`,
-    merging JSON body, route params, query string, and form data.
+    merging JSON body, route params, query string, and form data -- bracket query keys (like
+    `filters[status]=active` or `tags[]=a`) are unwrapped into nested arrays and objects. See [The
+    Request](/v0.6/guides/http-layer/the-request) for the full accessor set.
 </Tip>
 
 Controllers keep route declarations clean, improve organization, and make logic easier to test and reuse.
