@@ -37,6 +37,11 @@ await Storage.move("path/to/file.ext", "path/to/new.ext");
 await Storage.delete("path/to/file.ext");
 ```
 
+All operations throw on failure. Missing paths, unreadable sources,
+and driver errors (filesystem or S3) reject the returned promise --
+they are never swallowed and logged as a silent success.
+Pass empty paths/content and a `StorageException` is thrown instead.
+
 | Method                                | Returns                              | Description                          |
 | ------------------------------------- | ------------------------------------ | ------------------------------------ |
 | `exists(path)`                        | `Promise<boolean>`                   | Whether the file exists              |
